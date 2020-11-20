@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Spoti-bot": {
+      "commandName": "Project",
+      "commandLineArgs": "host start --port 8443"
+    }
+  }
+}
