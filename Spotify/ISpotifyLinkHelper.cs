@@ -1,6 +1,4 @@
-﻿using Spoti_bot.Spotify.Data;
-
-namespace Spoti_bot.Spotify
+﻿namespace Spoti_bot.Spotify
 {
     public interface ISpotifyLinkHelper
     {
@@ -8,6 +6,7 @@ namespace Spoti_bot.Spotify
         bool HasToSpotifyLink(string text);
         bool HasTrackIdLink(string text);
         string ParseToSpotifyLink(string text);
-        Track ParseTrackId(string text);
+        string ParseTrackId(string text);
+        string GetMarkdownLinkToPlaylist(string text = "");
     }
 }

@@ -8,7 +8,9 @@ using Spoti_bot.Bot;
 using Spoti_bot.Bot.Commands;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
-using Spoti_bot.Spotify.Data;
+using Spoti_bot.Spotify.Data.AuthorizationTokens;
+using Spoti_bot.Spotify.Data.Tracks;
+using Spoti_bot.Spotify.Data.User;
 using Telegram.Bot;
 
 [assembly: FunctionsStartup(typeof(Spoti_bot.Startup))]
@@ -26,7 +28,7 @@ namespace Spoti_bot
             builder.Services
                 .AddOptions()
                 .AddMapper()
-                .AddStorageConnector()
+                .AddStorage()
                 .AddServices();
         }
     }
@@ -56,31 +58,39 @@ namespace Spoti_bot
             services.AddTransient<ISpotifyAuthorizationService, SpotifyAuthorizationService>();
             services.AddTransient<ISpotifyAddTrackService, SpotifyAddTrackService>();
             services.AddTransient<ISpotifyLinkHelper, SpotifyLinkHelper>();
+            services.AddTransient<ISuccessResponseService, SuccessResponseService>();
             services.AddTransient<IAuthorizationTokenRepository, AuthorizationTokenRepository>();
             services.AddTransient<ITrackRepository, TrackRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
+
+            // TODO: only use 1 http client, so inject it here.
+            services.AddSingleton<ISpotifyClientService, SpotifyClientService>();
 
             return services;
         }
 
         /// <summary>
-        /// Add a storage connector, which we can use to interact with objects in our storage.
+        /// Add classes that are needed for data storage.
         /// </summary>
-        /// <param name="services">The service we want to add our storage connector to.</param>
-        public static IServiceCollection AddStorageConnector(this IServiceCollection services)
+        /// <param name="services">The service we want to add our storage to.</param>
+        public static IServiceCollection AddStorage(this IServiceCollection services)
         {
+            // Add the CloudTableClient as a singleton.
             services.AddSingleton((serviceProvider) =>
             {
                 var options = serviceProvider.GetService<IOptions<AzureOptions>>().Value;
 
                 var storageAccount = CloudStorageAccount.Parse(options.StorageAccountConnectionString);
-                return storageAccount.CreateCloudTableClient();
+                var cloudTableClient = storageAccount.CreateCloudTableClient();
+
+                return cloudTableClient;
             });
 
             return services;
         }
 
         /// <summary>
-        /// Add a mapper to our services.
+        /// Add a mapper.
         /// </summary>
         /// <param name="services">The service we want to add our mapper to.</param>
         public static IServiceCollection AddMapper(this IServiceCollection services)
@@ -93,6 +103,7 @@ namespace Spoti_bot
 
         /// <summary>
         /// Get all options from the configuration and bind them to their respective options models.
+        /// The configuration contains the appsettings in Azure, or local.settings.json when running local.
         /// </summary>
         /// <param name="services">The service we want to add our options models to.</param>
         public static IServiceCollection AddOptions(this IServiceCollection services)

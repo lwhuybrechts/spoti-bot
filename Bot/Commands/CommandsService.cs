@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
-using Spoti_bot.Spotify.Data;
+using Spoti_bot.Spotify.Data.Tracks;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,22 +14,22 @@ namespace Spoti_bot.Bot.Commands
     {
         private readonly ISpotifyAuthorizationService _spotifyAuthorizationService;
         private readonly ISendMessageService _sendMessageService;
+        private readonly ISpotifyLinkHelper _spotifyLinkHelper;
         private readonly ITrackRepository _trackRepository;
         private readonly TelegramOptions _telegramOptions;
-        private readonly PlaylistOptions _playlistOptions;
 
         public CommandsService(
             ISpotifyAuthorizationService spotifyAuthorizationService,
             ISendMessageService sendMessageService,
+            ISpotifyLinkHelper spotifyLinkHelper,
             ITrackRepository trackRepository,
-            IOptions<TelegramOptions> telegramOptions,
-            IOptions<PlaylistOptions> playlistOptions)
+            IOptions<TelegramOptions> telegramOptions)
         {
             _spotifyAuthorizationService = spotifyAuthorizationService;
             _sendMessageService = sendMessageService;
+            _spotifyLinkHelper = spotifyLinkHelper;
             _trackRepository = trackRepository;
             _telegramOptions = telegramOptions.Value;
-            _playlistOptions = playlistOptions.Value;
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace Spoti_bot.Bot.Commands
             if (IsCommand(message, Command.Help))
             {
                 var helpText = $"Welcome to Spoti-bot - " +
-                    $"Post links to Spotify tracks in this chat and they will be added to the playlist [{_playlistOptions.Name}]({SpotifyLinkHelper.PlaylistBaseUri}{_playlistOptions.Id}).";
+                    $"Post links to Spotify tracks in this chat and they will be added to the playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist()}.";
                 
                 await _sendMessageService.SendTextMessageAsync(message.Chat.Id, helpText, disableWebPagePreview: false);
                 return true;
@@ -77,7 +77,7 @@ namespace Spoti_bot.Bot.Commands
                 var keyboard = new InlineKeyboardMarkup(InlineKeyboardButton.WithUrl("Login to Spotify", loginUri.ToString()));
 
                 var loginText = $"Please login to authorize Spoti-Bot. " +
-                    $"It needs access to the playlist [{_playlistOptions.Name}]({SpotifyLinkHelper.PlaylistBaseUri}{_playlistOptions.Id}) and to your queue.";
+                    $"It needs access to the playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist()} and to your queue.";
 
                 await _sendMessageService.SendTextMessageAsync(message.Chat.Id, loginText, replyMarkup: keyboard);
                 return true;

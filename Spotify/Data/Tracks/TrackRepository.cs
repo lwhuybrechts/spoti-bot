@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Spoti_bot.Library;
 
-namespace Spoti_bot.Spotify.Data
+namespace Spoti_bot.Spotify.Data.Tracks
 {
     public class TrackRepository : BaseRepository<Track>, ITrackRepository
     {

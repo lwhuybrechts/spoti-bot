@@ -1,10 +1,8 @@
 ﻿using AutoMapper;
-using Microsoft.Extensions.Options;
-using Sentry;
 using Spoti_bot.Bot;
-using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Data;
-using SpotifyAPI.Web;
+using Spoti_bot.Library.Exceptions;
+using Spoti_bot.Spotify.Data.Tracks;
+using Spoti_bot.Spotify.Data.User;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,283 +15,138 @@ namespace Spoti_bot.Spotify
     public class SpotifyAddTrackService : ISpotifyAddTrackService
     {
         private readonly ISendMessageService _sendMessageService;
-        private readonly ISpotifyAuthorizationService _spotifyAuthorizationService;
-        private readonly ISpotifyLinkHelper _spotifyTextHelper;
+        private readonly ISpotifyLinkHelper _spotifyLinkHelper;
+        private readonly ISuccessResponseService _successResponseService;
+        private readonly ISpotifyClientService _spotifyClientService;
         private readonly ITrackRepository _trackRepository;
+        private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        private readonly PlaylistOptions _playlistOptions;
 
-        public SpotifyAddTrackService(ISendMessageService sendMessageService, ISpotifyAuthorizationService spotifyAuthorizationService, ISpotifyLinkHelper spotifyTextHelper, ITrackRepository trackRepository, IMapper mapper, IOptions<PlaylistOptions> playlistOptions)
+        public SpotifyAddTrackService(
+            ISendMessageService sendMessageService,
+            ISpotifyLinkHelper spotifyTextHelper,
+            ISuccessResponseService successResponseService,
+            ISpotifyClientService spotifyClientService,
+            ITrackRepository trackRepository,
+            IUserRepository userRepository,
+            IMapper mapper)
         {
             _sendMessageService = sendMessageService;
-            _spotifyAuthorizationService = spotifyAuthorizationService;
-            _spotifyTextHelper = spotifyTextHelper;
+            _spotifyLinkHelper = spotifyTextHelper;
+            _successResponseService = successResponseService;
+            _spotifyClientService = spotifyClientService;
             _trackRepository = trackRepository;
+            _userRepository = userRepository;
             _mapper = mapper;
-            _playlistOptions = playlistOptions.Value;
         }
 
-        // TODO: refactor some more.
         public async Task<bool> TryAddTrackToPlaylist(Message message)
         {
-            // TODO: inject in Startup.
-            var spotifyClient = await _spotifyAuthorizationService.CreateSpotifyClient();
-
-            // We can't continue if we aren't logged in to the spotify api.
-            if (spotifyClient == null)
+            // We can't continue if we can't use the spotify api.
+            if (!await _spotifyClientService.HasClient())
             {
-                await SendMessageToChat(message, "Spoti-bot is not authorized to add this track to Spotify.");
+                await _sendMessageService.SendTextMessageAsync(message, "Spoti-bot is not authorized to add this track to Spotify.");
                 return false;
             }
 
-            // Parse the track from the message.
-            var track = await ParseTrackFromMessage(message);
-
-            if (track == null)
+            // Parse the trackId from the message.
+            var newTrackId = await ParseTrackIdFromMessage(message);
+            if (newTrackId == null)
             {
-                // If the message does not contain a track, we're done.
-                return true;
+                // This should not happen, so log it to Sentry.
+                throw new TrackIdNullException();
             }
 
             // Get the track from the spotify api.
-            var spotifyTrack = await GetTrackFromSpotify(track, message, spotifyClient);
-
-            if (spotifyTrack == null)
+            var newTrack = await _spotifyClientService.GetTrack(newTrackId, message);
+            if (newTrack == null)
             {
-                await SendMessageToChat(message, $"Track not found in Spotify api :(");
+                await _sendMessageService.SendTextMessageAsync(message, $"Track not found in Spotify api :(");
+                return false;
+            }
+
+            // Get the playlist from the spotify api.
+            var playlist = await _spotifyClientService.GetPlaylist();
+            if (playlist == null)
+            {
+                await _sendMessageService.SendTextMessageAsync(message, $"Playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist()} not found.");
                 return false;
             }
 
             // Get all tracks from storage.
-            // TODO: use Playlist model here.
-            FullPlaylist spotifyPlaylist = null;
             var tracks = await GetTracksFromStorage();
 
             // If the storage is empty, fetch the tracks from spotify api.
             if (!tracks.Any())
             {
-                spotifyPlaylist = await GetPlaylistFromSpotify(spotifyClient);
-                if (spotifyPlaylist == null)
-                {
-                    await SendMessageToChat(message, $"Playlist {GetPlaylistLink()} not found.");
-                    return false;
-                }
-
-                tracks = await FetchAllTracksFromSpotify(spotifyClient, spotifyPlaylist.Tracks);
+                tracks = await _spotifyClientService.GetAllTracks(playlist.Tracks);
                 await SaveTracksToStorage(tracks);
             }
 
             // Check if the track already exists in the playlist.
-            if (tracks.Select(x => x.Id).Contains(track.Id))
+            if (DoesTrackExist(newTrack, tracks))
             {
-                await SendMessageToChat(message, $"This track is already added to the {GetPlaylistLink("playlist")}!");
+                await _sendMessageService.SendTextMessageAsync(message, $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist("playlist")}!");
                 return true;
             }
 
-            // Only fetch the playlist if we didn't already.
-            if (spotifyPlaylist == null)
-                spotifyPlaylist = await GetPlaylistFromSpotify(spotifyClient);
+            // TODO: move to a different service?
+            // Save the user to the storage.
+            var user = _mapper.Map<Data.User.User>(message.From);
+            await _userRepository.Upsert(user);
 
-            if (spotifyPlaylist == null)
+            // If the storage is not up to date with the spotify playlist, sync it.
+            if (IsTrackCountOutOfSync(playlist, tracks))
             {
-                await SendMessageToChat(message, $"Playlist {GetPlaylistLink()} not found.");
-                return false;
-            }
-
-            // If the storage is not up to date, fetch the tracks from spotify api.
-            if (spotifyPlaylist.Tracks.Total.GetValueOrDefault() != tracks.Count)
-            {
-                // TODO: only save/sync differences.
-
-                // Add the tracks to the storage.
-                tracks = await FetchAllTracksFromSpotify(spotifyClient, spotifyPlaylist.Tracks);
-                tracks.Add(track);
+                // Add all tracks to the storage.
+                tracks = await _spotifyClientService.GetAllTracks(playlist.Tracks);
+                tracks.Add(newTrack);
                 await SaveTracksToStorage(tracks);
             }
             else
             {
-                // Add the track to the storage.
-                await SaveTrackToStorage(track);
+                // Add the new track to the storage.
+                await SaveTrackToStorage(newTrack);
             }
 
             // Add the track to our playlist.
-            await AddTrackToSpotifyPlaylist(spotifyClient, track);
+            await _spotifyClientService.AddTrackToPlaylist(newTrack);
 
-            var originalMessageId = message.MessageId;
-            var keyboard = new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData(UpvoteHelper.ButtonText));
-            await SendMessageToChat(message, GetSuccessResponseText(message, spotifyTrack), replyToMessageId: originalMessageId, replyMarkup: keyboard);
-
-
-
-
-            // TODO: testing....
-            var album = await spotifyClient.Albums.Get(spotifyTrack.Album.Id);
-
-            if (album?.Genres?.Count > 0)
-            {
-                var sentryEvent = new SentryEvent
-                {
-                    Message = $"Genres found."
-                };
-                sentryEvent.SetTag("Genres", string.Join(", ", album.Genres));
-
-                SentrySdk.CaptureEvent(sentryEvent);
-            }
+            // Reply that the message has been added successfully.
+            await SendReplyMessage(message, newTrack);
 
             // Add the track to my queue.
-            try
-            {
-                await spotifyClient.Player.AddToQueue(new PlayerAddToQueueRequest($"{SpotifyLinkHelper.TrackInlineBaseUri}{track.Id}"));
-            }
-            catch (APIException exception)
-            {
-                // Adding to the queue only works when I'm playing something in Spotify, else we get an NotFound response.
-                if (exception?.Response?.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    return true;
-
-                throw;
-            }
+            await _spotifyClientService.AddToQueue(newTrack);
 
             return true;
         }
 
-        // TODO: move to SendMessageService as overload?
-        private async Task SendMessageToChat(Message message, string textMessage, int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
+        /// <summary>
+        /// Check if the amount of tracks in the spotify playlist is the same as in a list of tracks.
+        /// </summary>
+        private static bool IsTrackCountOutOfSync(SpotifyAPI.Web.FullPlaylist playlist, List<Track> tracks)
         {
-            await _sendMessageService.SendTextMessageAsync(message.Chat.Id, textMessage, replyToMessageId: replyToMessageId, replyMarkup: replyMarkup);
-        }
-
-        // TODO: move to their own services.
-        private string GetSuccessResponseText(Message message, FullTrack track)
-        {
-            var successMessage = $"Track added to the {GetPlaylistLink("playlist")}!";
-
-            var random = new Random();
-            if (!ShouldAddAwesomeResponse(random))
-                return successMessage;
-
-            var firstName = message?.From?.FirstName;
-
-            if (string.IsNullOrEmpty(firstName))
-                return successMessage;
-
-            return GetRandomAwesomeResponse(random, successMessage, firstName, track);
-        }
-
-        private string GetRandomAwesomeResponse(Random random, string successMessage, string firstName, FullTrack track)
-        {
-            var responses = new List<string>
-            {
-                $"What an absolute banger, {firstName}!",
-                $"Lit af, {firstName}!",
-                $"Nice one {firstName}, thanks for sharing!",
-                $"Dope-ass-beat, {firstName}!",
-                $"This track is the bomb, {firstName}!",
-                $"Thanks {firstName}, I like it a lot!",
-                $"This track is ill af, {firstName}!",
-                $"Neat-o, {firstName}!",
-                $"Right on, {firstName}!",
-                $"Oh my goodness, I love it {firstName}!",
-                $"Ooooh yes, that is really swell {firstName}.",
-                "BOUNCE!"
-            };
-
-            var firstArtistName = track?.Artists?.FirstOrDefault()?.Name;
-            if (!string.IsNullOrEmpty(firstArtistName))
-                responses.Add($"Always love me some {firstArtistName}!");
-
-            var albumName = track?.Album?.Name;
-            if (!string.IsNullOrEmpty(albumName))
-                responses.Add($"Also check out it's album, {albumName}.");
-
-            return $"{successMessage} {responses[random.Next(0, responses.Count)]}";
+            return playlist.Tracks.Total.GetValueOrDefault() != tracks.Count;
         }
 
         /// <summary>
-        /// Sometimes we want to add an awesome response to the successText, but not always since that might get lame.
+        /// Check if the track already exists in our list or tracks.
         /// </summary>
-        private static bool ShouldAddAwesomeResponse(Random random)
+        private static bool DoesTrackExist(Track newTrack, List<Track> tracks)
         {
-            // 1 in 5 chance we add an awesome response.
-            return random.Next(0, 5) == 0;
+            return tracks.Select(x => x.Id).Contains(newTrack.Id);
         }
 
-        private async Task<FullTrack> GetTrackFromSpotify(Track trackId, Message message, ISpotifyClient spotifyClient)
+        /// <summary>
+        /// Reply when a track has been added to our playlist.
+        /// </summary>
+        private async Task SendReplyMessage(Message message, Track track)
         {
-            try
-            {
-                return await spotifyClient.Tracks.Get(trackId.Id);
-            }
-            catch (APIException exception)
-            {
-                if (exception.Message == "invalid id")
-                    await _sendMessageService.SendTextMessageAsync(message.Chat.Id, $"Track not found in Spotify api :(");
-
-                SentrySdk.CaptureException(exception);
-                return null;
-            }
-        }
-
-        private async Task<FullPlaylist> GetPlaylistFromSpotify(ISpotifyClient spotifyClient)
-        {
-            // TODO: catch exception and return null.
-            return await spotifyClient.Playlists.Get(_playlistOptions.Id);
-        }
-
-        private async Task<List<Track>> FetchAllTracksFromSpotify(ISpotifyClient spotifyClient, Paging<PlaylistTrack<IPlayableItem>> firstPage)
-        {
-            var playlistTracks = await spotifyClient.PaginateAll(firstPage);
-            var fullTracks = playlistTracks.Select(x => x.Track as FullTrack).ToList();
-
-            // TODO: handle exception?
-
-            return _mapper.Map<List<Track>>(fullTracks);
-        }
-
-        private async Task AddTrackToSpotifyPlaylist(ISpotifyClient spotifyClient, Track track)
-        {
-            // Add the track to our playlist.
-            await spotifyClient.Playlists.AddItems(_playlistOptions.Id, new PlaylistAddItemsRequest(new List<string> { $"{SpotifyLinkHelper.TrackInlineBaseUri}{track.Id}" }));
-        }
-
-        private async Task<Track> ParseTrackFromMessage(Message message)
-        {
-            // First, check for a "classic" spotify url.
-            if (_spotifyTextHelper.HasTrackIdLink(message.Text))
-                return _spotifyTextHelper.ParseTrackId(message.Text);
-
-            // If there is no "new" linkto spotify url, we can't find the trackId.
-            if (!_spotifyTextHelper.HasToSpotifyLink(message.Text))
-                return null;
-
-            var linkToUri = _spotifyTextHelper.ParseToSpotifyLink(message.Text);
-            var trackUri = await RequestTrackUri(linkToUri);
-
-            if (_spotifyTextHelper.HasTrackIdLink(trackUri))
-                return _spotifyTextHelper.ParseTrackId(trackUri);
-
-            return null;
-        }
-
-        private async Task<string> RequestTrackUri(string linkToUri)
-        {
-            // TODO: reuse httpclient from startup.
-            var client = new System.Net.Http.HttpClient();
+            var originalMessageId = message.MessageId;
+            var keyboard = new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData(UpvoteHelper.ButtonText));
+            var successText = _successResponseService.GetSuccessResponseText(message, track);
             
-            // TODO: currently we get a badrequest, but the trackUri we're looking for is in it's request.
-            // This feels pretty hacky, not sure if it will keep working in the future.
-            var response = await client.GetAsync(linkToUri);
-            var trackUri = response?.RequestMessage?.RequestUri?.AbsoluteUri ?? "";
-
-            return trackUri;
-        }
-
-        private string GetPlaylistLink(string text = "")
-        {
-            if (string.IsNullOrEmpty(text))
-                text = _playlistOptions.Name;
-
-            return $"[{text}]({SpotifyLinkHelper.PlaylistBaseUri}{_playlistOptions.Id})";
+            await _sendMessageService.SendTextMessageAsync(message, successText, replyToMessageId: originalMessageId, replyMarkup: keyboard);
         }
 
         private async Task<List<Track>> GetTracksFromStorage()
@@ -309,6 +162,41 @@ namespace Spoti_bot.Spotify
         private async Task SaveTrackToStorage(Track track)
         {
             await _trackRepository.Upsert(track);
+        }
+
+        // TODO: move to SpotifyLinkHelper, what to do with httpClient dependency?
+        private async Task<string> ParseTrackIdFromMessage(Message message)
+        {
+            // Check for a "classic" spotify url.
+            if (_spotifyLinkHelper.HasTrackIdLink(message.Text))
+                return _spotifyLinkHelper.ParseTrackId(message.Text);
+
+            // Check for a "linkto" spotify url.
+            if (_spotifyLinkHelper.HasToSpotifyLink(message.Text))
+            {
+                var linkToUri = _spotifyLinkHelper.ParseToSpotifyLink(message.Text);
+                
+                // Get the trackUri from the linkToUri.
+                var trackUri = await RequestTrackUri(linkToUri);
+
+                if (_spotifyLinkHelper.HasTrackIdLink(trackUri))
+                    return _spotifyLinkHelper.ParseTrackId(trackUri);
+            }
+
+            return null;
+        }
+
+        private async Task<string> RequestTrackUri(string linkToUri)
+        {
+            // TODO: reuse httpclient from startup.
+            var client = new System.Net.Http.HttpClient();
+            
+            // TODO: currently we get a badrequest, but the trackUri we're looking for is in it's request.
+            // This feels pretty hacky, not sure if it will keep working in the future.
+            var response = await client.GetAsync(linkToUri);
+            var trackUri = response?.RequestMessage?.RequestUri?.AbsoluteUri ?? "";
+
+            return trackUri;
         }
     }
 }

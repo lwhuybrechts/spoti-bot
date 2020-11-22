@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Data;
+using Spoti_bot.Spotify.Data.AuthorizationTokens;
 using SpotifyAPI.Web;
 using System;
 using System.Threading.Tasks;
@@ -41,6 +41,7 @@ namespace Spoti_bot.Spotify
             // Map the token to a model the Spotify library can work with.
             var tokenResponse = _mapper.Map<AuthorizationCodeTokenResponse>(token);
 
+            // TODO: inject singleton httpclient from startup.
             var config = SpotifyClientConfig
                 .CreateDefault()
                 .WithAuthenticator(new AuthorizationCodeAuthenticator(_spotifyOptions.ClientId, _spotifyOptions.Secret, tokenResponse))

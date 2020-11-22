@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using System;
 
-namespace Spoti_bot.Spotify.Data
+namespace Spoti_bot.Spotify.Data.AuthorizationTokens
 {
     public class AuthorizationToken : TableEntity
     {
