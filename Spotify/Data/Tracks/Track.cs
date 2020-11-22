@@ -8,5 +8,6 @@ namespace Spoti_bot.Spotify.Data.Tracks
         public string Name { get; set; }
         public string FirstArtistName { get; set; }
         public string AlbumName { get; set; }
+        public int AddedByTelegramUserId { get; set; }
     }
 }

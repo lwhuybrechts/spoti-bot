@@ -51,12 +51,14 @@ namespace Spoti_bot.Spotify
             }
 
             // Get the track from the spotify api.
-            var newTrack = await _spotifyClientService.GetTrack(newTrackId, message);
+            var newTrack = await _spotifyClientService.GetTrack(newTrackId);
             if (newTrack == null)
             {
                 await _sendMessageService.SendTextMessageAsync(message, $"Track not found in Spotify api :(");
                 return false;
             }
+            
+            newTrack.AddedByTelegramUserId = message.From.Id;
 
             // Add the track to the playlist.
             await _trackRepository.Upsert(newTrack);

@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
 using Sentry;
-using Spoti_bot.Bot;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify.Data.Tracks;
 using SpotifyAPI.Web;
@@ -9,14 +8,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Telegram.Bot.Types;
 
 namespace Spoti_bot.Spotify
 {
     public class SpotifyClientService : ISpotifyClientService
     {
         private readonly ISpotifyAuthorizationService _spotifyAuthorizationService;
-        private readonly ISendMessageService _sendMessageService;
         private readonly IMapper _mapper;
         private readonly PlaylistOptions _playlistOptions;
 
@@ -26,12 +23,10 @@ namespace Spoti_bot.Spotify
 
         public SpotifyClientService(
             ISpotifyAuthorizationService spotifyAuthorizationService,
-            ISendMessageService sendMessageService,
             IMapper mapper,
             IOptions<PlaylistOptions> playlistOptions)
         {
             _spotifyAuthorizationService = spotifyAuthorizationService;
-            _sendMessageService = sendMessageService;
             _mapper = mapper;
             _playlistOptions = playlistOptions.Value;
 
@@ -47,7 +42,7 @@ namespace Spoti_bot.Spotify
             return await _spotifyClient.Value != null;
         }
 
-        public async Task<Track> GetTrack(string trackId, Message message)
+        public async Task<Track> GetTrack(string trackId)
         {
             var client = await _spotifyClient.Value;
 
@@ -58,10 +53,6 @@ namespace Spoti_bot.Spotify
             }
             catch (APIException exception)
             {
-                if (exception.Message == "invalid id")
-                    // TODO: remove this dependency from this class.
-                    await _sendMessageService.SendTextMessageAsync(message.Chat.Id, $"Track not found in Spotify api :(");
-
                 SentrySdk.CaptureException(exception);
                 return null;
             }
