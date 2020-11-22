@@ -36,6 +36,7 @@ namespace Spoti_bot.Spotify.Data
                 // Make sure the RowKey is filled with the TrackId.
                 .ForMember(destination => destination.RowKey, options => options.MapFrom(source => source.Id))
                 .ForMember(destination => destination.Id, options => options.MapFrom(source => source.Id))
+                .ForMember(destination => destination.Name, options => options.MapFrom(source => source.Name))
                 .ForMember(destination => destination.FirstArtistName, options => options.MapFrom(source => source.Artists.FirstOrDefault().Name))
                 .ForMember(destination => destination.AlbumName, options => options.MapFrom(source => source.Album.Name))
                 .ForAllOtherMembers(memberOptions => memberOptions.Ignore());

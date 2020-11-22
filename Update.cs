@@ -51,12 +51,12 @@ namespace Spoti_bot
                 catch (Exception exception)
                 {
                     SentrySdk.CaptureException(exception);
-                    
+
                     // Don't send a message to the chat, since it can create a lot of spam.
+
+                    return new OkResult();
                 }
             }
-
-            return new OkResult();
         }
 
         private async Task<string> GetRequestBody(HttpRequest httpRequest)
