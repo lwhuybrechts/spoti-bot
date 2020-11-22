@@ -88,7 +88,7 @@ namespace Spoti_bot.Spotify
         {
             var baseUri = new Uri(_azureOptions.FunctionAppUrl);
 
-            return new Uri(baseUri, $"api/{nameof(Callback)}");
+            return new Uri(baseUri, $"api/{nameof(Callback).ToLower()}");
         }
     }
 }

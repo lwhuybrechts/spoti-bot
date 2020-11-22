@@ -38,6 +38,7 @@ namespace Spoti_bot.Spotify
             if (await _trackRepository.Get(newTrackId) != null)
             {
                 await _sendMessageService.SendTextMessageAsync(message, $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist("playlist")}!");
+                
                 // The track is already in the playlist, so return true.
                 return true;
             }
