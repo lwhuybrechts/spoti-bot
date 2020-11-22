@@ -6,11 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Bot;
 using Spoti_bot.Bot.Commands;
+using Spoti_bot.Bot.Data.User;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
 using Spoti_bot.Spotify.Data.AuthorizationTokens;
 using Spoti_bot.Spotify.Data.Tracks;
-using Spoti_bot.Spotify.Data.User;
 using Telegram.Bot;
 
 [assembly: FunctionsStartup(typeof(Spoti_bot.Startup))]
@@ -44,6 +44,7 @@ namespace Spoti_bot
             services.AddTransient<IHandleMessageService, HandleMessageService>();
             services.AddTransient<IHandleCallbackQueryService, HandleCallbackQueryService>();
             services.AddTransient<ISendMessageService, SendMessageService>();
+            services.AddTransient<IUserService, UserService>();
             services.AddTransient<IUpvoteHelper, UpvoteHelper>();
 
             // TODO: only use 1 http client, so inject it here.
@@ -56,7 +57,8 @@ namespace Spoti_bot
 
             // Spotify dependencies.
             services.AddTransient<ISpotifyAuthorizationService, SpotifyAuthorizationService>();
-            services.AddTransient<ISpotifyAddTrackService, SpotifyAddTrackService>();
+            services.AddTransient<IAddTrackService, AddTrackService>();
+            services.AddTransient<ISyncTracksService, SyncTracksService>();
             services.AddTransient<ISpotifyLinkHelper, SpotifyLinkHelper>();
             services.AddTransient<ISuccessResponseService, SuccessResponseService>();
             services.AddTransient<IAuthorizationTokenRepository, AuthorizationTokenRepository>();

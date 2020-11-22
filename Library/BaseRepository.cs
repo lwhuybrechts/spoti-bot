@@ -51,6 +51,24 @@ namespace Spoti_bot.Library
             return await ExecuteSegmentedQueries(query);
         }
 
+        public async Task<List<string>> GetAllRowKeys(string partitionKey = "")
+        {
+            // Make sure the PartitionKey is set.
+            if (string.IsNullOrEmpty(partitionKey))
+                partitionKey = _defaultPartitionKey;
+
+            // Create a dynamic query that only selects RowKeys.
+            var tableQuery = new TableQuery<DynamicTableEntity>()
+                .Where(TableQuery.GenerateFilterCondition(nameof(TableEntity.PartitionKey), QueryComparisons.Equal, partitionKey))
+                .Select(new string[] { nameof(TableEntity.RowKey) });
+
+            // Resolve the query results by returning the RowKey value.
+            EntityResolver<string> resolver = (partitionKey, rowKey, timestamp, properties, etag) =>
+                properties.ContainsKey(nameof(TableEntity.RowKey)) ? properties[nameof(TableEntity.RowKey)].StringValue : null;
+
+            return await ExecuteDynamicSegmentedQueries(tableQuery, resolver);
+        }
+
         public async Task<T> Upsert(T item)
         {
             AddMissingPartitionKey(item);
@@ -118,6 +136,36 @@ namespace Spoti_bot.Library
             {
                 // Retrieve a segment (up to 1000 entities).
                 var tableQueryResult = await _cloudTable.ExecuteQuerySegmentedAsync(query, continuationToken);
+
+                items.AddRange(tableQueryResult.Results);
+
+                // Assign the new continuation token to tell the service where to continue on the next iteration (or null if it has reached the end).
+                continuationToken = tableQueryResult.ContinuationToken;
+
+                // Loop until a null continuation token is received, indicating the end of the table.
+            } while (continuationToken != null);
+
+            return items;
+        }
+
+        /// <summary>
+        /// Execute a dynamic query in multiple parts and return the combined results.
+        /// If there are less than 1000 entities only one query is used.
+        /// </summary>
+        /// <typeparam name="TModel">The type we want to resolve the query results to.</typeparam>
+        /// <param name="dynamicTableQuery">The dynamic query to execute.</param>
+        /// <param name="resolver">The resolver that maps the query result to <typeparamref name="TModel">TModel</typeparamref>.</param>
+        private async Task<List<TModel>> ExecuteDynamicSegmentedQueries<TModel>(TableQuery<DynamicTableEntity> dynamicTableQuery, EntityResolver<TModel> resolver)
+        {
+            var items = new List<TModel>();
+
+            // Initialize the continuation token to null to start from the beginning of the table.
+            TableContinuationToken continuationToken = null;
+
+            do
+            {
+                // Retrieve a segment (up to 1000 entities).
+                var tableQueryResult = await _cloudTable.ExecuteQuerySegmentedAsync(dynamicTableQuery, resolver, continuationToken);
 
                 items.AddRange(tableQueryResult.Results);
 

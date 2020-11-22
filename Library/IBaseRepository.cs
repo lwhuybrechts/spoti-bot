@@ -8,6 +8,7 @@ namespace Spoti_bot.Library
     {
         Task<T> Get(string rowKey, string partitionKey = "");
         Task<List<T>> GetAll();
+        Task<List<string>> GetAllRowKeys(string partitionKey = "");
         Task<T> Upsert(T item);
         Task Upsert(List<T> items);
         Task Delete(T item);

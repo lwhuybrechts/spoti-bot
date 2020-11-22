@@ -3,7 +3,7 @@ using Telegram.Bot.Types;
 
 namespace Spoti_bot.Spotify
 {
-    public interface ISpotifyAddTrackService
+    public interface IAddTrackService
     {
         Task<bool> TryAddTrackToPlaylist(Message message);
     }

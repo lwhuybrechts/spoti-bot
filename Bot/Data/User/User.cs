@@ -1,6 +1,6 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 
-namespace Spoti_bot.Spotify.Data.User
+namespace Spoti_bot.Bot.Data.User
 {
     public class User : TableEntity
     {

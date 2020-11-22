@@ -9,16 +9,19 @@ namespace Spoti_bot.Bot
     public class HandleMessageService : IHandleMessageService
     {
         private readonly ICommandsService _commandsService;
-        private readonly ISpotifyAddTrackService _spotifyAddTrackService;
+        private readonly IAddTrackService _spotifyAddTrackService;
+        private readonly IUserService _userService;
         private readonly ISpotifyLinkHelper _spotifyTextHelper;
 
         public HandleMessageService(
             ICommandsService commandsService,
-            ISpotifyAddTrackService spotifyAddTrackService,
+            IAddTrackService spotifyAddTrackService,
+            IUserService userService,
             ISpotifyLinkHelper spotifyTextHelper)
         {
             _commandsService = commandsService;
             _spotifyAddTrackService = spotifyAddTrackService;
+            _userService = userService;
             _spotifyTextHelper = spotifyTextHelper;
         }
 
@@ -34,7 +37,12 @@ namespace Spoti_bot.Bot
 
             // Try to add a spotify track url that was in the message to the playlist.
             if (await _spotifyAddTrackService.TryAddTrackToPlaylist(update.Message))
+            {
+                // Save users that added tracks to the playlist.
+                await _userService.SaveUser(update.Message);
+
                 return true;
+            }
 
             // This should never happen.
             throw new MessageNotHandledException();

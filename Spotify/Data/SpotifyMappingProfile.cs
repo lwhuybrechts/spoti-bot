@@ -46,7 +46,7 @@ namespace Spoti_bot.Spotify.Data
                 .ForMember(destination => destination.Id, options => options.MapFrom(source => source))
                 .ForAllOtherMembers(memberOptions => memberOptions.Ignore());
 
-            CreateMap<Telegram.Bot.Types.User, User.User>()
+            CreateMap<Telegram.Bot.Types.User, Bot.Data.User.User>()
                 // Make sure the RowKey is filled with the Telegram User Id.
                 .ForMember(destination => destination.RowKey, options => options.MapFrom(source => source.Id))
                 .ForMember(destination => destination.Id, options => options.MapFrom(source => source.Id))

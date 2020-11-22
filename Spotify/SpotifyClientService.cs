@@ -91,7 +91,7 @@ namespace Spoti_bot.Spotify
         {
             var client = await _spotifyClient.Value;
 
-            // Add the track to our playlist.
+            // Add the track to the playlist.
             await client.Playlists.AddItems(_playlistOptions.Id, new PlaylistAddItemsRequest(new List<string>
             {
                 $"{_trackInlineBaseUri}{track.Id}"
