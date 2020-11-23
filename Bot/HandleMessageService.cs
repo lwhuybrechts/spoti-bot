@@ -40,7 +40,7 @@ namespace Spoti_bot.Bot
             if (await _spotifyAddTrackService.TryAddTrackToPlaylist(update.Message))
             {
                 // Save users that added tracks to the playlist.
-                await _userService.SaveUser(update.Message);
+                await _userService.SaveUser(update.Message.From);
 
                 return true;
             }

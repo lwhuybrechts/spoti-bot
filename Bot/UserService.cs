@@ -1,8 +1,7 @@
 ﻿using AutoMapper;
-using Spoti_bot.Bot.Data.User;
+using Spoti_bot.Bot.Data.Users;
 using Spoti_bot.Bot.Interfaces;
 using System.Threading.Tasks;
-using Telegram.Bot.Types;
 
 namespace Spoti_bot.Bot
 {
@@ -17,10 +16,10 @@ namespace Spoti_bot.Bot
             _mapper = mapper;
         }
 
-        public async Task<Data.User.User> SaveUser(Message message)
+        public async Task<User> SaveUser(Telegram.Bot.Types.User telegramUser)
         {
             // Save the user to the storage.
-            var user = _mapper.Map<Data.User.User>(message.From);
+            var user = _mapper.Map<User>(telegramUser);
 
             return await _userRepository.Upsert(user);
         }

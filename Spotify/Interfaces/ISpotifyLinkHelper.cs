@@ -1,12 +1,11 @@
-﻿namespace Spoti_bot.Spotify.Interfaces
+﻿using System.Threading.Tasks;
+
+namespace Spoti_bot.Spotify.Interfaces
 {
     public interface ISpotifyLinkHelper
     {
-        bool HasAnySpotifyLink(string text);
-        bool HasToSpotifyLink(string text);
-        bool HasTrackIdLink(string text);
-        string ParseToSpotifyLink(string text);
-        string ParseTrackId(string text);
         string GetMarkdownLinkToPlaylist(string text = "");
+        bool HasAnySpotifyLink(string text);
+        Task<string> ParseTrackId(string text);
     }
 }

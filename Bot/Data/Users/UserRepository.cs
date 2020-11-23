@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 using Spoti_bot.Library;
 
-namespace Spoti_bot.Bot.Data.User
+namespace Spoti_bot.Bot.Data.Users
 {
     public class UserRepository : BaseRepository<User>, IUserRepository
     {

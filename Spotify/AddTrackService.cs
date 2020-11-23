@@ -1,6 +1,5 @@
 ﻿using Spoti_bot.Bot;
 using Spoti_bot.Bot.Interfaces;
-using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Spotify.Data.Tracks;
 using Spoti_bot.Spotify.Interfaces;
 using System.Threading.Tasks;
@@ -34,7 +33,7 @@ namespace Spoti_bot.Spotify
         public async Task<bool> TryAddTrackToPlaylist(Message message)
         {
             // Parse the trackId from the message.
-            var newTrackId = await ParseTrackIdFromMessage(message);
+            var newTrackId = await _spotifyLinkHelper.ParseTrackId(message.Text);
 
             // Check if the track already exists in the playlist.
             if (await _trackRepository.Get(newTrackId) != null)
@@ -81,46 +80,10 @@ namespace Spoti_bot.Spotify
         private async Task SendReplyMessage(Message message, Track track)
         {
             var originalMessageId = message.MessageId;
-            var keyboard = new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData(UpvoteHelper.ButtonText));
+            var keyboard = new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData(UpvoteTextHelper.ButtonText));
             var successText = _successResponseService.GetSuccessResponseText(message, track);
             
             await _sendMessageService.SendTextMessageAsync(message, successText, replyToMessageId: originalMessageId, replyMarkup: keyboard);
-        }
-
-        // TODO: move to SpotifyLinkHelper, what to do with httpClient dependency?
-        private async Task<string> ParseTrackIdFromMessage(Message message)
-        {
-            // Check for a "classic" spotify url.
-            if (_spotifyLinkHelper.HasTrackIdLink(message.Text))
-                return _spotifyLinkHelper.ParseTrackId(message.Text);
-
-            // Check for a "linkto" spotify url.
-            if (_spotifyLinkHelper.HasToSpotifyLink(message.Text))
-            {
-                var linkToUri = _spotifyLinkHelper.ParseToSpotifyLink(message.Text);
-                
-                // Get the trackUri from the linkToUri.
-                var trackUri = await RequestTrackUri(linkToUri);
-
-                if (_spotifyLinkHelper.HasTrackIdLink(trackUri))
-                    return _spotifyLinkHelper.ParseTrackId(trackUri);
-            }
-
-            // This should not happen, so log it to Sentry.
-            throw new TrackIdNullException();
-        }
-
-        private async Task<string> RequestTrackUri(string linkToUri)
-        {
-            // TODO: reuse httpclient from startup.
-            var client = new System.Net.Http.HttpClient();
-            
-            // TODO: currently we get a badrequest, but the trackUri we're looking for is in it's request.
-            // This feels pretty hacky, not sure if it will keep working in the future.
-            var response = await client.GetAsync(linkToUri);
-            var trackUri = response?.RequestMessage?.RequestUri?.AbsoluteUri ?? "";
-
-            return trackUri;
         }
     }
 }

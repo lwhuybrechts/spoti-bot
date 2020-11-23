@@ -6,7 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Bot;
 using Spoti_bot.Bot.Commands;
-using Spoti_bot.Bot.Data.User;
+using Spoti_bot.Bot.Data.Upvotes;
+using Spoti_bot.Bot.Data.Users;
 using Spoti_bot.Bot.Interfaces;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
@@ -47,7 +48,10 @@ namespace Spoti_bot
             services.AddTransient<IHandleCallbackQueryService, HandleCallbackQueryService>();
             services.AddTransient<ISendMessageService, SendMessageService>();
             services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IUpvoteHelper, UpvoteHelper>();
+            services.AddTransient<IUpvoteService, UpvoteService>();
+            services.AddTransient<IUpvoteTextHelper, UpvoteTextHelper>();
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<IUpvoteRepository, UpvoteRepository>();
 
             // TODO: only use 1 http client, so inject it here.
             services.AddSingleton<ITelegramBotClient>((serviceProvider) =>
@@ -65,7 +69,6 @@ namespace Spoti_bot
             services.AddTransient<ISuccessResponseService, SuccessResponseService>();
             services.AddTransient<IAuthorizationTokenRepository, AuthorizationTokenRepository>();
             services.AddTransient<ITrackRepository, TrackRepository>();
-            services.AddTransient<IUserRepository, UserRepository>();
 
             // TODO: only use 1 http client, so inject it here.
             services.AddSingleton<ISpotifyClientService, SpotifyClientService>();

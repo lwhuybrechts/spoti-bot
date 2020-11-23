@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using Telegram.Bot.Types;
+﻿using Spoti_bot.Bot.Data.Users;
+using System.Threading.Tasks;
 
 namespace Spoti_bot.Bot.Interfaces
 {
     public interface IUserService
     {
-        Task<Data.User.User> SaveUser(Message message);
+        Task<User> SaveUser(Telegram.Bot.Types.User telegramUser);
     }
 }

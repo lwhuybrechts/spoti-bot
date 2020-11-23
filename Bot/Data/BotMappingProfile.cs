@@ -8,7 +8,7 @@ namespace Spoti_bot.Bot.Data
         {
             // All properties are explicitly mapped to improve traceability, non explicitly mapped properties are ignored.
 
-            CreateMap<Telegram.Bot.Types.User, User.User>()
+            CreateMap<Telegram.Bot.Types.User, Users.User>()
                 // Make sure the RowKey is filled with the Telegram User Id.
                 .ForMember(destination => destination.RowKey, options => options.MapFrom(source => source.Id))
                 .ForMember(destination => destination.Id, options => options.MapFrom(source => source.Id))

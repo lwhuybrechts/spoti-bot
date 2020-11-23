@@ -1,10 +1,16 @@
 ﻿using Microsoft.Azure.Cosmos.Table;
 
-namespace Spoti_bot.Bot.Data.User
+namespace Spoti_bot.Bot.Data.Users
 {
     public class User : TableEntity
     {
-        public string Id { get; set; }
+        [IgnoreProperty]
+        public string Id
+        {
+            get { return RowKey; }
+            set { RowKey = value; }
+        }
+
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string UserName { get; set; }
