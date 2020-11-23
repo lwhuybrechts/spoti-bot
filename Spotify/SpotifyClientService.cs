@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Sentry;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify.Data.Tracks;
+using Spoti_bot.Spotify.Interfaces;
 using SpotifyAPI.Web;
 using System;
 using System.Collections.Generic;

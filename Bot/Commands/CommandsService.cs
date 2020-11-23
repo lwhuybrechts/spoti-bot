@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
+using Spoti_bot.Bot.Interfaces;
 using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify;
+using Spoti_bot.Spotify.Interfaces;
 using System;
 using System.Linq;
 using System.Threading.Tasks;

@@ -1,4 +1,5 @@
 ﻿using Spoti_bot.Spotify.Data.Tracks;
+using Spoti_bot.Spotify.Interfaces;
 using System;
 using System.Collections.Generic;
 using Telegram.Bot.Types;

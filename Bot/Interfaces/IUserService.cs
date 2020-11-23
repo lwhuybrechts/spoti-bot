@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
-namespace Spoti_bot.Bot
+namespace Spoti_bot.Bot.Interfaces
 {
     public interface IUserService
     {

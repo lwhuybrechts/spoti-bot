@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify.Data.AuthorizationTokens;
+using Spoti_bot.Spotify.Interfaces;
 using SpotifyAPI.Web;
 using System;
 using System.Threading.Tasks;

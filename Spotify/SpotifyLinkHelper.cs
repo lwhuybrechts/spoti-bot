@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Options;
+using Spoti_bot.Spotify.Interfaces;
 using System.Text.RegularExpressions;
 
 namespace Spoti_bot.Spotify

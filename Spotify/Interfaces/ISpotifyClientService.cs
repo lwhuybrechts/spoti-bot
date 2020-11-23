@@ -3,7 +3,7 @@ using SpotifyAPI.Web;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify
+namespace Spoti_bot.Spotify.Interfaces
 {
     public interface ISpotifyClientService
     {

@@ -5,11 +5,11 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using System;
 using Sentry;
-using Spoti_bot.Bot;
 using System.IO;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
 using Newtonsoft.Json;
+using Spoti_bot.Bot.Interfaces;
 
 namespace Spoti_bot
 {

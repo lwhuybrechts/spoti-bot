@@ -1,4 +1,4 @@
-﻿namespace Spoti_bot.Spotify
+﻿namespace Spoti_bot.Spotify.Interfaces
 {
     public interface ISpotifyLinkHelper
     {

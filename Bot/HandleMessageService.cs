@@ -1,6 +1,7 @@
 ﻿using Spoti_bot.Bot.Commands;
+using Spoti_bot.Bot.Interfaces;
 using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Spotify;
+using Spoti_bot.Spotify.Interfaces;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.Enums;
 

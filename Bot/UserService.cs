@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Spoti_bot.Bot.Data.User;
+using Spoti_bot.Bot.Interfaces;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 

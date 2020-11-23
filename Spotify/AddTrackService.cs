@@ -1,6 +1,8 @@
 ﻿using Spoti_bot.Bot;
+using Spoti_bot.Bot.Interfaces;
 using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Spotify.Data.Tracks;
+using Spoti_bot.Spotify.Interfaces;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;

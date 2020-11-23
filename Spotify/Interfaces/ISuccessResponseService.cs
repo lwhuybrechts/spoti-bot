@@ -1,7 +1,7 @@
 ﻿using Spoti_bot.Spotify.Data.Tracks;
 using Telegram.Bot.Types;
 
-namespace Spoti_bot.Spotify
+namespace Spoti_bot.Spotify.Interfaces
 {
     public interface ISuccessResponseService
     {

@@ -5,9 +5,9 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using System;
 using Sentry;
-using Spoti_bot.Spotify;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
+using Spoti_bot.Spotify.Interfaces;
 
 namespace Spoti_bot
 {

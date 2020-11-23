@@ -1,4 +1,4 @@
-﻿namespace Spoti_bot.Bot
+﻿namespace Spoti_bot.Bot.Interfaces
 {
     public interface IUpvoteHelper
     {

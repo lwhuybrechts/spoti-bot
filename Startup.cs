@@ -7,10 +7,12 @@ using Microsoft.Extensions.Options;
 using Spoti_bot.Bot;
 using Spoti_bot.Bot.Commands;
 using Spoti_bot.Bot.Data.User;
+using Spoti_bot.Bot.Interfaces;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
 using Spoti_bot.Spotify.Data.AuthorizationTokens;
 using Spoti_bot.Spotify.Data.Tracks;
+using Spoti_bot.Spotify.Interfaces;
 using Telegram.Bot;
 
 [assembly: FunctionsStartup(typeof(Spoti_bot.Startup))]
