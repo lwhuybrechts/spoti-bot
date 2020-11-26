@@ -10,6 +10,7 @@ using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
 using Newtonsoft.Json;
 using Spoti_bot.Bot.Interfaces;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace Spoti_bot
 {
@@ -27,7 +28,7 @@ namespace Spoti_bot
         }
 
         [FunctionName(nameof(Update))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest httpRequest)
+        public async Task<IStatusCodeActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest httpRequest)
         {
             var requestBody = await GetRequestBody(httpRequest);
 

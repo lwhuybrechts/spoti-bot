@@ -8,6 +8,7 @@ using Sentry;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Spotify.Interfaces;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 
 namespace Spoti_bot
 {
@@ -23,7 +24,7 @@ namespace Spoti_bot
         }
 
         [FunctionName(nameof(Callback))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest httpRequest)
+        public async Task<IStatusCodeActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest httpRequest)
         {
             // Setup exception handling.
             using (new SentryExceptionHandler(_sentryOptions.Dsn))
