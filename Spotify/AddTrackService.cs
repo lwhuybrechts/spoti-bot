@@ -2,6 +2,7 @@
 using Spoti_bot.Bot.Interfaces;
 using Spoti_bot.Spotify.Data.Tracks;
 using Spoti_bot.Spotify.Interfaces;
+using System;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -58,7 +59,8 @@ namespace Spoti_bot.Spotify
                 await _sendMessageService.SendTextMessageAsync(message, $"Track not found in Spotify api :(");
                 return false;
             }
-            
+
+            newTrack.CreatedAt = DateTimeOffset.UtcNow;
             newTrack.AddedByTelegramUserId = message.From.Id;
 
             // Add the track to the playlist.

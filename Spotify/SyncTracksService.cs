@@ -32,6 +32,7 @@ namespace Spoti_bot.Spotify
 
             var tracksFromSpotify = await GetTracksFromSpotify(playlist);
 
+            // TODO: this removes any properties that are not in the spotify tracks :(
             if (tracksFromSpotify.Any())
                 await SaveTracksToStorage(tracksFromSpotify);
 

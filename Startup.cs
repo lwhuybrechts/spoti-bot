@@ -36,6 +36,9 @@ namespace Spoti_bot
         }
     }
 
+    /// <summary>
+    /// Extension methods that group all dependencies in a logical way.
+    /// </summary>
     public static class ServiceExtensions
     {
         public static IServiceCollection AddServices(this IServiceCollection services)
