@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Bot;
 using Spoti_bot.Bot.Commands;
@@ -10,7 +8,6 @@ using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify.Data.Tracks;
 using Spoti_bot.Spotify.Interfaces;
 using System.IO;
-using System.Net;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -53,7 +50,7 @@ namespace Spoti_bot.IntegrationTests
             var result = await _sut.Run(httpContext.Request);
 
             // Assert.
-            AssertBotResponseCode(BotResponseCode.NoAction, result);
+            AssertHelper.Equal(BotResponseCode.NoAction, result);
         }
 
         [Fact]
@@ -67,7 +64,7 @@ namespace Spoti_bot.IntegrationTests
             var result = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertBotResponseCode(BotResponseCode.TestCommandHandled, result);
+            AssertHelper.Equal(BotResponseCode.TestCommandHandled, result);
         }
 
         [Fact]
@@ -81,7 +78,7 @@ namespace Spoti_bot.IntegrationTests
             var result = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertBotResponseCode(BotResponseCode.HelpCommandHandled, result);
+            AssertHelper.Equal(BotResponseCode.HelpCommandHandled, result);
         }
 
         [Fact]
@@ -95,7 +92,7 @@ namespace Spoti_bot.IntegrationTests
             var result = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertBotResponseCode(BotResponseCode.GetLoginLinkCommandHandled, result);
+            AssertHelper.Equal(BotResponseCode.GetLoginLinkCommandHandled, result);
         }
 
 
@@ -112,7 +109,7 @@ namespace Spoti_bot.IntegrationTests
             var result = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertBotResponseCode(BotResponseCode.TrackAlreadyExists, result);
+            AssertHelper.Equal(BotResponseCode.TrackAlreadyExists, result);
         }
 
         [Fact]
@@ -131,7 +128,7 @@ namespace Spoti_bot.IntegrationTests
                 var result = await _sut.Run(httpRequest);
 
                 // Assert.
-                AssertBotResponseCode(BotResponseCode.TrackAddedToPlaylist, result);
+                AssertHelper.Equal(BotResponseCode.TrackAddedToPlaylist, result);
             }
             finally
             {
@@ -164,7 +161,7 @@ namespace Spoti_bot.IntegrationTests
 
 
                 // Assert.
-                AssertBotResponseCode(BotResponseCode.UpvoteHandled, upvoteResult);
+                AssertHelper.Equal(BotResponseCode.UpvoteHandled, upvoteResult);
             }
 
             // ...and then test a downvote.
@@ -176,7 +173,7 @@ namespace Spoti_bot.IntegrationTests
                 var downvoteResult = await _sut.Run(httpRequest);
 
                 // Assert.
-                AssertBotResponseCode(BotResponseCode.DownvoteHandled, downvoteResult);
+                AssertHelper.Equal(BotResponseCode.DownvoteHandled, downvoteResult);
             }
         }
 
@@ -200,17 +197,6 @@ namespace Spoti_bot.IntegrationTests
             httpContext.Request.Body = bodyStream;
 
             return httpContext.Request;
-        }
-
-        private static void AssertBotResponseCode(BotResponseCode expectedBotResponseCode, IStatusCodeActionResult result)
-        {
-            // Check if it is a success statusCode.
-            Assert.NotNull(result);
-            Assert.NotNull(result?.StatusCode);
-            Assert.Equal((int)HttpStatusCode.OK, result.StatusCode.Value);
-
-            // Check if the value is the expected response code.
-            Assert.Equal(expectedBotResponseCode, (BotResponseCode)((OkObjectResult)result).Value);
         }
     }
 }

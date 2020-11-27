@@ -14,6 +14,9 @@ namespace Spoti_bot
 {
     public class Callback
     {
+        public const string SuccessMessage = "Spoti-bot is now authorized, enjoy!";
+        public const string ErrorMessage = "Could not authorize Spoti-bot, code is invalid.";
+
         private readonly ISpotifyAuthorizationService _spotifyAuthorizationService;
         private readonly Library.Options.SentryOptions _sentryOptions;
 
@@ -40,13 +43,15 @@ namespace Spoti_bot
                     // Request and save an AuthorizationToken which we can use to do calls to the spotify api.
                     await _spotifyAuthorizationService.RequestAndSaveAuthorizationToken(code);
 
-                    // Send a reply.
-                    return new OkObjectResult("Spoti-bot is now authorized, enjoy!");
+                    // Send a reply that is visible in the browser where the used just logged in.
+                    return new OkObjectResult(SuccessMessage);
                 }
                 catch (Exception exception)
                 {
                     SentrySdk.CaptureException(exception);
-                    return new OkObjectResult("Could not authorize Spoti-bot, code is invalid.");
+
+                    // Send a reply that is visible in the browser where the used just logged in.
+                    return new OkObjectResult(ErrorMessage);
                 }
             }
         }
