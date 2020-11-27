@@ -12,6 +12,7 @@ namespace Spoti_bot.Spotify.Interfaces
         Task<FullPlaylist> GetPlaylist();
         Task<List<Track>> GetAllTracks(Paging<PlaylistTrack<IPlayableItem>> firstPage);
         Task AddTrackToPlaylist(Track track);
+        Task RemoveTrackFromPlaylist(string trackId);
         Task AddToQueue(Track track);
     }
 }

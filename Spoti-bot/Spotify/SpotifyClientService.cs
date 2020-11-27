@@ -90,6 +90,25 @@ namespace Spoti_bot.Spotify
             }));
         }
 
+        public async Task RemoveTrackFromPlaylist(string trackId)
+        {
+            var client = await _spotifyClient.Value;
+
+            var removeRequest = new PlaylistRemoveItemsRequest
+            {
+                Tracks = new List<PlaylistRemoveItemsRequest.Item>
+                {
+                    new PlaylistRemoveItemsRequest.Item
+                    {
+                        Uri = $"{_trackInlineBaseUri}{trackId}"
+                    }
+                }
+            };
+
+            // Remove the track from the playlist.
+            await client.Playlists.RemoveItems(_playlistOptions.Id, removeRequest);
+        }
+
         public async Task AddToQueue(Track track)
         {
             var client = await _spotifyClient.Value;

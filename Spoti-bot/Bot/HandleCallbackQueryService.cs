@@ -16,19 +16,20 @@ namespace Spoti_bot.Bot
             _userService = userService;
         }
 
-        public async Task<bool> TryHandleCallbackQuery(Telegram.Bot.Types.Update update)
+        public async Task<BotResponseCode> TryHandleCallbackQuery(Telegram.Bot.Types.Update update)
         {
             // If the bot can't do anything with the update's callback query, we're done.
             if (!CanHandleCallbackQuery(update))
-                return false;
+                return BotResponseCode.NoAction;
 
             // Check if an upvote should be handled and if so handle it.
-            if (await _upvoteService.TryHandleUpvote(update.CallbackQuery))
+            var upvoteResponseCode = await _upvoteService.TryHandleUpvote(update.CallbackQuery);
+            if (upvoteResponseCode != BotResponseCode.NoAction)
             {
                 // Save users that upvoted.
                 await _userService.SaveUser(update.CallbackQuery.From);
 
-                return true;
+                return upvoteResponseCode;
             }
 
             // This should never happen.

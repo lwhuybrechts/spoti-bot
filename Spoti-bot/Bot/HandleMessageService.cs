@@ -10,7 +10,7 @@ namespace Spoti_bot.Bot
     public class HandleMessageService : IHandleMessageService
     {
         private readonly ICommandsService _commandsService;
-        private readonly IAddTrackService _spotifyAddTrackService;
+        private readonly IAddTrackService _addTrackService;
         private readonly IUserService _userService;
         private readonly ISpotifyLinkHelper _spotifyTextHelper;
 
@@ -21,28 +21,30 @@ namespace Spoti_bot.Bot
             ISpotifyLinkHelper spotifyTextHelper)
         {
             _commandsService = commandsService;
-            _spotifyAddTrackService = spotifyAddTrackService;
+            _addTrackService = spotifyAddTrackService;
             _userService = userService;
             _spotifyTextHelper = spotifyTextHelper;
         }
 
-        public async Task<bool> TryHandleMessage(Telegram.Bot.Types.Update update)
+        public async Task<BotResponseCode> TryHandleMessage(Telegram.Bot.Types.Update update)
         {
             // If the bot can't do anything with the update's message, we're done.
             if (!CanHandleMessage(update))
-                return false;
+                return BotResponseCode.NoAction;
 
             // Check if any command should be handled and if so handle it.
-            if (await _commandsService.TryHandleCommand(update.Message))
-                return true;
+            var commandResponseCode = await _commandsService.TryHandleCommand(update.Message);
+            if (commandResponseCode != BotResponseCode.NoAction)
+                return commandResponseCode;
 
             // Try to add a spotify track url that was in the message to the playlist.
-            if (await _spotifyAddTrackService.TryAddTrackToPlaylist(update.Message))
+            var addTrackResponseCode = await _addTrackService.TryAddTrackToPlaylist(update.Message);
+            if (addTrackResponseCode != BotResponseCode.NoAction)
             {
                 // Save users that added tracks to the playlist.
                 await _userService.SaveUser(update.Message.From);
 
-                return true;
+                return addTrackResponseCode;
             }
 
             // This should never happen.

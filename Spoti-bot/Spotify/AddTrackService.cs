@@ -31,7 +31,7 @@ namespace Spoti_bot.Spotify
             _trackRepository = trackRepository;
         }
 
-        public async Task<bool> TryAddTrackToPlaylist(Message message)
+        public async Task<BotResponseCode> TryAddTrackToPlaylist(Message message)
         {
             // Parse the trackId from the message.
             var newTrackId = await _spotifyLinkHelper.ParseTrackId(message.Text);
@@ -40,16 +40,16 @@ namespace Spoti_bot.Spotify
             if (await _trackRepository.Get(newTrackId) != null)
             {
                 await _sendMessageService.SendTextMessageAsync(message, $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist("playlist")}!");
-                
+
                 // The track is already in the playlist, so return true.
-                return true;
+                return BotResponseCode.TrackAlreadyExists;
             }
 
             // We can't continue if we can't use the spotify api.
             if (!await _spotifyClientService.HasClient())
             {
                 await _sendMessageService.SendTextMessageAsync(message, "Spoti-bot is not authorized to add this track to Spotify.");
-                return false;
+                return BotResponseCode.NoAction;
             }
 
             // Get the track from the spotify api.
@@ -57,15 +57,10 @@ namespace Spoti_bot.Spotify
             if (newTrack == null)
             {
                 await _sendMessageService.SendTextMessageAsync(message, $"Track not found in Spotify api :(");
-                return false;
+                return BotResponseCode.NoAction;
             }
 
-            newTrack.CreatedAt = DateTimeOffset.UtcNow;
-            newTrack.AddedByTelegramUserId = message.From.Id;
-
-            // Add the track to the playlist.
-            await _trackRepository.Upsert(newTrack);
-            await _spotifyClientService.AddTrackToPlaylist(newTrack);
+            await AddTrack(message, newTrack);
 
             // Reply that the message has been added successfully.
             await SendReplyMessage(message, newTrack);
@@ -73,11 +68,24 @@ namespace Spoti_bot.Spotify
             // Add the track to my queue.
             await _spotifyClientService.AddToQueue(newTrack);
 
-            return true;
+            return BotResponseCode.TrackAddedToPlaylist;
         }
 
         /// <summary>
-        /// Reply when a track has been added to our playlist.
+        /// Add the track to the playlist.
+        /// </summary>
+        private async Task AddTrack(Message message, Track newTrack)
+        {
+            newTrack.CreatedAt = DateTimeOffset.UtcNow;
+            newTrack.AddedByTelegramUserId = message.From.Id;
+
+            // Add the track to the playlist.
+            await _trackRepository.Upsert(newTrack);
+            await _spotifyClientService.AddTrackToPlaylist(newTrack);
+        }
+
+        /// <summary>
+        /// Reply when a track has been added to the playlist.
         /// </summary>
         private async Task SendReplyMessage(Message message, Track track)
         {

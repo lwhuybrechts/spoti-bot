@@ -12,6 +12,7 @@ namespace Spoti_bot.IntegrationTests.Library
         public static void AddLocalSettings(this IConfigurationBuilder configurationBuilder,
             string solutionDirectoryName, string projectDirectoryName, string localSettingsFileName)
         {
+            // Add the local settings source to the configuration builder.
             configurationBuilder.Add(new LocalSettingsSource(solutionDirectoryName, projectDirectoryName, localSettingsFileName));
         }
 
@@ -28,6 +29,9 @@ namespace Spoti_bot.IntegrationTests.Library
                 _localSettingsFileName = localSettingsFileName;
             }
 
+            /// <summary>
+            /// When the configuration builder is built, provides the local settings.
+            /// </summary>
             public IConfigurationProvider Build(IConfigurationBuilder builder)
             {
                 return new LocalSettingsProvider(_solutionDirectoryName, _projectDirectoryName, _localSettingsFileName);

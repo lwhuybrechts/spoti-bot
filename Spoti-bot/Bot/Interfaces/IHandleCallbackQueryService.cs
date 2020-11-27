@@ -4,6 +4,6 @@ namespace Spoti_bot.Bot.Interfaces
 {
     public interface IHandleCallbackQueryService
     {
-        Task<bool> TryHandleCallbackQuery(Telegram.Bot.Types.Update update);
+        Task<BotResponseCode> TryHandleCallbackQuery(Telegram.Bot.Types.Update update);
     }
 }

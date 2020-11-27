@@ -11,6 +11,7 @@ using Spoti_bot.Library.Exceptions;
 using Newtonsoft.Json;
 using Spoti_bot.Bot.Interfaces;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Spoti_bot.Bot;
 
 namespace Spoti_bot
 {
@@ -40,14 +41,16 @@ namespace Spoti_bot
                     var update = JsonConvert.DeserializeObject<Telegram.Bot.Types.Update>(requestBody);
 
                     // Check if we can do something with the text message.
-                    if (await _handleMessageService.TryHandleMessage(update))
-                        return new OkResult();
+                    var messageResponseCode = await _handleMessageService.TryHandleMessage(update);
+                    if (messageResponseCode != BotResponseCode.NoAction)
+                        return new OkObjectResult(messageResponseCode);
 
                     // CallbackQueries are responses to a message the bot has sent.
-                    if (await _handleCallbackQueryService.TryHandleCallbackQuery(update))
-                        return new OkResult();
+                    var callbackQueryResponseCode = await _handleCallbackQueryService.TryHandleCallbackQuery(update);
+                    if (callbackQueryResponseCode != BotResponseCode.NoAction)
+                        return new OkObjectResult(callbackQueryResponseCode);
 
-                    return new OkResult();
+                    return new OkObjectResult(BotResponseCode.NoAction);
                 }
                 catch (Exception exception)
                 {
@@ -55,7 +58,7 @@ namespace Spoti_bot
 
                     // Don't send a message to the chat, since it can create a lot of spam.
 
-                    return new OkResult();
+                    return new OkObjectResult(BotResponseCode.ExceptionHandled);
                 }
             }
         }

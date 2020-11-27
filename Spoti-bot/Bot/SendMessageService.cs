@@ -23,24 +23,26 @@ namespace Spoti_bot.Bot
             _telegramBotClient = telegramBotClient;
         }
 
-        public async Task SendTextMessageAsync(long chatId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
+        public async Task<int> SendTextMessageAsync(long chatId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
         {
-            await _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode, disableWebPagePreview, replyToMessageId: replyToMessageId, replyMarkup: replyMarkup);
+            var message = await _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode, disableWebPagePreview, replyToMessageId: replyToMessageId, replyMarkup: replyMarkup);
+
+            return message.MessageId;
         }
 
-        public Task SendTextMessageAsync(Message messageToRepondTo, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
+        public Task<int> SendTextMessageAsync(Message messageToRepondTo, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
         {
             return SendTextMessageAsync(messageToRepondTo.Chat.Id, text, parseMode, disableWebPagePreview, replyToMessageId, replyMarkup);
         }
 
-        public async Task EditMessageTextAsync(long chatId, int messageId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, InlineKeyboardMarkup replyMarkup = null)
+        public Task EditMessageTextAsync(long chatId, int messageId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, InlineKeyboardMarkup replyMarkup = null)
         {
-            await _telegramBotClient.EditMessageTextAsync(chatId, messageId, text, parseMode, disableWebPagePreview, replyMarkup);
+            return _telegramBotClient.EditMessageTextAsync(chatId, messageId, text, parseMode, disableWebPagePreview, replyMarkup);
         }
 
-        public async Task AnswerCallbackQueryAsync(string callbackQueryId)
+        public Task AnswerCallbackQueryAsync(string callbackQueryId)
         {
-            await _telegramBotClient.AnswerCallbackQueryAsync(callbackQueryId);
+            return _telegramBotClient.AnswerCallbackQueryAsync(callbackQueryId);
         }
     }
 }

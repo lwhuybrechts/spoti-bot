@@ -44,10 +44,10 @@ namespace Spoti_bot.Bot
         /// Check if a message contains an upvote callback and if so, handle it.
         /// </summary>
         /// <param name="callbackQuery">The callback query to handle.</param>
-        public async Task<bool> TryHandleUpvote(CallbackQuery callbackQuery)
+        public async Task<BotResponseCode> TryHandleUpvote(CallbackQuery callbackQuery)
         {
             if (!IsUpvoteCallback(callbackQuery))
-                return false;
+                return BotResponseCode.NoAction;
 
             // Upvotes are callback queries on a message that is a reply to the message with the actual track url.
             var trackMessageText = callbackQuery.Message.ReplyToMessage.Text;
@@ -56,17 +56,17 @@ namespace Spoti_bot.Bot
 
             // We cannot continue without a trackId.
             if (string.IsNullOrEmpty(trackId))
-                return false;
+                return BotResponseCode.NoAction;
 
-            await HandleUpvote(callbackQuery, trackId);
+            var upvoteResponseCode = await HandleUpvote(callbackQuery, trackId);
 
             // Let telegram know the callback query has been handled.
             await AnswerCallback(callbackQuery);
 
-            return true;
+            return upvoteResponseCode;
         }
 
-        private async Task HandleUpvote(CallbackQuery callbackQuery, string trackId)
+        private async Task<BotResponseCode> HandleUpvote(CallbackQuery callbackQuery, string trackId)
         {
             var upvote = new Upvote
             {
@@ -87,6 +87,7 @@ namespace Spoti_bot.Bot
 
                 // Delete the upvote from storage.
                 await _upvoteRepository.Delete(existingUpvote);
+                return BotResponseCode.DownvoteHandled;
             }
             else
             {
@@ -96,6 +97,7 @@ namespace Spoti_bot.Bot
                 // Increment upvote in the original message.
                 var newText = _upvoteTextHelper.IncrementUpvote(text);
                 await EditOriginalMessage(callbackQuery.Message, newText);
+                return BotResponseCode.UpvoteHandled;
             }
         }
 

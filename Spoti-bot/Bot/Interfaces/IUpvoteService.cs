@@ -6,6 +6,6 @@ namespace Spoti_bot.Bot.Interfaces
     public interface IUpvoteService
     {
         bool IsUpvoteCallback(CallbackQuery callbackQuery);
-        Task<bool> TryHandleUpvote(CallbackQuery callbackQuery);
+        Task<BotResponseCode> TryHandleUpvote(CallbackQuery callbackQuery);
     }
 }

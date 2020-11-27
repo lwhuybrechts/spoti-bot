@@ -1,7 +1,8 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Spoti_bot.IntegrationTests.Library;
 
-namespace Spoti_bot.IntegrationTests.Library
+namespace Spoti_bot.IntegrationTests
 {
     public class TestStartup : Startup
     {
@@ -12,12 +13,21 @@ namespace Spoti_bot.IntegrationTests.Library
 
             // Optionally replace some dependencies.
             builder.Services
+                .AddTestServices()
                 .ReplaceServices();
         }
     }
 
     public static class ServiceExtensions
     {
+        public static IServiceCollection AddTestServices(this IServiceCollection services)
+        {
+            services.AddTransient<TestOptions>();
+            services.AddTransient<GenerateUpdateStreamService>();
+
+            return services;
+        }
+
         public static IServiceCollection ReplaceServices(this IServiceCollection services)
         {
             // It's possible to replace dependencies for integrationtests here.

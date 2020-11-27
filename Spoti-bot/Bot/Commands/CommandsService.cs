@@ -54,12 +54,12 @@ namespace Spoti_bot.Bot.Commands
         /// </summary>
         /// <param name="message">The message to check for commands.</param>
         /// <returns>True is a command was handled, false if no matching command was found.</returns>
-        public async Task<bool> TryHandleCommand(Message message)
+        public async Task<BotResponseCode> TryHandleCommand(Message message)
         {
             if (IsCommand(message, Command.Test))
             {
                 await _sendMessageService.SendTextMessageAsync(message.Chat.Id, GetRandomTestCommandResponse());
-                return true;
+                return BotResponseCode.TestCommandHandled;
             }
 
             if (IsCommand(message, Command.Help))
@@ -68,7 +68,7 @@ namespace Spoti_bot.Bot.Commands
                     $"Post links to Spotify tracks in this chat and they will be added to the playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist()}.";
                 
                 await _sendMessageService.SendTextMessageAsync(message.Chat.Id, helpText, disableWebPagePreview: false);
-                return true;
+                return BotResponseCode.HelpCommandHandled;
             }
 
             if (IsCommand(message, Command.GetLoginLink))
@@ -80,17 +80,17 @@ namespace Spoti_bot.Bot.Commands
                     $"It needs access to the playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist()} and to your queue.";
 
                 await _sendMessageService.SendTextMessageAsync(message.Chat.Id, loginText, replyMarkup: keyboard);
-                return true;
+                return BotResponseCode.GetLoginLinkCommandHandled;
             }
 
             if (IsCommand(message, Command.ResetPlaylistStorage))
             {
                 await _syncTracksService.SyncTracks();
                 await _sendMessageService.SendTextMessageAsync(message.Chat.Id, "Spoti-bot playlist storage has been synced.");
-                return true;
+                return BotResponseCode.ResetCommandHandled;
             }
 
-            return false;
+            return BotResponseCode.NoAction;
         }
 
         /// <summary>
