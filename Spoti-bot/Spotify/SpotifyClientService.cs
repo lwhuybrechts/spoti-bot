@@ -2,8 +2,8 @@
 using Microsoft.Extensions.Options;
 using Sentry;
 using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Data.Tracks;
-using Spoti_bot.Spotify.Interfaces;
+using Spoti_bot.Spotify.Authorization;
+using Spoti_bot.Spotify.Tracks;
 using SpotifyAPI.Web;
 using System;
 using System.Collections.Generic;
@@ -14,7 +14,7 @@ namespace Spoti_bot.Spotify
 {
     public class SpotifyClientService : ISpotifyClientService
     {
-        private readonly ISpotifyAuthorizationService _spotifyAuthorizationService;
+        private readonly IAuthorizationService _spotifyAuthorizationService;
         private readonly IMapper _mapper;
         private readonly PlaylistOptions _playlistOptions;
 
@@ -23,7 +23,7 @@ namespace Spoti_bot.Spotify
         private const string _trackInlineBaseUri = "spotify:track:";
 
         public SpotifyClientService(
-            ISpotifyAuthorizationService spotifyAuthorizationService,
+            IAuthorizationService spotifyAuthorizationService,
             IMapper mapper,
             IOptions<PlaylistOptions> playlistOptions)
         {

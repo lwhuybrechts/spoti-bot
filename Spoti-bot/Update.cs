@@ -9,9 +9,9 @@ using System.IO;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
 using Newtonsoft.Json;
-using Spoti_bot.Bot.Interfaces;
+using Spoti_bot.Bot.Upvotes;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Spoti_bot.Bot;
+using Spoti_bot.Library;
 
 namespace Spoti_bot
 {

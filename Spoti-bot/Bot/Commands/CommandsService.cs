@@ -1,7 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Bot.Interfaces;
+using Spoti_bot.Bot.Upvotes;
+using Spoti_bot.Library;
 using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Interfaces;
+using Spoti_bot.Spotify;
+using Spoti_bot.Spotify.Authorization;
+using Spoti_bot.Spotify.Tracks.SyncTracks;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,14 +15,14 @@ namespace Spoti_bot.Bot.Commands
 {
     public class CommandsService : ICommandsService
     {
-        private readonly ISpotifyAuthorizationService _spotifyAuthorizationService;
+        private readonly IAuthorizationService _spotifyAuthorizationService;
         private readonly ISendMessageService _sendMessageService;
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
         private readonly ISyncTracksService _syncTracksService;
         private readonly TelegramOptions _telegramOptions;
 
         public CommandsService(
-            ISpotifyAuthorizationService spotifyAuthorizationService,
+            IAuthorizationService spotifyAuthorizationService,
             ISendMessageService sendMessageService,
             ISpotifyLinkHelper spotifyLinkHelper,
             ISyncTracksService trackService,

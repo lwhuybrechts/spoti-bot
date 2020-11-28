@@ -7,8 +7,8 @@ using System;
 using Sentry;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Spotify.Interfaces;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Spoti_bot.Spotify.Authorization;
 
 namespace Spoti_bot
 {
@@ -17,10 +17,10 @@ namespace Spoti_bot
         public const string SuccessMessage = "Spoti-bot is now authorized, enjoy!";
         public const string ErrorMessage = "Could not authorize Spoti-bot, code is invalid.";
 
-        private readonly ISpotifyAuthorizationService _spotifyAuthorizationService;
+        private readonly IAuthorizationService _spotifyAuthorizationService;
         private readonly Library.Options.SentryOptions _sentryOptions;
 
-        public Callback(ISpotifyAuthorizationService spotifyAuthorizationService, IOptions<Library.Options.SentryOptions> sentryOptions)
+        public Callback(IAuthorizationService spotifyAuthorizationService, IOptions<Library.Options.SentryOptions> sentryOptions)
         {
             _spotifyAuthorizationService = spotifyAuthorizationService;
             _sentryOptions = sentryOptions.Value;

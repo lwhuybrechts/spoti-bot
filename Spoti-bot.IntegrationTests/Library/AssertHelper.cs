@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Spoti_bot.Bot;
+using Spoti_bot.Library;
 using System.Net;
 using Xunit;
 

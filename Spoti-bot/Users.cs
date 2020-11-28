@@ -7,11 +7,11 @@ using Spoti_bot.Library.Exceptions;
 using Microsoft.Extensions.Options;
 using Sentry;
 using System;
-using Spoti_bot.Bot.Data.Users;
 using AutoMapper;
 using System.Collections.Generic;
 using System.Linq;
 using Spoti_bot.Library.Options;
+using Spoti_bot.Bot.Users;
 
 namespace Spoti_bot
 {

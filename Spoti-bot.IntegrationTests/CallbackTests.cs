@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Spoti_bot.IntegrationTests.Library;
 using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Interfaces;
+using Spoti_bot.Spotify.Authorization;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
@@ -16,7 +16,7 @@ namespace Spoti_bot.IntegrationTests
 
         public CallbackTests(TestHost testHost)
         {
-            var spotifyAuthorizationService = testHost.GetService<ISpotifyAuthorizationService>();
+            var spotifyAuthorizationService = testHost.GetService<IAuthorizationService>();
             var sentryOptions = testHost.GetService<IOptions<SentryOptions>>();
 
             _sut = new Callback(spotifyAuthorizationService, sentryOptions);

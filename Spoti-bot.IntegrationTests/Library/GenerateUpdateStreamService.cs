@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Spoti_bot.Bot;
+using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Library.Options;
 using System;
 using System.IO;

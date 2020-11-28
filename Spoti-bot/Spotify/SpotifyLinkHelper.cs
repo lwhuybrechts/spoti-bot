@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Interfaces;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -64,10 +62,7 @@ namespace Spoti_bot.Spotify
                     return ParseTrackIdLink(trackUri);
             }
 
-            // TODO: this crashes when a LinkTo url to something other than a track is posted.
-
-            // This should not happen, so log it to Sentry.
-            throw new TrackIdNullException();
+            return string.Empty;
         }
 
         /// <summary>

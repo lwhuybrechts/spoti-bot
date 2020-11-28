@@ -1,12 +1,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Spoti_bot.Bot;
 using Spoti_bot.Bot.Commands;
-using Spoti_bot.Bot.Interfaces;
+using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.IntegrationTests.Library;
+using Spoti_bot.Library;
 using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Data.Tracks;
-using Spoti_bot.Spotify.Interfaces;
+using Spoti_bot.Spotify;
+using Spoti_bot.Spotify.Tracks;
 using System.IO;
 using System.Threading.Tasks;
 using Xunit;
@@ -27,7 +27,7 @@ namespace Spoti_bot.IntegrationTests
         public UpdateTests(TestHost testHost)
         {
             _generateUpdateStreamService = testHost.GetService<GenerateUpdateStreamService>();
-            _testOptions = testHost.GetService<TestOptions>();
+            _testOptions = testHost.GetService<IOptions<TestOptions>>().Value;
 
             _spotifyClientService = testHost.GetService<ISpotifyClientService>();
             _trackRepository = testHost.GetService<ITrackRepository>();

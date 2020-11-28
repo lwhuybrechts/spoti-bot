@@ -1,4 +1,4 @@
-﻿using Spoti_bot.Bot.Interfaces;
+﻿using Spoti_bot.Bot.Upvotes;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;

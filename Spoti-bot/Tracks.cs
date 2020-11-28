@@ -8,8 +8,8 @@ using Microsoft.Extensions.Options;
 using Sentry;
 using System;
 using AutoMapper;
-using Spoti_bot.Spotify.Data.Tracks;
 using System.Collections.Generic;
+using Spoti_bot.Spotify.Tracks;
 
 namespace Spoti_bot
 {

@@ -7,9 +7,9 @@ using Spoti_bot.Library.Exceptions;
 using Microsoft.Extensions.Options;
 using Sentry;
 using System;
-using Spoti_bot.Bot.Data.Upvotes;
 using AutoMapper;
 using System.Collections.Generic;
+using Spoti_bot.Bot.Upvotes;
 
 namespace Spoti_bot
 {
