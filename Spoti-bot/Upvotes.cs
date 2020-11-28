@@ -9,6 +9,7 @@ using Sentry;
 using System;
 using Spoti_bot.Bot.Data.Upvotes;
 using AutoMapper;
+using System.Collections.Generic;
 
 namespace Spoti_bot
 {
@@ -37,7 +38,7 @@ namespace Spoti_bot
                     var upvotes = await _upvoteRepository.GetAll();
 
                     // Map the upvotes to api models.
-                    var apiUpvotes= _mapper.Map<ApiModels.Upvote>(upvotes);
+                    var apiUpvotes= _mapper.Map<List<ApiModels.Upvote>>(upvotes);
 
                     return new OkObjectResult(apiUpvotes);
                 }

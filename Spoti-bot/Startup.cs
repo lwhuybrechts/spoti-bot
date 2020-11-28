@@ -153,6 +153,13 @@ namespace Spoti_bot
                     configuration.GetSection(nameof(TelegramOptions)).Bind(settings);
                 });
 
+            services
+                .AddOptions<TestOptions>()
+                .Configure<IConfiguration>((settings, configuration) =>
+                {
+                    configuration.GetSection(nameof(TestOptions)).Bind(settings);
+                });
+
             return services;
         }
     }

@@ -1,6 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Spoti_bot.Bot;
-using Spoti_bot.IntegrationTests.Library;
+using Spoti_bot.Library.Options;
 using System;
 using System.IO;
 using System.Text;
@@ -16,11 +17,10 @@ namespace Spoti_bot.IntegrationTests
     {
         private readonly TestOptions _testOptions;
 
-        public GenerateUpdateStreamService(TestOptions testOptions)
+        public GenerateUpdateStreamService(IOptions<TestOptions> testOptions)
         {
-            _testOptions = testOptions;
+            _testOptions = testOptions.Value;
         }
-
 
         /// <summary>
         /// Write an update with a text message to the stream.

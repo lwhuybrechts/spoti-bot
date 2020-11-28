@@ -1,6 +1,5 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
-using Spoti_bot.IntegrationTests.Library;
 
 namespace Spoti_bot.IntegrationTests
 {
@@ -22,7 +21,6 @@ namespace Spoti_bot.IntegrationTests
     {
         public static IServiceCollection AddTestServices(this IServiceCollection services)
         {
-            services.AddTransient<TestOptions>();
             services.AddTransient<GenerateUpdateStreamService>();
 
             return services;

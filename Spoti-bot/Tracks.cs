@@ -9,6 +9,7 @@ using Sentry;
 using System;
 using AutoMapper;
 using Spoti_bot.Spotify.Data.Tracks;
+using System.Collections.Generic;
 
 namespace Spoti_bot
 {
@@ -37,7 +38,7 @@ namespace Spoti_bot
                     var tracks = await _trackRepository.GetAll();
 
                     // Map the tracks to api models.
-                    var apiTracks = _mapper.Map<ApiModels.Track>(tracks);
+                    var apiTracks = _mapper.Map<List<ApiModels.Track>>(tracks);
                     
                     return new OkObjectResult(apiTracks);
                 }
