@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30611.23
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spoti-bot", "Spoti-bot\Spoti-bot.csproj", "{E29BE72E-54AB-4F28-969C-526666DD6A86}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spoti-bot.IntegrationTests", "Spoti-bot.IntegrationTests\Spoti-bot.IntegrationTests.csproj", "{8D4E3784-522D-4441-B24A-55886B710960}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spoti-bot.IntegrationTests", "Spoti-bot.IntegrationTests\Spoti-bot.IntegrationTests.csproj", "{8D4E3784-522D-4441-B24A-55886B710960}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

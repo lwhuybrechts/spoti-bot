@@ -12,8 +12,8 @@
     <PackageReference Include="Microsoft.Azure.Cosmos.Table" Version="1.0.8" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.11" />
-    <PackageReference Include="Sentry.AspNetCore" Version="2.1.6" />
-    <PackageReference Include="SpotifyAPI.Web" Version="6.0.0-beta.12" />
+    <PackageReference Include="Sentry.AspNetCore" Version="2.1.8" />
+    <PackageReference Include="SpotifyAPI.Web" Version="6.0.0" />
     <PackageReference Include="Telegram.Bot" Version="15.7.1" />
   </ItemGroup>
   <ItemGroup>

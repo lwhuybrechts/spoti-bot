@@ -14,6 +14,7 @@ namespace Spoti_bot.Library.Exceptions
         {
             _sentryDisposable = SentrySdk.Init(options =>
             {
+                options.Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
                 options.Dsn = new Dsn(dsn);
                 options.BeforeSend = sentryEvent =>
                 {
