@@ -11,6 +11,7 @@
         TrackAddedToPlaylist,
         UpvoteHandled,
         DownvoteHandled,
+        InlineQueryHandled,
         ExceptionHandled
     }
 }

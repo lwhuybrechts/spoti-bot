@@ -4,7 +4,6 @@ using Spoti_bot.Spotify;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -13,20 +12,21 @@ namespace Spoti_bot.Bot.Upvotes
 {
     public class UpvoteService : IUpvoteService
     {
-        public const string ButtonText = "👍";
-
         private readonly ISendMessageService _sendMessageService;
+        private readonly IKeyboardService _keyboardService;
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
         private readonly IUpvoteTextHelper _upvoteTextHelper;
         private readonly IUpvoteRepository _upvoteRepository;
 
         public UpvoteService(
             ISendMessageService sendMessageService,
+            IKeyboardService keyboardService,
             ISpotifyLinkHelper spotifyLinkHelper,
             IUpvoteTextHelper upvoteTextHelper,
             IUpvoteRepository upvoteRepository)
         {
             _sendMessageService = sendMessageService;
+            _keyboardService = keyboardService;
             _spotifyLinkHelper = spotifyLinkHelper;
             _upvoteTextHelper = upvoteTextHelper;
             _upvoteRepository = upvoteRepository;
@@ -39,7 +39,7 @@ namespace Spoti_bot.Bot.Upvotes
         /// <returns>True if the callback query is an upvote callback.</returns>
         public bool IsUpvoteCallback(CallbackQuery callbackQuery)
         {
-            return callbackQuery.Data.Equals(ButtonText);
+            return callbackQuery.Data.Equals(KeyboardService.UpvoteButtonText);
         }
 
         /// <summary>
@@ -57,17 +57,7 @@ namespace Spoti_bot.Bot.Upvotes
             if (string.IsNullOrEmpty(trackId))
                 throw new TrackIdNullException();
 
-            var upvoteResponseCode = await HandleUpvote(callbackQuery, trackId);
-
-            // Let telegram know the callback query has been handled.
-            await AnswerCallback(callbackQuery);
-
-            return upvoteResponseCode;
-        }
-
-        public InlineKeyboardButton CreateUpvoteButton()
-        {
-            return InlineKeyboardButton.WithCallbackData(ButtonText);
+            return await HandleUpvote(callbackQuery, trackId);
         }
 
         /// <summary>
@@ -86,7 +76,7 @@ namespace Spoti_bot.Bot.Upvotes
         /// </summary>
         private async Task<BotResponseCode> HandleUpvote(CallbackQuery callbackQuery, string trackId)
         {
-            var upvote = new Upvote
+            var newUpvote = new Upvote
             {
                 TrackId = trackId,
                 UserId = callbackQuery.From.Id,
@@ -95,33 +85,37 @@ namespace Spoti_bot.Bot.Upvotes
 
             var text = GetTextMessageWithTextLinks(callbackQuery.Message);
 
-            var existingUpvote = await _upvoteRepository.Get(upvote);
+            var existingUpvote = await _upvoteRepository.Get(newUpvote);
 
             return existingUpvote == null
-                ? await Upvote(callbackQuery, upvote, text)
-                : await Downvote(callbackQuery, existingUpvote, text);
+                ? await Upvote(callbackQuery, newUpvote, text, trackId)
+                : await Downvote(callbackQuery, existingUpvote, text, trackId);
         }
 
-        private async Task<BotResponseCode> Upvote(CallbackQuery callbackQuery, Upvote upvote, string text)
+        private async Task<BotResponseCode> Upvote(CallbackQuery callbackQuery, Upvote upvote, string text, string trackId)
         {
             // Save the upvote in storage.
             await _upvoteRepository.Upsert(upvote);
 
+            var keyboard = await _keyboardService.GetUpdatedKeyboard(callbackQuery.Message, trackId);
+
             // Increment upvote in the original message.
             var newText = _upvoteTextHelper.IncrementUpvote(text);
-            await EditOriginalMessage(callbackQuery.Message, newText);
+            await EditOriginalMessage(callbackQuery.Message, newText, keyboard);
             
             return BotResponseCode.UpvoteHandled;
         }
 
-        private async Task<BotResponseCode> Downvote(CallbackQuery callbackQuery, Upvote existingUpvote, string text)
+        private async Task<BotResponseCode> Downvote(CallbackQuery callbackQuery, Upvote existingUpvote, string text, string trackId)
         {
-            // Decrement upvote in the original message.
-            var newText = _upvoteTextHelper.DecrementUpvote(text);
-            await EditOriginalMessage(callbackQuery.Message, newText);
-
             // Delete the upvote from storage.
             await _upvoteRepository.Delete(existingUpvote);
+
+            var keyboard = await _keyboardService.GetUpdatedKeyboard(callbackQuery.Message, trackId);
+
+            // Decrement upvote in the original message.
+            var newText = _upvoteTextHelper.DecrementUpvote(text);
+            await EditOriginalMessage(callbackQuery.Message, newText, keyboard);
 
             return BotResponseCode.DownvoteHandled;
         }
@@ -154,30 +148,13 @@ namespace Spoti_bot.Bot.Upvotes
         /// </summary>
         /// <param name="message">The message to edit.</param>
         /// <param name="newText">The new text to replace the message text with.</param>
-        private async Task EditOriginalMessage(Message message, string newText)
+        private async Task EditOriginalMessage(Message message, string newText, InlineKeyboardMarkup replyMarkup)
         {
             await _sendMessageService.EditMessageTextAsync(
                 message.Chat.Id,
                 message.MessageId,
                 newText,
-                replyMarkup: message.ReplyMarkup);
-        }
-
-        /// <summary>
-        /// Let telegram know the callback query has been handled.
-        /// </summary>
-        /// <param name="callbackQuery">The callback query.</param>
-        private async Task AnswerCallback(CallbackQuery callbackQuery)
-        {
-            try
-            {
-                await _sendMessageService.AnswerCallbackQueryAsync(callbackQuery.Id);
-            }
-            catch (InvalidParameterException)
-            {
-                // This may crash when the callback query is too old, just ignore it.
-                return;
-            }
+                replyMarkup: replyMarkup);
         }
     }
 }

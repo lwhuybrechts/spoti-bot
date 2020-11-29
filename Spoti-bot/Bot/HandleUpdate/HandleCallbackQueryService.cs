@@ -3,18 +3,22 @@ using Spoti_bot.Bot.Users;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Exceptions;
 using System.Threading.Tasks;
+using Telegram.Bot.Exceptions;
+using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
-namespace Spoti_bot.Bot
+namespace Spoti_bot.Bot.HandleUpdate
 {
     public class HandleCallbackQueryService : IHandleCallbackQueryService
     {
         private readonly IUpvoteService _upvoteService;
+        private readonly ISendMessageService _sendMessageService;
         private readonly IUserService _userService;
 
-        public HandleCallbackQueryService(IUpvoteService upvoteService, IUserService userService)
+        public HandleCallbackQueryService(IUpvoteService upvoteService, ISendMessageService sendMessageService, IUserService userService)
         {
             _upvoteService = upvoteService;
+            _sendMessageService = sendMessageService;
             _userService = userService;
         }
 
@@ -30,6 +34,9 @@ namespace Spoti_bot.Bot
             {
                 // Save users that upvoted.
                 await _userService.SaveUser(update.CallbackQuery.From);
+
+                // Let telegram know the callback query has been handled.
+                await AnswerCallback(update.CallbackQuery, upvoteResponseCode);
 
                 return upvoteResponseCode;
             }
@@ -51,6 +58,7 @@ namespace Spoti_bot.Bot
                 update.Type != UpdateType.CallbackQuery ||
                 update.CallbackQuery == null ||
                 string.IsNullOrEmpty(update.CallbackQuery.Id) ||
+                update.CallbackQuery.From == null ||
                 // We only support callback queries on text messages.
                 update.CallbackQuery.Message == null ||
                 update.CallbackQuery.Message.Type != MessageType.Text ||
@@ -65,6 +73,34 @@ namespace Spoti_bot.Bot
                 return false;
 
             return true;
+        }
+
+        /// <summary>
+        /// Let telegram know the callback query has been handled.
+        /// </summary>
+        /// <param name="callbackQuery">The callback query.</param>
+        private async Task AnswerCallback(CallbackQuery callbackQuery, BotResponseCode botResponseCode)
+        {
+            string text = null;
+            switch (botResponseCode)
+            {
+                case BotResponseCode.UpvoteHandled:
+                    text = "Upvoted";
+                    break;
+                case BotResponseCode.DownvoteHandled:
+                    text = "Removed upvote";
+                    break;
+            }
+
+            try
+            {
+                await _sendMessageService.AnswerCallbackQueryAsync(callbackQuery.Id, text);
+            }
+            catch (InvalidParameterException)
+            {
+                // This may crash when the callback query is too old, just ignore it.
+                return;
+            }
         }
     }
 }

@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Spoti_bot.Bot;
 using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Library.Options;
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Spoti_bot.IntegrationTests
 {
@@ -16,12 +16,12 @@ namespace Spoti_bot.IntegrationTests
     public class GenerateUpdateStreamService
     {
         private readonly TestOptions _testOptions;
-        private readonly IUpvoteService _upvoteService;
+        private readonly IKeyboardService _keyboardService;
 
-        public GenerateUpdateStreamService(IOptions<TestOptions> testOptions, IUpvoteService upvoteService)
+        public GenerateUpdateStreamService(IOptions<TestOptions> testOptions, IKeyboardService keyboardService)
         {
             _testOptions = testOptions.Value;
-            _upvoteService = upvoteService;
+            _keyboardService = keyboardService;
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Spoti_bot.IntegrationTests
                 CallbackQuery = new Telegram.Bot.Types.CallbackQuery
                 {
                     Id = "testId",
-                    Data = UpvoteService.ButtonText,
+                    Data = KeyboardService.UpvoteButtonText,
                     From = GetTestUser(),
                     Message = new Telegram.Bot.Types.Message()
                     {
@@ -68,7 +68,7 @@ namespace Spoti_bot.IntegrationTests
                         From = GetTestUser(isBot: true),
                         Chat = GetTestChat(),
                         Entities = new Telegram.Bot.Types.MessageEntity[0],
-                        ReplyMarkup = new InlineKeyboardMarkup(_upvoteService.CreateUpvoteButton()),
+                        ReplyMarkup = _keyboardService.CreateKeyboard(),
                         ReplyToMessage = new Telegram.Bot.Types.Message
                         {
                             From = GetTestUser(),

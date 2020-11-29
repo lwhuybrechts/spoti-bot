@@ -9,6 +9,5 @@ namespace Spoti_bot.Bot.Upvotes
     {
         bool IsUpvoteCallback(CallbackQuery callbackQuery);
         Task<BotResponseCode> TryHandleUpvote(CallbackQuery callbackQuery);
-        InlineKeyboardButton CreateUpvoteButton();
     }
 }

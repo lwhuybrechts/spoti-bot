@@ -9,10 +9,9 @@ using System.IO;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
 using Newtonsoft.Json;
-using Spoti_bot.Bot.Upvotes;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Spoti_bot.Library;
-using System.Linq;
+using Spoti_bot.Bot.HandleUpdate;
 
 namespace Spoti_bot
 {
@@ -20,12 +19,18 @@ namespace Spoti_bot
     {
         private readonly IHandleMessageService _handleMessageService;
         private readonly IHandleCallbackQueryService _handleCallbackQueryService;
+        private readonly IHandleInlineQueryService _handleInlineQueryService;
         private readonly Library.Options.SentryOptions _sentryOptions;
 
-        public Update(IHandleMessageService handleMessageService, IHandleCallbackQueryService handleCallbackQueryService, IOptions<Library.Options.SentryOptions> sentryOptions)
+        public Update(
+            IHandleMessageService handleMessageService,
+            IHandleCallbackQueryService handleCallbackQueryService,
+            IHandleInlineQueryService handleInlineQueryService,
+            IOptions<Library.Options.SentryOptions> sentryOptions)
         {
             _handleMessageService = handleMessageService;
             _handleCallbackQueryService = handleCallbackQueryService;
+            _handleInlineQueryService = handleInlineQueryService;
             _sentryOptions = sentryOptions.Value;
         }
 
@@ -41,8 +46,8 @@ namespace Spoti_bot
                 {
                     var update = JsonConvert.DeserializeObject<Telegram.Bot.Types.Update>(requestBody);
 
-                    // Only handle updates in group chats.
-                    if (!IsGroupChat(update))
+                    // Only handle updates on certain conditions.
+                    if (!ShouldHandle(update))
                         return new OkObjectResult(BotResponseCode.NoAction);
 
                     // Check if we can do something with the text message.
@@ -51,10 +56,16 @@ namespace Spoti_bot
                         return new OkObjectResult(messageResponseCode);
 
                     // Check if we can do something with the callback query.
-                    // Callback queries are responses from a user to a message the bot has sent.
+                    // Callback queries are sent when the user clicks a button.
                     var callbackQueryResponseCode = await _handleCallbackQueryService.TryHandleCallbackQuery(update);
                     if (callbackQueryResponseCode != BotResponseCode.NoAction)
                         return new OkObjectResult(callbackQueryResponseCode);
+
+                    // Check if we can do something with the inline query.
+                    // Inline queries are sent when the user types something behind the bot username tag: @Spotibot query
+                    var inlineQueryResponseCode = await _handleInlineQueryService.TryHandleInlineQuery(update);
+                    if (inlineQueryResponseCode != BotResponseCode.NoAction)
+                        return new OkObjectResult(inlineQueryResponseCode);
 
                     return new OkObjectResult(BotResponseCode.NoAction);
                 }
@@ -83,25 +94,36 @@ namespace Spoti_bot
             }
         }
 
-        private static bool IsGroupChat(Telegram.Bot.Types.Update update)
+        private static bool ShouldHandle(Telegram.Bot.Types.Update update)
         {
-            // Get the chat type from the message.
-            var chatType = update?.Message?.Chat?.Type;
-
-            if (!chatType.HasValue)
-                // Get the chat type from the callback query's message.
-                chatType = update?.CallbackQuery?.Message?.Chat?.Type;
+            // Always handle inline queries.
+            if (update?.Type == Telegram.Bot.Types.Enums.UpdateType.InlineQuery)
+                return true;
+            
+            Telegram.Bot.Types.Enums.ChatType? chatType = GetChatType(update);
 
             if (!chatType.HasValue)
                 return false;
 
-            var validChatTypes = new[]
+            switch (chatType.Value)
             {
-                Telegram.Bot.Types.Enums.ChatType.Group,
-                Telegram.Bot.Types.Enums.ChatType.Supergroup
-            };
+                // The bot only handles updates in groups.
+                case Telegram.Bot.Types.Enums.ChatType.Group:
+                case Telegram.Bot.Types.Enums.ChatType.Supergroup:
+                    return true;
+                case Telegram.Bot.Types.Enums.ChatType.Channel:
+                case Telegram.Bot.Types.Enums.ChatType.Private:
+                default:
+                    return false;
+            }
+        }
 
-            return validChatTypes.Contains(chatType.Value);
+        private static Telegram.Bot.Types.Enums.ChatType? GetChatType(Telegram.Bot.Types.Update update)
+        {
+            // Try to get the chat type from the message.
+            return update?.Message?.Chat?.Type
+                // Try to get the chat type from the callback query's message.
+                ?? update?.CallbackQuery?.Message?.Chat?.Type;
         }
     }
 }

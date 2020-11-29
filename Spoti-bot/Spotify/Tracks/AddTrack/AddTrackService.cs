@@ -1,9 +1,8 @@
-﻿using Spoti_bot.Bot.Upvotes;
+﻿using Spoti_bot.Bot;
 using Spoti_bot.Library;
 using System;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Spoti_bot.Spotify.Tracks.AddTrack
 {
@@ -14,7 +13,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         private readonly ISuccessResponseService _successResponseService;
         private readonly ISpotifyClientService _spotifyClientService;
         private readonly ITrackRepository _trackRepository;
-        private readonly IUpvoteService _upvoteService;
+        private readonly IKeyboardService _keyboardService;
 
         public AddTrackService(
             ISendMessageService sendMessageService,
@@ -22,14 +21,14 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             ISuccessResponseService successResponseService,
             ISpotifyClientService spotifyClientService,
             ITrackRepository trackRepository,
-            IUpvoteService upvoteService)
+            IKeyboardService keyboardService)
         {
             _sendMessageService = sendMessageService;
             _spotifyLinkHelper = spotifyTextHelper;
             _successResponseService = successResponseService;
             _spotifyClientService = spotifyClientService;
             _trackRepository = trackRepository;
-            _upvoteService = upvoteService;
+            _keyboardService = keyboardService;
         }
 
         public async Task<BotResponseCode> TryAddTrackToPlaylist(Message message)
@@ -101,7 +100,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
                 message,
                 _successResponseService.GetSuccessResponseText(message, track),
                 replyToMessageId: originalMessageId,
-                replyMarkup: new InlineKeyboardMarkup(_upvoteService.CreateUpvoteButton()));
+                replyMarkup: _keyboardService.CreateKeyboard());
         }
     }
 }

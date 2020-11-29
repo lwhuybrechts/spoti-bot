@@ -1,8 +1,10 @@
-﻿using Spoti_bot.Bot.Upvotes;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Spoti_bot.Bot
@@ -40,9 +42,14 @@ namespace Spoti_bot.Bot
             return _telegramBotClient.EditMessageTextAsync(chatId, messageId, text, parseMode, disableWebPagePreview, replyMarkup);
         }
 
-        public Task AnswerCallbackQueryAsync(string callbackQueryId)
+        public Task AnswerCallbackQueryAsync(string callbackQueryId, string text = null)
         {
-            return _telegramBotClient.AnswerCallbackQueryAsync(callbackQueryId);
+            return _telegramBotClient.AnswerCallbackQueryAsync(callbackQueryId, text);
+        }
+
+        public Task AnswerInlineQueryAsync(string inlineQueryId, IEnumerable<InlineQueryResultBase> results)
+        {
+            return _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results, 120);
         }
     }
 }

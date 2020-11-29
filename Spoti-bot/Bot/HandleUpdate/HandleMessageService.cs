@@ -1,5 +1,4 @@
-﻿using Spoti_bot.Bot.Commands;
-using Spoti_bot.Bot.Upvotes;
+﻿using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Exceptions;
@@ -8,7 +7,7 @@ using Spoti_bot.Spotify.Tracks.AddTrack;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.Enums;
 
-namespace Spoti_bot.Bot
+namespace Spoti_bot.Bot.HandleUpdate
 {
     public class HandleMessageService : IHandleMessageService
     {

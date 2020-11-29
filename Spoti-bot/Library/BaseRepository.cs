@@ -49,11 +49,19 @@ namespace Spoti_bot.Library
             return Get(item.RowKey, item.PartitionKey);
         }
 
-        public async Task<List<T>> GetAll()
+        public Task<List<T>> GetAll()
         {
             var query = new TableQuery<T>();
             
-            return await ExecuteSegmentedQueries(query);
+            return ExecuteSegmentedQueries(query);
+        }
+
+        public Task<List<T>> GetPartition(string partitionKey)
+        {
+            var partitionKeyFilter = TableQuery.GenerateFilterCondition(nameof(TableEntity.PartitionKey), QueryComparisons.Equal, partitionKey);
+            var query = new TableQuery<T>().Where(partitionKeyFilter);
+            
+            return ExecuteSegmentedQueries(query);
         }
 
         public async Task<List<string>> GetAllRowKeys(string partitionKey = "")

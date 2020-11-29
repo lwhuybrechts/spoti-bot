@@ -5,7 +5,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Bot;
-using Spoti_bot.Bot.Commands;
+using Spoti_bot.Bot.HandleUpdate;
+using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Library.Options;
@@ -48,9 +49,12 @@ namespace Spoti_bot
 
             // Bot dependencies.
             services.AddTransient<ICommandsService, CommandsService>();
+            services.AddTransient<IInlineQueryCommandsService, InlineQueryCommandsService>();
             services.AddTransient<IHandleMessageService, HandleMessageService>();
             services.AddTransient<IHandleCallbackQueryService, HandleCallbackQueryService>();
+            services.AddTransient<IHandleInlineQueryService, HandleInlineQueryService>();
             services.AddTransient<ISendMessageService, SendMessageService>();
+            services.AddTransient<IKeyboardService, KeyboardService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IUpvoteService, UpvoteService>();
             services.AddTransient<IUpvoteTextHelper, UpvoteTextHelper>();

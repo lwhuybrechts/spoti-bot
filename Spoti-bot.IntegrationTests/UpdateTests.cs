@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Spoti_bot.Bot.Commands;
-using Spoti_bot.Bot.Upvotes;
+using Spoti_bot.Bot;
+using Spoti_bot.Bot.HandleUpdate;
+using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.IntegrationTests.Library;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Options;
@@ -35,9 +36,10 @@ namespace Spoti_bot.IntegrationTests
 
             var handleMessageService = testHost.GetService<IHandleMessageService>();
             var handleCallbackQueryService = testHost.GetService<IHandleCallbackQueryService>();
+            var handleInlineQueryService = testHost.GetService<IHandleInlineQueryService>();
             var sentryOptions = testHost.GetService<IOptions<SentryOptions>>();
 
-            _sut = new Update(handleMessageService, handleCallbackQueryService, sentryOptions);
+            _sut = new Update(handleMessageService, handleCallbackQueryService, handleInlineQueryService, sentryOptions);
         }
 
         [Fact]

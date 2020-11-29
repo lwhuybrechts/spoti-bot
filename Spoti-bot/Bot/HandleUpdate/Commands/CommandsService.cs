@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
@@ -11,7 +10,7 @@ using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot.Commands
+namespace Spoti_bot.Bot.HandleUpdate.Commands
 {
     public class CommandsService : ICommandsService
     {
@@ -69,7 +68,7 @@ namespace Spoti_bot.Bot.Commands
             {
                 var helpText = $"Welcome to Spoti-bot.\n\n" +
                     $"Post links to Spotify tracks in this chat and they will be added to the playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist()}.";
-                
+
                 await _sendMessageService.SendTextMessageAsync(message.Chat.Id, helpText, disableWebPagePreview: false);
                 return BotResponseCode.HelpCommandHandled;
             }

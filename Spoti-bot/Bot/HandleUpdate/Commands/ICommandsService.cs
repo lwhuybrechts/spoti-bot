@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 
-namespace Spoti_bot.Bot.Commands
+namespace Spoti_bot.Bot.HandleUpdate.Commands
 {
     public interface ICommandsService
     {
