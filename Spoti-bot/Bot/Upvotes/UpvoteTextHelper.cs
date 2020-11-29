@@ -5,8 +5,6 @@ namespace Spoti_bot.Bot.Upvotes
 {
     public class UpvoteTextHelper : IUpvoteTextHelper
     {
-        public const string ButtonText = "👍";
-
         private static readonly Regex _upvoteRegex = new Regex("(.+)(\\s👍\\+)(\\d+)$");
 
         public string IncrementUpvote(string text)

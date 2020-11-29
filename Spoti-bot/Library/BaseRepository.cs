@@ -44,6 +44,11 @@ namespace Spoti_bot.Library
             return tableResult.Result as T;
         }
 
+        public Task<T> Get(T item)
+        {
+            return Get(item.RowKey, item.PartitionKey);
+        }
+
         public async Task<List<T>> GetAll()
         {
             var query = new TableQuery<T>();

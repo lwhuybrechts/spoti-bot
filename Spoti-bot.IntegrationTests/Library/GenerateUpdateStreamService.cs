@@ -16,10 +16,12 @@ namespace Spoti_bot.IntegrationTests
     public class GenerateUpdateStreamService
     {
         private readonly TestOptions _testOptions;
+        private readonly IUpvoteService _upvoteService;
 
-        public GenerateUpdateStreamService(IOptions<TestOptions> testOptions)
+        public GenerateUpdateStreamService(IOptions<TestOptions> testOptions, IUpvoteService upvoteService)
         {
             _testOptions = testOptions.Value;
+            _upvoteService = upvoteService;
         }
 
         /// <summary>
@@ -57,7 +59,7 @@ namespace Spoti_bot.IntegrationTests
                 CallbackQuery = new Telegram.Bot.Types.CallbackQuery
                 {
                     Id = "testId",
-                    Data = UpvoteTextHelper.ButtonText,
+                    Data = UpvoteService.ButtonText,
                     From = GetTestUser(),
                     Message = new Telegram.Bot.Types.Message()
                     {
@@ -66,7 +68,7 @@ namespace Spoti_bot.IntegrationTests
                         From = GetTestUser(isBot: true),
                         Chat = GetTestChat(),
                         Entities = new Telegram.Bot.Types.MessageEntity[0],
-                        ReplyMarkup = new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData(UpvoteTextHelper.ButtonText)),
+                        ReplyMarkup = new InlineKeyboardMarkup(_upvoteService.CreateUpvoteButton()),
                         ReplyToMessage = new Telegram.Bot.Types.Message
                         {
                             From = GetTestUser(),
@@ -102,7 +104,8 @@ namespace Spoti_bot.IntegrationTests
         {
             return new Telegram.Bot.Types.Chat
             {
-                Id = _testOptions.TestChatId
+                Id = _testOptions.TestChatId,
+                Type = Telegram.Bot.Types.Enums.ChatType.Group
             };
         }
 

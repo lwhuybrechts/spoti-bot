@@ -17,7 +17,7 @@ namespace Spoti_bot.IntegrationTests
             var startup = new TestStartup();
 
             // Normally for integrationtest we would need an in-memory TestServer that we can communicate with using a HTTP client.
-            // However, TestServer is an ASP.Net Core specific type and is currently not supported for Azure functions.
+            // However, TestServer is an ASP.Net Core specific type and is currently not supported for Azure Functions.
             // Since Azure Functions are built on top of the Web Jobs SDK, bootrap a generic host via the ConfigureWebJobs method.
             var host = new HostBuilder()
                 .ConfigureHostConfiguration(configurationBuilder =>

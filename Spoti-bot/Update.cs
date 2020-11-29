@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Spoti_bot.Bot.Upvotes;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Spoti_bot.Library;
+using System.Linq;
 
 namespace Spoti_bot
 {
@@ -40,12 +41,17 @@ namespace Spoti_bot
                 {
                     var update = JsonConvert.DeserializeObject<Telegram.Bot.Types.Update>(requestBody);
 
+                    // Only handle updates in group chats.
+                    if (!IsGroupChat(update))
+                        return new OkObjectResult(BotResponseCode.NoAction);
+
                     // Check if we can do something with the text message.
                     var messageResponseCode = await _handleMessageService.TryHandleMessage(update);
                     if (messageResponseCode != BotResponseCode.NoAction)
                         return new OkObjectResult(messageResponseCode);
 
-                    // CallbackQueries are responses to a message the bot has sent.
+                    // Check if we can do something with the callback query.
+                    // Callback queries are responses from a user to a message the bot has sent.
                     var callbackQueryResponseCode = await _handleCallbackQueryService.TryHandleCallbackQuery(update);
                     if (callbackQueryResponseCode != BotResponseCode.NoAction)
                         return new OkObjectResult(callbackQueryResponseCode);
@@ -75,6 +81,27 @@ namespace Spoti_bot
                 // Catch this, since we don't have exception handling yet.
                 return "";
             }
+        }
+
+        private static bool IsGroupChat(Telegram.Bot.Types.Update update)
+        {
+            // Get the chat type from the message.
+            var chatType = update?.Message?.Chat?.Type;
+
+            if (!chatType.HasValue)
+                // Get the chat type from the callback query's message.
+                chatType = update?.CallbackQuery?.Message?.Chat?.Type;
+
+            if (!chatType.HasValue)
+                return false;
+
+            var validChatTypes = new[]
+            {
+                Telegram.Bot.Types.Enums.ChatType.Group,
+                Telegram.Bot.Types.Enums.ChatType.Supergroup
+            };
+
+            return validChatTypes.Contains(chatType.Value);
         }
     }
 }

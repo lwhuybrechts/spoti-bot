@@ -13,6 +13,8 @@ namespace Spoti_bot.Bot.Upvotes
 {
     public class UpvoteService : IUpvoteService
     {
+        public const string ButtonText = "👍";
+
         private readonly ISendMessageService _sendMessageService;
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
         private readonly IUpvoteTextHelper _upvoteTextHelper;
@@ -37,7 +39,7 @@ namespace Spoti_bot.Bot.Upvotes
         /// <returns>True if the callback query is an upvote callback.</returns>
         public bool IsUpvoteCallback(CallbackQuery callbackQuery)
         {
-            return callbackQuery.Data.Equals(UpvoteTextHelper.ButtonText);
+            return callbackQuery.Data.Equals(ButtonText);
         }
 
         /// <summary>
@@ -49,12 +51,9 @@ namespace Spoti_bot.Bot.Upvotes
             if (!IsUpvoteCallback(callbackQuery))
                 return BotResponseCode.NoAction;
 
-            // Get the message with the trackId.
-            var trackMessageText = callbackQuery.Message.ReplyToMessage.Text;
+            var trackId = await GetTrackId(callbackQuery);
 
-            var trackId = await _spotifyLinkHelper.ParseTrackId(trackMessageText);
-
-            // We cannot continue without a trackId.
+            // Every callback query should have a trackId.
             if (string.IsNullOrEmpty(trackId))
                 throw new TrackIdNullException();
 
@@ -66,12 +65,25 @@ namespace Spoti_bot.Bot.Upvotes
             return upvoteResponseCode;
         }
 
+        public InlineKeyboardButton CreateUpvoteButton()
+        {
+            return InlineKeyboardButton.WithCallbackData(ButtonText);
+        }
+
+        /// <summary>
+        /// Get the trackId from the callback query.
+        /// </summary>
+        private async Task<string> GetTrackId(CallbackQuery callbackQuery)
+        {
+            // Get the message with the trackId.
+            var trackMessageText = callbackQuery.Message.ReplyToMessage.Text;
+
+            return await _spotifyLinkHelper.ParseTrackId(trackMessageText);
+        }
+
         /// <summary>
         /// Upvote a track, or if it was already upvoted remove the upvote.
         /// </summary>
-        /// <param name="callbackQuery"></param>
-        /// <param name="trackId"></param>
-        /// <returns></returns>
         private async Task<BotResponseCode> HandleUpvote(CallbackQuery callbackQuery, string trackId)
         {
             var upvote = new Upvote
@@ -81,35 +93,37 @@ namespace Spoti_bot.Bot.Upvotes
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
-            var existingUpvote = await GetUpvoteFromStorage(upvote);
-
             var text = GetTextMessageWithTextLinks(callbackQuery.Message);
 
-            if (existingUpvote != null)
-            {
-                // Decrement upvote in the original message.
-                var newText = _upvoteTextHelper.DecrementUpvote(text);
-                await EditOriginalMessage(callbackQuery.Message, newText);
+            var existingUpvote = await _upvoteRepository.Get(upvote);
 
-                // Delete the upvote from storage.
-                await _upvoteRepository.Delete(existingUpvote);
-                return BotResponseCode.DownvoteHandled;
-            }
-            else
-            {
-                // Save the upvote in storage.
-                await _upvoteRepository.Upsert(upvote);
-
-                // Increment upvote in the original message.
-                var newText = _upvoteTextHelper.IncrementUpvote(text);
-                await EditOriginalMessage(callbackQuery.Message, newText);
-                return BotResponseCode.UpvoteHandled;
-            }
+            return existingUpvote == null
+                ? await Upvote(callbackQuery, upvote, text)
+                : await Downvote(callbackQuery, existingUpvote, text);
         }
 
-        private Task<Upvote> GetUpvoteFromStorage(Upvote upvote)
+        private async Task<BotResponseCode> Upvote(CallbackQuery callbackQuery, Upvote upvote, string text)
         {
-            return _upvoteRepository.Get(upvote.RowKey, upvote.PartitionKey);
+            // Save the upvote in storage.
+            await _upvoteRepository.Upsert(upvote);
+
+            // Increment upvote in the original message.
+            var newText = _upvoteTextHelper.IncrementUpvote(text);
+            await EditOriginalMessage(callbackQuery.Message, newText);
+            
+            return BotResponseCode.UpvoteHandled;
+        }
+
+        private async Task<BotResponseCode> Downvote(CallbackQuery callbackQuery, Upvote existingUpvote, string text)
+        {
+            // Decrement upvote in the original message.
+            var newText = _upvoteTextHelper.DecrementUpvote(text);
+            await EditOriginalMessage(callbackQuery.Message, newText);
+
+            // Delete the upvote from storage.
+            await _upvoteRepository.Delete(existingUpvote);
+
+            return BotResponseCode.DownvoteHandled;
         }
 
         // TODO: move to a central place?
@@ -146,7 +160,7 @@ namespace Spoti_bot.Bot.Upvotes
                 message.Chat.Id,
                 message.MessageId,
                 newText,
-                replyMarkup: new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData(UpvoteTextHelper.ButtonText)));
+                replyMarkup: message.ReplyMarkup);
         }
 
         /// <summary>

@@ -14,19 +14,22 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         private readonly ISuccessResponseService _successResponseService;
         private readonly ISpotifyClientService _spotifyClientService;
         private readonly ITrackRepository _trackRepository;
+        private readonly IUpvoteService _upvoteService;
 
         public AddTrackService(
             ISendMessageService sendMessageService,
             ISpotifyLinkHelper spotifyTextHelper,
             ISuccessResponseService successResponseService,
             ISpotifyClientService spotifyClientService,
-            ITrackRepository trackRepository)
+            ITrackRepository trackRepository,
+            IUpvoteService upvoteService)
         {
             _sendMessageService = sendMessageService;
             _spotifyLinkHelper = spotifyTextHelper;
             _successResponseService = successResponseService;
             _spotifyClientService = spotifyClientService;
             _trackRepository = trackRepository;
+            _upvoteService = upvoteService;
         }
 
         public async Task<BotResponseCode> TryAddTrackToPlaylist(Message message)
@@ -93,10 +96,12 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         private async Task SendReplyMessage(Message message, Track track)
         {
             var originalMessageId = message.MessageId;
-            var keyboard = new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData(UpvoteTextHelper.ButtonText));
-            var successText = _successResponseService.GetSuccessResponseText(message, track);
 
-            await _sendMessageService.SendTextMessageAsync(message, successText, replyToMessageId: originalMessageId, replyMarkup: keyboard);
+            await _sendMessageService.SendTextMessageAsync(
+                message,
+                _successResponseService.GetSuccessResponseText(message, track),
+                replyToMessageId: originalMessageId,
+                replyMarkup: new InlineKeyboardMarkup(_upvoteService.CreateUpvoteButton()));
         }
     }
 }

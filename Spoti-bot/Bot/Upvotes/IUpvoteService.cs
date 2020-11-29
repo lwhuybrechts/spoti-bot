@@ -1,6 +1,7 @@
 ﻿using Spoti_bot.Library;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Spoti_bot.Bot.Upvotes
 {
@@ -8,5 +9,6 @@ namespace Spoti_bot.Bot.Upvotes
     {
         bool IsUpvoteCallback(CallbackQuery callbackQuery);
         Task<BotResponseCode> TryHandleUpvote(CallbackQuery callbackQuery);
+        InlineKeyboardButton CreateUpvoteButton();
     }
 }
