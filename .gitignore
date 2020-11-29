@@ -5,6 +5,7 @@
 
 # Custom
 local.settings.json
+chathistory.json
 
 # User-specific files
 *.rsuser
