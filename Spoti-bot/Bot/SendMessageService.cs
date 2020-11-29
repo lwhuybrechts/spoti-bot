@@ -49,7 +49,7 @@ namespace Spoti_bot.Bot
 
         public Task AnswerInlineQueryAsync(string inlineQueryId, IEnumerable<InlineQueryResultBase> results)
         {
-            return _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results, 120);
+            return _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results);
         }
     }
 }

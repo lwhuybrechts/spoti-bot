@@ -26,10 +26,10 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             return GetRegex(command).Match(inlineQuery).Groups[2].Value;
         }
 
-        private static Regex GetRegex(InlineQueryCommand inlineQuery)
+        private static Regex GetRegex(InlineQueryCommand command)
         {
-            // We support inline queries as a command with one query attached.
-            return new Regex($"^({inlineQuery.ToDescriptionString()} )([\\w\\d]+)");
+            // The inline query format is: a command, a space then the query.
+            return new Regex($"^({command.ToDescriptionString()} )([\\w\\d]+)");
         }
     }
 }
