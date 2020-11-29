@@ -53,7 +53,6 @@ namespace Spoti_bot
             services.AddTransient<ISendMessageService, SendMessageService>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IUpvoteService, UpvoteService>();
-            services.AddTransient<ISyncHistoryService, SyncHistoryService>();
             services.AddTransient<IUpvoteTextHelper, UpvoteTextHelper>();
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IUpvoteRepository, UpvoteRepository>();
@@ -70,6 +69,8 @@ namespace Spoti_bot
             services.AddTransient<IAuthorizationService, AuthorizationService>();
             services.AddTransient<IAddTrackService, AddTrackService>();
             services.AddTransient<ISyncTracksService, SyncTracksService>();
+            services.AddTransient<ISyncHistoryService, SyncHistoryService>();
+            services.AddTransient<IParseHistoryJsonService, ParseHistoryJsonService>();
             services.AddTransient<ISpotifyLinkHelper, SpotifyLinkHelper>();
             services.AddTransient<ISuccessResponseService, SuccessResponseService>();
             services.AddTransient<IAuthorizationTokenRepository, AuthorizationTokenRepository>();

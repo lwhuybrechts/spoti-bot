@@ -1,5 +1,4 @@
 ﻿using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Spotify.Tracks;
 using SpotifyAPI.Web;
 using System;
 using System.Collections.Generic;
