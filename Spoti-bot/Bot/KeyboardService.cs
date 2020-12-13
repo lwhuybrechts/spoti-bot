@@ -11,8 +11,10 @@ namespace Spoti_bot.Bot
 {
     public class KeyboardService : IKeyboardService
     {
-        private const string SeeUpvoteButtonText = "See upvotes";
+        private const string SeeUpvoteButtonTextLegacy = "See upvotes";
+        private const string SeeUpvoteButtonText = "👥";
         public const string UpvoteButtonText = "👍";
+        private const string SpotiViewButtonText = "🔗";
         private readonly IUpvoteRepository _upvoteRepository;
 
         public KeyboardService(IUpvoteRepository upvoteRepository)
@@ -22,7 +24,11 @@ namespace Spoti_bot.Bot
 
         public InlineKeyboardMarkup CreateKeyboard()
         {
-            return new InlineKeyboardMarkup(InlineKeyboardButton.WithCallbackData(UpvoteButtonText));
+            return new InlineKeyboardMarkup(new []
+            {
+                InlineKeyboardButton.WithCallbackData(UpvoteButtonText),
+                InlineKeyboardButton.WithUrl(SpotiViewButtonText, "https://skranenburg.outsystemscloud.com/SpotiView/")
+            });
         }
 
         public async Task<InlineKeyboardMarkup> GetUpdatedKeyboard(Message message, string trackId)
@@ -33,7 +39,7 @@ namespace Spoti_bot.Bot
             if (!await HasUpvotes(trackId))
                 return new InlineKeyboardMarkup(GetRowsWithoutSeeUpvoteButton(originalKeyboard));
 
-            // See Upvote button already exists, keep original keyboard.
+            // See if Upvote button already exists, if so keep the original keyboard.
             if (HasSeeUpvoteButton(originalKeyboard))
                 return new InlineKeyboardMarkup(originalKeyboard.InlineKeyboard);
 
@@ -43,15 +49,25 @@ namespace Spoti_bot.Bot
 
         private static List<List<InlineKeyboardButton>> GetRowsWithSeeUpvoteButton(string trackId, InlineKeyboardMarkup originalKeyboard)
         {
+            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {trackId}";
+
+            // Create a button on the keybaord that starts an inline query with the GetUpvoteUsers command.
+            var seeUpvotesButton = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat(SeeUpvoteButtonText, query);
+
+            // Copy the original keyboard.
             var rows = new List<List<InlineKeyboardButton>>();
             foreach (var row in originalKeyboard.InlineKeyboard)
                 rows.Add(row.ToList());
 
-            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {trackId}";
+            var lastRow = rows.Last();
+            var upvoteButton = lastRow.SingleOrDefault(x => x.CallbackData == UpvoteButtonText);
 
-            // Add a button to the keybaord that starts an inline query with the GetUpvoteUsers command.
-            var seeUpvotesButton = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat(SeeUpvoteButtonText, query);
-            rows.Last().Add(seeUpvotesButton);
+            if (upvoteButton != null)
+                // Add the button after the upvote button.
+                lastRow.Insert(lastRow.IndexOf(upvoteButton) + 1, seeUpvotesButton);
+            else
+                lastRow.Add(seeUpvotesButton);
+            
             return rows;
         }
 
@@ -62,7 +78,7 @@ namespace Spoti_bot.Bot
         {
             var allButtons = originalKeyboard.InlineKeyboard.SelectMany(x => x).ToList();
             
-            return allButtons.Any(x => x.Text == SeeUpvoteButtonText);
+            return allButtons.Any(x => x.Text == SeeUpvoteButtonText || x.Text == SeeUpvoteButtonTextLegacy);
         }
 
         /// <summary>
@@ -74,7 +90,7 @@ namespace Spoti_bot.Bot
 
             // Add everything but the See Upvote button.
             foreach (var row in originalKeyboard.InlineKeyboard)
-                newRows.Add(row.Where(x => x.Text != SeeUpvoteButtonText).ToList());
+                newRows.Add(row.Where(x => x.Text != SeeUpvoteButtonText && x.Text != SeeUpvoteButtonTextLegacy).ToList());
             
             return newRows;
         }

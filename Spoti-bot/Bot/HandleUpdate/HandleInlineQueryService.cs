@@ -4,6 +4,7 @@ using Spoti_bot.Bot.Users;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Exceptions;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
@@ -51,6 +52,13 @@ namespace Spoti_bot.Bot.HandleUpdate
 
                 // Send the results back.
                 var inlineQueryResults = _mapper.Map<List<InlineQueryResultArticle>>(users);
+
+                if (inlineQueryResults.Any())
+                {
+                    var titleText = "This track is upvoted by:";
+                    inlineQueryResults.Insert(0, new InlineQueryResultArticle("resultId", titleText, new InputTextMessageContent(titleText)));
+                }
+
                 await AnswerInlineQuery(update, inlineQueryResults);
 
                 return BotResponseCode.InlineQueryHandled;
