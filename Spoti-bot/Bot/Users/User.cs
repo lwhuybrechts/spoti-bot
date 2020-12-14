@@ -5,10 +5,10 @@ namespace Spoti_bot.Bot.Users
     public class User : TableEntity
     {
         [IgnoreProperty]
-        public string Id
+        public long Id
         {
-            get { return RowKey; }
-            set { RowKey = value; }
+            get { return long.Parse(RowKey); }
+            set { RowKey = value.ToString(); }
         }
 
         public string FirstName { get; set; }

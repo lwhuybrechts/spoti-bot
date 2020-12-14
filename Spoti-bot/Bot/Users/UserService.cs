@@ -19,8 +19,15 @@ namespace Spoti_bot.Bot.Users
             _mapper = mapper;
         }
 
+        public Task<User> Get(long id)
+        {
+            return _userRepository.Get(id);
+        }
+
         public async Task<User> SaveUser(Telegram.Bot.Types.User telegramUser)
         {
+            // TODO: map before calling this service.
+
             // Save the user to the storage.
             var user = _mapper.Map<User>(telegramUser);
 
@@ -32,16 +39,17 @@ namespace Spoti_bot.Bot.Users
         /// </summary>
         public async Task<List<User>> GetUpvoteUsers(string trackId)
         {
-            var upvotes = await _upvoteRepository.GetPartition(trackId);
+            var upvotes = await _upvoteRepository.GetAllByPartitionKey(trackId);
 
             if (!upvotes.Any())
                 return new List<User>();
 
+            // TODO: only fetch users from a certain partition, or already use query filters.
             var users = await _userRepository.GetAll();
 
             var upvoteUsers = users
                 .Where(x => upvotes
-                    .Select(x => x.UserId.ToString())
+                    .Select(x => x.UserId)
                     .Contains(x.Id)
                 ).ToList();
 

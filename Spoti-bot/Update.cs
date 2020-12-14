@@ -46,6 +46,8 @@ namespace Spoti_bot
                 {
                     var update = JsonConvert.DeserializeObject<Telegram.Bot.Types.Update>(requestBody);
 
+                    // TODO: get userId and chat and put them in some sort of session variables.
+
                     // Only handle updates on certain conditions.
                     if (!ShouldHandle(update))
                         return new OkObjectResult(BotResponseCode.NoAction);
@@ -62,7 +64,7 @@ namespace Spoti_bot
                         return new OkObjectResult(callbackQueryResponseCode);
 
                     // Check if we can do something with the inline query.
-                    // Inline queries are sent when the user types something behind the bot username tag: @Spotibot query
+                    // Inline queries are sent when the user types a query behind the bot username tag: @Spotibot query
                     var inlineQueryResponseCode = await _handleInlineQueryService.TryHandleInlineQuery(update);
                     if (inlineQueryResponseCode != BotResponseCode.NoAction)
                         return new OkObjectResult(inlineQueryResponseCode);
@@ -96,11 +98,11 @@ namespace Spoti_bot
 
         private static bool ShouldHandle(Telegram.Bot.Types.Update update)
         {
-            // Always handle inline queries.
+            // Always handle inline queries, since they do not have chat info.
             if (update?.Type == Telegram.Bot.Types.Enums.UpdateType.InlineQuery)
                 return true;
             
-            Telegram.Bot.Types.Enums.ChatType? chatType = GetChatType(update);
+            var chatType = GetChatType(update);
 
             if (!chatType.HasValue)
                 return false;

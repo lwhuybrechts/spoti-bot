@@ -6,7 +6,8 @@ namespace Spoti_bot.Bot
 {
     public interface IKeyboardService
     {
-        InlineKeyboardMarkup CreateKeyboard();
-        Task<InlineKeyboardMarkup> GetUpdatedKeyboard(Message message, string trackId);
+        InlineKeyboardMarkup CreateButtonKeyboard(string text, string url);
+        InlineKeyboardMarkup CreatePostedTrackResponseKeyboard();
+        Task<InlineKeyboardMarkup> GetUpdatedUpvoteKeyboard(Message message, string trackId);
     }
 }

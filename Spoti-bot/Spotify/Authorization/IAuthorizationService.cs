@@ -6,8 +6,7 @@ namespace Spoti_bot.Spotify.Authorization
 {
     public interface IAuthorizationService
     {
-        Task<ISpotifyClient> CreateSpotifyClient();
-        Uri GetLoginUri();
-        Task RequestAndSaveAuthorizationToken(string code);
+        Task<Uri> CreateLoginRequest(long userId);
+        Task RequestAndSaveAuthorizationToken(string code, string loginRequestId);
     }
 }

@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Library.Options;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Spoti_bot.Spotify
@@ -8,36 +6,63 @@ namespace Spoti_bot.Spotify
     public class SpotifyLinkHelper : ISpotifyLinkHelper
     {
         private const string PlaylistBaseUri = "https://open.spotify.com/playlist/";
-        
+        private const string TrackBaseUri = "https://open.spotify.com/track/";
+
+        private static readonly Regex _playlistRegex = new Regex("(https?://(open|play).spotify.com/playlist/|spotify:playlist:)([\\w\\d]+)");
         private static readonly Regex _trackRegex = new Regex("(https?://(open|play).spotify.com/track/|spotify:track:)([\\w\\d]+)");
         private static readonly Regex _linkToRegex = new Regex("(https?://link.tospotify.com/)([\\w\\d]+)");
-
-        private readonly PlaylistOptions _playlistOptions;
-
-        public SpotifyLinkHelper(IOptions<PlaylistOptions> playlistOptions)
-        {
-            _playlistOptions = playlistOptions.Value;
-        }
 
         /// <summary>
         /// Generate a markdown text link to the playlist.
         /// </summary>
-        /// <param name="text">The clickable text for our link. Defaults to the name of the playlist.</param>
-        public string GetMarkdownLinkToPlaylist(string text = "")
+        /// <param name="text">The clickable text for our link.</param>
+        public string GetMarkdownLinkToPlaylist(string playlistId, string text)
         {
-            if (string.IsNullOrEmpty(text))
-                text = _playlistOptions.Name;
+            return $"[{text}]({PlaylistBaseUri}{playlistId})";
+        }
 
-            return $"[{text}]({PlaylistBaseUri}{_playlistOptions.Id})";
+        public string GetLinkToPlaylist(string playlistId)
+        {
+            return $"{PlaylistBaseUri}{playlistId}";
+        }
+
+        public string GetLinkToTrack(string trackId)
+        {
+            return $"{TrackBaseUri}{trackId}";
         }
 
         /// <summary>
         /// Check if the text contains an url with a trackId, or a tospotify url.
         /// </summary>
         /// <param name="text">The text to check.</param>
-        public bool HasAnySpotifyLink(string text)
+        public bool HasAnyTrackLink(string text)
         {
             return HasTrackIdLink(text) || HasToSpotifyLink(text);
+        }
+
+        /// <summary>
+        /// Get a playlistId from the text.
+        /// </summary>
+        /// <param name="text">The text to get the playlistId from.</param>
+        public async Task<string> ParsePlaylistId(string text)
+        {
+            // Check for a "classic" spotify url.
+            if (HasPlaylistIdLink(text))
+                return ParsePlaylistIdLink(text);
+
+            // Check for a "linkto" spotify url.
+            if (HasToSpotifyLink(text))
+            {
+                var linkToUri = ParseToSpotifyLink(text);
+
+                // Get the playlistUri from the linkToUri.
+                var playlistUri = await RequestTrackUri(linkToUri);
+
+                if (HasPlaylistIdLink(playlistUri))
+                    return ParsePlaylistIdLink(playlistUri);
+            }
+
+            return string.Empty;
         }
 
         /// <summary>
@@ -81,6 +106,24 @@ namespace Spoti_bot.Spotify
             var trackUri = response?.RequestMessage?.RequestUri?.AbsoluteUri ?? "";
 
             return trackUri;
+        }
+
+        /// <summary>
+        /// Check if the text contains an url with a playlistId.
+        /// </summary>
+        /// <param name="text">The text to check.</param>
+        private bool HasPlaylistIdLink(string text)
+        {
+            return _playlistRegex.Match(text).Success;
+        }
+
+        /// <summary>
+        /// Parse the playlistId from the text.
+        /// </summary>
+        /// <param name="text">The text to parse the playlistId from.</param>
+        private string ParsePlaylistIdLink(string text)
+        {
+            return _playlistRegex.Match(text).Groups[3].Value;
         }
 
         /// <summary>

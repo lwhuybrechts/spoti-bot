@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Spoti_bot.Bot;
-using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Library.Options;
 using System;
 using System.IO;
@@ -68,7 +67,7 @@ namespace Spoti_bot.IntegrationTests
                         From = GetTestUser(isBot: true),
                         Chat = GetTestChat(),
                         Entities = new Telegram.Bot.Types.MessageEntity[0],
-                        ReplyMarkup = _keyboardService.CreateKeyboard(),
+                        ReplyMarkup = _keyboardService.CreatePostedTrackResponseKeyboard(),
                         ReplyToMessage = new Telegram.Bot.Types.Message
                         {
                             From = GetTestUser(),
@@ -79,6 +78,22 @@ namespace Spoti_bot.IntegrationTests
                         MessageId = messageId,
                     },
                     ChatInstance = "testChatInstance"
+                }
+            };
+
+            return WriteUpdateToStream(stream, update);
+        }
+
+        public Task WriteInlineQueryToStream(Stream stream, string query)
+        {
+            var update = new Telegram.Bot.Types.Update
+            {
+                InlineQuery = new Telegram.Bot.Types.InlineQuery
+                {
+                    Id = "testId",
+                    From = GetTestUser(),
+                    Query = query,
+                    Offset = ""
                 }
             };
 

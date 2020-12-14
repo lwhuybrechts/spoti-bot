@@ -5,13 +5,16 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Bot;
+using Spoti_bot.Bot.Chats;
 using Spoti_bot.Bot.HandleUpdate;
 using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
+using Spoti_bot.Spotify.Api;
 using Spoti_bot.Spotify.Authorization;
+using Spoti_bot.Spotify.Playlists;
 using Spoti_bot.Spotify.Tracks;
 using Spoti_bot.Spotify.Tracks.AddTrack;
 using Spoti_bot.Spotify.Tracks.SyncHistory;
@@ -49,10 +52,10 @@ namespace Spoti_bot
 
             // Bot dependencies.
             services.AddTransient<ICommandsService, CommandsService>();
-            services.AddTransient<IInlineQueryCommandsService, InlineQueryCommandsService>();
             services.AddTransient<IHandleMessageService, HandleMessageService>();
             services.AddTransient<IHandleCallbackQueryService, HandleCallbackQueryService>();
             services.AddTransient<IHandleInlineQueryService, HandleInlineQueryService>();
+            services.AddTransient<IHandleCommandService, HandleCommandService>();
             services.AddTransient<ISendMessageService, SendMessageService>();
             services.AddTransient<IKeyboardService, KeyboardService>();
             services.AddTransient<IUserService, UserService>();
@@ -60,6 +63,7 @@ namespace Spoti_bot
             services.AddTransient<IUpvoteTextHelper, UpvoteTextHelper>();
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IUpvoteRepository, UpvoteRepository>();
+            services.AddTransient<IChatRepository, ChatRepository>();
 
             // TODO: only use 1 http client, so inject it here.
             services.AddSingleton<ITelegramBotClient>((serviceProvider) =>
@@ -71,6 +75,7 @@ namespace Spoti_bot
 
             // Spotify dependencies.
             services.AddTransient<IAuthorizationService, AuthorizationService>();
+            services.AddTransient<ILoginRequestService, LoginRequestService>();
             services.AddTransient<IAddTrackService, AddTrackService>();
             services.AddTransient<ISyncTracksService, SyncTracksService>();
             services.AddTransient<ISyncHistoryService, SyncHistoryService>();
@@ -78,10 +83,12 @@ namespace Spoti_bot
             services.AddTransient<ISpotifyLinkHelper, SpotifyLinkHelper>();
             services.AddTransient<ISuccessResponseService, SuccessResponseService>();
             services.AddTransient<IAuthorizationTokenRepository, AuthorizationTokenRepository>();
+            services.AddTransient<ILoginRequestRepository, LoginRequestRepository>();
             services.AddTransient<ITrackRepository, TrackRepository>();
+            services.AddTransient<IPlaylistRepository, PlaylistRepository>();
 
-            // TODO: only use 1 http client, so inject it here.
-            services.AddSingleton<ISpotifyClientService, SpotifyClientService>();
+            services.AddTransient<ISpotifyClientFactory, SpotifyClientFactory>();
+            services.AddTransient<ISpotifyClientService, SpotifyClientService>();
 
             return services;
         }
@@ -137,13 +144,6 @@ namespace Spoti_bot
                 .Configure<IConfiguration>((settings, configuration) =>
                 {
                     configuration.GetSection(nameof(AzureOptions)).Bind(settings);
-                });
-
-            services
-                .AddOptions<PlaylistOptions>()
-                .Configure<IConfiguration>((settings, configuration) =>
-                {
-                    configuration.GetSection(nameof(PlaylistOptions)).Bind(settings);
                 });
 
             services

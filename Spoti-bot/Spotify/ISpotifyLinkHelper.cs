@@ -4,8 +4,11 @@ namespace Spoti_bot.Spotify
 {
     public interface ISpotifyLinkHelper
     {
-        string GetMarkdownLinkToPlaylist(string text = "");
-        bool HasAnySpotifyLink(string text);
+        string GetMarkdownLinkToPlaylist(string playlistId, string text);
+        string GetLinkToPlaylist(string playlistId);
+        string GetLinkToTrack(string trackId);
+        bool HasAnyTrackLink(string text);
+        Task<string> ParsePlaylistId(string text);
         Task<string> ParseTrackId(string text);
     }
 }

@@ -1,14 +1,21 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Spoti_bot.Bot;
+using Spoti_bot.Bot.Chats;
 using Spoti_bot.Bot.HandleUpdate;
 using Spoti_bot.Bot.HandleUpdate.Commands;
+using Spoti_bot.Bot.Upvotes;
+using Spoti_bot.Bot.Users;
 using Spoti_bot.IntegrationTests.Library;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
+using Spoti_bot.Spotify.Api;
+using Spoti_bot.Spotify.Playlists;
 using Spoti_bot.Spotify.Tracks;
+using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -21,18 +28,30 @@ namespace Spoti_bot.IntegrationTests
         private readonly GenerateUpdateStreamService _generateUpdateStreamService;
         private readonly TestOptions _testOptions;
 
+        private readonly ISpotifyClientFactory _spotifyClientFactory;
         private readonly ISpotifyClientService _spotifyClientService;
         private readonly ITrackRepository _trackRepository;
+        private readonly IPlaylistRepository _playlistRepository;
+        private readonly IChatRepository _chatRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IUpvoteRepository _upvoteRepository;
         private readonly ISendMessageService _sendMessageService;
+        private readonly ISpotifyLinkHelper _spotifyLinkHelper;
 
         public UpdateTests(TestHost testHost)
         {
             _generateUpdateStreamService = testHost.GetService<GenerateUpdateStreamService>();
             _testOptions = testHost.GetService<IOptions<TestOptions>>().Value;
 
+            _spotifyClientFactory = testHost.GetService<ISpotifyClientFactory>();
             _spotifyClientService = testHost.GetService<ISpotifyClientService>();
             _trackRepository = testHost.GetService<ITrackRepository>();
+            _playlistRepository = testHost.GetService<IPlaylistRepository>();
+            _chatRepository = testHost.GetService<IChatRepository>();
+            _userRepository = testHost.GetService<IUserRepository>();
+            _upvoteRepository = testHost.GetService<IUpvoteRepository>();
             _sendMessageService = testHost.GetService<ISendMessageService>();
+            _spotifyLinkHelper = testHost.GetService<ISpotifyLinkHelper>();
 
             var handleMessageService = testHost.GetService<IHandleMessageService>();
             var handleCallbackQueryService = testHost.GetService<IHandleCallbackQueryService>();
@@ -42,8 +61,19 @@ namespace Spoti_bot.IntegrationTests
             _sut = new Update(handleMessageService, handleCallbackQueryService, handleInlineQueryService, sentryOptions);
         }
 
+        private async Task TruncateTables()
+        {
+            // TODO: use dev tables and do actual truncates.
+            // Remove specific deletes in these tests since the tables are truncated.
+            await DeleteTrack();
+            await DeletePlaylist();
+            await DeleteChat();
+            await DeleteUser();
+            await DeleteUpvotes();
+        }
+
         [Fact]
-        public async Task Update_NoRequestBody_NoActionReturned()
+        public async Task Run_NoRequestBody_NoActionReturned()
         {
             // Arrange.
             var httpContext = new DefaultHttpContext();
@@ -56,9 +86,25 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
-        public async Task Update_TestCommand_TestCommandHandledReturned()
+        public async Task Run_NoTextString_NoActionReturned()
         {
             // Arrange.
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, "");
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.NoAction, result);
+        }
+
+        [Fact]
+        public async Task Run_TestCommand_TestCommandHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
             using var stream = new MemoryStream();
             var httpRequest = await CreateRequest(stream, Command.Test.ToDescriptionString());
 
@@ -70,9 +116,50 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
-        public async Task Update_HelpCommand_HelpCommandHandledReturned()
+        public async Task Run_HelpCommand_NoChat_CommandRequirementNotFulfilledReturned()
         {
             // Arrange.
+            await TruncateTables();
+
+            await InsertPlaylist();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.Help.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_HelpCommand_NoPlaylist_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.Help.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_HelpCommand_HelpCommandHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertPlaylist();
+            await InsertChat();
+
             using var stream = new MemoryStream();
             var httpRequest = await CreateRequest(stream, Command.Help.ToDescriptionString());
 
@@ -84,9 +171,140 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
-        public async Task Update_GetLoginLinkCommand_LoginLinkCOmmandHandledReturned()
+        public async Task Run_StartCommand_HasChat_CommandRequirementNotFulfilledReturned()
         {
             // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+            await InsertUser();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.Start.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_StartCommand_StartCommandHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertUser();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.Start.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.StartCommandHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_GetLoginLinkCommand_NoChat_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertPlaylist();
+            await InsertUser();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_GetLoginLinkCommand_NoPlaylist_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+            await InsertUser();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_GetLoginLinkCommand_NoUser_ExceptionHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+            await InsertPlaylist();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.ExceptionHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_GetLoginLinkCommand_TestUserNotAdmin_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            var user = await InsertUser();
+            
+            var otherUserId = user.Id - 1;
+            var otherUser = await InsertUser(otherUserId);
+            
+            await InsertChat(otherUser.Id) ;
+            await InsertPlaylist();
+            
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
+
+            try
+            {
+                // Act.
+                var result = await _sut.Run(httpRequest);
+
+                // Assert.
+                AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+            }
+            finally
+            {
+                await DeleteUser(otherUser);
+            }
+        }
+
+        [Fact]
+        public async Task Run_GetLoginLinkCommand_LoginLinkCommandHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertPlaylist();
+            await InsertChat();
+            await InsertUser();
+
             using var stream = new MemoryStream();
             var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
 
@@ -97,29 +315,307 @@ namespace Spoti_bot.IntegrationTests
             AssertHelper.Equal(BotResponseCode.GetLoginLinkCommandHandled, result);
         }
 
-
         [Fact]
-        public async Task Update_AddTrackThatAlreadyExists_TrackAlreadyExistsReturned()
+        public async Task Run_ResetPlaylistStorage_NoChat_CommandRequirementNotFulfilledReturned()
         {
             // Arrange.
-            const string trackUrlThatAlreadyExists = "https://open.spotify.com/track/6HMvJcdw6qLsyV1b5x29sa";
+            await TruncateTables();
+            
+            await InsertPlaylist();
+            await InsertUser();
 
             using var stream = new MemoryStream();
-            var httpRequest = await CreateRequest(stream, trackUrlThatAlreadyExists);
+            var httpRequest = await CreateRequest(stream, Command.ResetPlaylistStorage.ToDescriptionString());
 
             // Act.
             var result = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertHelper.Equal(BotResponseCode.TrackAlreadyExists, result);
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
         }
 
         [Fact]
-        public async Task Update_AddTrack_TrackAddedToPlaylistReturned()
+        public async Task Run_ResetPlaylistStorage_NoPlaylist_CommandRequirementNotFulfilledReturned()
         {
             // Arrange.
-            const string trackId = "5R3eXsNtC8w3eVBT3RsUIa";
-            const string trackUrl = "https://open.spotify.com/track/5R3eXsNtC8w3eVBT3RsUIa";
+            await TruncateTables();
+
+            await InsertChat();
+            await InsertUser();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.ResetPlaylistStorage.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_ResetPlaylistStorage_NoUser_ExceptionHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertPlaylist();
+            await InsertChat();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.ResetPlaylistStorage.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.ExceptionHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_ResetPlaylistStorage_TestUserNotAdmin_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            var user = await InsertUser();
+
+            var otherUserId = user.Id - 1;
+            var otherUser = await InsertUser(otherUserId);
+
+            await InsertChat(otherUser.Id);
+            await InsertPlaylist();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.ResetPlaylistStorage.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_ResetPlaylistStorage_ResetCommandHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertPlaylist();
+            await InsertChat();
+            await InsertUser();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.ResetPlaylistStorage.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.ResetCommandHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_SetPlaylist_NoChat_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertUser();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, $"{Command.SetPlaylist.ToDescriptionString()} {_testOptions.TestPlaylistId}");
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_SetPlaylist_NoUser_ExceptoinHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, $"{Command.SetPlaylist.ToDescriptionString()} {_testOptions.TestPlaylistId}");
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.ExceptionHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_SetPlaylist_TestUserNotAdmin_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            var user = await InsertUser();
+
+            var otherUserId = user.Id - 1;
+            var otherUser = await InsertUser(otherUserId);
+
+            await InsertChat(otherUser.Id);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, $"{Command.SetPlaylist.ToDescriptionString()} {_testOptions.TestPlaylistId}");
+
+            try
+            {
+                // Act.
+                var result = await _sut.Run(httpRequest);
+
+                // Assert.
+                AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+            }
+            finally
+            {
+                await DeleteUser(otherUser);
+            }
+        }
+
+        [Fact]
+        public async Task Run_SetPlaylist_HasPlaylist_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+            await InsertUser();
+            await InsertPlaylist();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, $"{Command.SetPlaylist.ToDescriptionString()} {_testOptions.TestPlaylistId}");
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_SetPlaylist_NoQuery_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+            await InsertUser();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.SetPlaylist.ToDescriptionString());
+            
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_SetPlaylist_SetPlaylistCommandHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+            await InsertUser();
+            
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, $"{Command.SetPlaylist.ToDescriptionString()} {_testOptions.TestPlaylistId}");
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.SetPlaylistCommandHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_AddTrack_NoChat_NoActionReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, trackUrl);
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.NoAction, result);
+        }
+
+        [Fact]
+        public async Task Run_AddTrack_NoPlaylistInChat_NoActionReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat(addPlaylistId: false);
+
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, trackUrl);
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.NoAction, result);
+        }
+
+        [Fact]
+        public async Task Run_AddTrackThatAlreadyExists_TrackAlreadyExistsReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+
+            var track = await InsertTrack();
+            var trackUrlThatAlreadyExists = _spotifyLinkHelper.GetLinkToTrack(track.Id);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, trackUrlThatAlreadyExists);
+
+            try
+            {
+                // Act.
+                var result = await _sut.Run(httpRequest);
+
+                // Assert.
+                AssertHelper.Equal(BotResponseCode.TrackAlreadyExists, result);
+            }
+            finally
+            {
+                // Remove the track from storage.
+                await _trackRepository.Delete(track);
+            }
+        }
+
+        [Fact]
+        public async Task Run_AddTrack_TrackAddedToPlaylistReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateRequest(stream, trackUrl);
@@ -134,29 +630,34 @@ namespace Spoti_bot.IntegrationTests
             }
             finally
             {
+                // TODO: make sure the testuser has an access token.
+                var spotifyClient = await _spotifyClientFactory.Create(_testOptions.TestUserId);
+
                 // Make sure the track is deleted after the test is done.
-                await _spotifyClientService.RemoveTrackFromPlaylist(trackId);
+                await _spotifyClientService.RemoveTrackFromPlaylist(spotifyClient, _testOptions.TestTrackId, _testOptions.TestPlaylistId);
                 
                 // Remove the track from storage.
-                var track = await _trackRepository.Get(trackId);
+                var track = await _trackRepository.Get(_testOptions.TestTrackId, _testOptions.TestPlaylistId);
                 await _trackRepository.Delete(track);
             }
         }
 
         [Fact]
-        public async Task Update_UpvoteCallbackTwice_UpvoteHandledReturned_DownvoteHandledReturned()
+        public async Task Run_UpvoteCallbackTwice_UpvoteHandledReturned_DownvoteHandledReturned()
         {
             // Arrange.
-            const string trackUrl = "https://open.spotify.com/track/5R3eXsNtC8w3eVBT3RsUIa";
+            await TruncateTables();
 
-            // Send the two message that go before an upvote callback: one with a trackUrl and a reply from the bot with an upvote button.
-            var trackMessageId = await _sendMessageService.SendTextMessageAsync(_testOptions.TestChatId, trackUrl);
-            var botReplyMessageId = await _sendMessageService.SendTextMessageAsync(_testOptions.TestChatId, "Track added to playlist!", replyToMessageId: trackMessageId);
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
+
+            // Send the two messages that go before an upvote callback: one with a trackUrl and a reply from the bot with an upvote button.
+            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, "Track added to playlist!", replyToMessageId: trackMessageId);
 
             // Send two callback updates, first to test an upvote...
             using (var stream = new MemoryStream())
             {
-                var httpRequest = await CreateUpvoteRequest(stream, botReplyMessageId, trackUrl);
+                var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
 
                 // Act.
                 var upvoteResult = await _sut.Run(httpRequest);
@@ -169,7 +670,7 @@ namespace Spoti_bot.IntegrationTests
             // ...and then test a downvote.
             using (var stream = new MemoryStream())
             {
-                var httpRequest = await CreateUpvoteRequest(stream, botReplyMessageId, trackUrl);
+                var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
 
                 // Act.
                 var downvoteResult = await _sut.Run(httpRequest);
@@ -179,6 +680,40 @@ namespace Spoti_bot.IntegrationTests
             }
         }
 
+        [Fact]
+        public async Task Run_UpvoteInlineQuery_NoQuery_NoActionReturned()
+        {
+            // Arramge.
+            await TruncateTables();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateInlineQueryRequest(stream, InlineQueryCommand.GetUpvoteUsers.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.NoAction, result);
+        }
+
+        [Fact]
+        public async Task Run_UpvoteInlineQuery_InlineQueryHandledReturned()
+        {
+            // Arramge.
+            await TruncateTables();
+
+            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {_testOptions.TestTrackId}";
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateInlineQueryRequest(stream, query);
+            
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.InlineQueryHandled, result);
+        }
+
         private async Task<HttpRequest> CreateRequest(Stream stream, string textMessage)
         {
             await _generateUpdateStreamService.WriteTextMessageToStream(stream, textMessage);
@@ -186,9 +721,16 @@ namespace Spoti_bot.IntegrationTests
             return CreateRequestWithBody(stream);
         }
 
-        private async Task<HttpRequest> CreateUpvoteRequest(Stream stream, int messageId, string trackUrl)
+        private async Task<HttpRequest> CreateUpvoteCallbackQueryRequest(Stream stream, int messageId, string trackUrl)
         {
             await _generateUpdateStreamService.WriteUpvoteCallbackQueryToStream(stream, messageId, trackUrl);
+
+            return CreateRequestWithBody(stream);
+        }
+
+        private async Task<HttpRequest> CreateInlineQueryRequest(Stream stream, string query)
+        {
+            await _generateUpdateStreamService.WriteInlineQueryToStream(stream, query);
 
             return CreateRequestWithBody(stream);
         }
@@ -199,6 +741,110 @@ namespace Spoti_bot.IntegrationTests
             httpContext.Request.Body = bodyStream;
 
             return httpContext.Request;
+        }
+
+        private Task<Track> InsertTrack()
+        {
+            return _trackRepository.Upsert(CreateTrack());
+        }
+
+        private Task<Playlist> InsertPlaylist()
+        {
+            return _playlistRepository.Upsert(CreatePlaylist());
+        }
+
+        private Task<Chat> InsertChat(long? adminUserId = null, bool addPlaylistId = true)
+        {
+            return _chatRepository.Upsert(CreateChat(adminUserId, addPlaylistId));
+        }
+
+        private Task<User> InsertUser(long? id = null)
+        {
+            return _userRepository.Upsert(CreateUser(id));
+        }
+
+        private async Task DeleteTrack()
+        {
+            var track = await _trackRepository.Get(CreateTrack());
+
+            if (track != null)
+                await _trackRepository.Delete(track);
+        }
+
+        private async Task DeletePlaylist()
+        {
+            var playlist = await _playlistRepository.Get(CreatePlaylist());
+            
+            if (playlist != null)
+                await _playlistRepository.Delete(playlist);
+        }
+
+        private async Task DeleteChat()
+        {
+            var chat = await _chatRepository.Get(CreateChat());
+            
+            if (chat != null)
+                await _chatRepository.Delete(chat);
+        }
+
+        private async Task DeleteUser(User user = null)
+        {
+            if (user == null)
+                user = await _userRepository.Get(CreateUser());
+
+            if (user != null)
+                await _userRepository.Delete(user);
+        }
+
+        private async Task DeleteUpvotes()
+        {
+            var upvotes = await _upvoteRepository.GetUpvotes(_testOptions.TestUserId);
+
+            if (upvotes.Any())
+                await _upvoteRepository.Delete(upvotes);
+        }
+
+        private Track CreateTrack()
+        {
+            return new Track()
+            {
+                Id = _testOptions.TestTrackId,
+                AddedByTelegramUserId = _testOptions.TestUserId,
+                CreatedAt = DateTimeOffset.UtcNow,
+                PlaylistId = _testOptions.TestPlaylistId,
+            };
+        }
+
+        private Playlist CreatePlaylist()
+        {
+            return new Playlist
+            {
+                Id = _testOptions.TestPlaylistId,
+                Name = "Test Playlist"
+            };
+        }
+
+        private Chat CreateChat(long? adminUserId = null, bool addPlaylistId = true)
+        {
+            var chat = new Chat
+            {
+                Id = _testOptions.TestChatId,
+                AdminUserId = adminUserId ?? _testOptions.TestUserId
+            };
+
+            if (addPlaylistId)
+                chat.PlaylistId = _testOptions.TestPlaylistId;
+
+            return chat;
+        }
+
+        private User CreateUser(long? id = null)
+        {
+            return new User
+            {
+                Id = id ?? _testOptions.TestUserId,
+                FirstName = "Spoti-bot test user"
+            };
         }
     }
 }

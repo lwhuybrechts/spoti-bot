@@ -9,7 +9,7 @@ namespace Spoti_bot.Library
     public abstract class BaseRepository<T> : IBaseRepository<T> where T : class, ITableEntity, new()
     {
         private readonly CloudTable _cloudTable;
-        private readonly string _defaultPartitionKey;
+        protected readonly string _defaultPartitionKey;
 
         public BaseRepository(CloudTable cloudTable, string defaultPartitionKey)
         {
@@ -31,15 +31,23 @@ namespace Spoti_bot.Library
         //var query = new TableQuery<T>().Where(rowKeyFilter);
         //return _cloudTable.ExecuteQuery(query).FirstOrDefault();
 
+        public Task<T> Get(long rowKey, string partitionKey = "")
+        {
+            return Get(rowKey.ToString(), partitionKey);
+        }
+
         public async Task<T> Get(string rowKey, string partitionKey = "")
         {
+            if (string.IsNullOrEmpty(rowKey))
+                return null;
+
             // Make sure the PartitionKey is set.
             if (string.IsNullOrEmpty(partitionKey))
                 partitionKey = _defaultPartitionKey;
 
             // Get the item by it's rowKey.
             var operation = TableOperation.Retrieve<T>(partitionKey, rowKey);
-
+            
             var tableResult = await _cloudTable.ExecuteAsync(operation);
             return tableResult.Result as T;
         }
@@ -56,7 +64,15 @@ namespace Spoti_bot.Library
             return ExecuteSegmentedQueries(query);
         }
 
-        public Task<List<T>> GetPartition(string partitionKey)
+        public Task<List<T>> GetAllByRowKey(string rowKey)
+        {
+            var rowKeyFilter = TableQuery.GenerateFilterCondition(nameof(TableEntity.RowKey), QueryComparisons.Equal, rowKey);
+            var query = new TableQuery<T>().Where(rowKeyFilter);
+
+            return ExecuteSegmentedQueries(query);
+        }
+
+        public Task<List<T>> GetAllByPartitionKey(string partitionKey)
         {
             var partitionKeyFilter = TableQuery.GenerateFilterCondition(nameof(TableEntity.PartitionKey), QueryComparisons.Equal, partitionKey);
             var query = new TableQuery<T>().Where(partitionKeyFilter);
@@ -82,13 +98,18 @@ namespace Spoti_bot.Library
             return await ExecuteDynamicSegmentedQueries(tableQuery, resolver);
         }
 
+        protected async Task<T> GetSingle(TableQuery<T> query)
+        {
+            return (await ExecuteSegmentedQueries(query)).SingleOrDefault();
+        }
+
         public async Task<T> Upsert(T item)
         {
             AddMissingPartitionKey(item);
 
             var operation = TableOperation.InsertOrMerge(item);
 
-            return await _cloudTable.ExecuteAsync(operation) as T;
+            return (await _cloudTable.ExecuteAsync(operation)).Result as T;
         }
 
         public async Task Upsert(List<T> items)
@@ -138,7 +159,7 @@ namespace Spoti_bot.Library
         /// If there are less than 1000 entities only one query is used.
         /// </summary>
         /// <param name="query">The query to execute.</param>
-        private async Task<List<T>> ExecuteSegmentedQueries(TableQuery<T> query)
+        protected async Task<List<T>> ExecuteSegmentedQueries(TableQuery<T> query)
         {
             var items = new List<T>();
 

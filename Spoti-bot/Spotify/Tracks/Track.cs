@@ -11,6 +11,13 @@ namespace Spoti_bot.Spotify.Tracks
             get { return RowKey; }
             set { RowKey = value; }
         }
+        
+        [IgnoreProperty]
+        public string PlaylistId
+        {
+            get { return PartitionKey; }
+            set { PartitionKey = value; }
+        }
 
         public string Name { get; set; }
         public string FirstArtistName { get; set; }

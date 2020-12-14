@@ -22,7 +22,16 @@ namespace Spoti_bot.Bot
             _upvoteRepository = upvoteRepository;
         }
 
-        public InlineKeyboardMarkup CreateKeyboard()
+        public InlineKeyboardMarkup CreateButtonKeyboard(string text, string url)
+        {
+            return new InlineKeyboardMarkup(InlineKeyboardButton.WithUrl(text, url));
+        }
+
+
+        /// <summary>
+        /// Create the keyboard that is added to the response the bot sends after a message with a spotify track.
+        /// </summary>
+        public InlineKeyboardMarkup CreatePostedTrackResponseKeyboard()
         {
             return new InlineKeyboardMarkup(new []
             {
@@ -31,15 +40,15 @@ namespace Spoti_bot.Bot
             });
         }
 
-        public async Task<InlineKeyboardMarkup> GetUpdatedKeyboard(Message message, string trackId)
+        public async Task<InlineKeyboardMarkup> GetUpdatedUpvoteKeyboard(Message message, string trackId)
         {
             var originalKeyboard = message.ReplyMarkup;
 
-            // Don't show See Upvote if there are no upvotes.
+            // Don't show the See Upvote button if there are no upvotes.
             if (!await HasUpvotes(trackId))
                 return new InlineKeyboardMarkup(GetRowsWithoutSeeUpvoteButton(originalKeyboard));
 
-            // See if Upvote button already exists, if so keep the original keyboard.
+            // See if the See Upvote button already exists, if so keep the original keyboard.
             if (HasSeeUpvoteButton(originalKeyboard))
                 return new InlineKeyboardMarkup(originalKeyboard.InlineKeyboard);
 
@@ -101,7 +110,7 @@ namespace Spoti_bot.Bot
         private async Task<bool> HasUpvotes(string trackId)
         {
             // TODO: fetch 1 record only.
-            return (await _upvoteRepository.GetPartition(trackId)).Any();
+            return (await _upvoteRepository.GetAllByPartitionKey(trackId)).Any();
         }
     }
 }

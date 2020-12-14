@@ -34,14 +34,10 @@ namespace Spoti_bot
             {
                 try
                 {
-                    // Get the code from the callback url.
-                    var code = httpRequest.Query.ContainsKey("code") ? httpRequest.Query["code"].ToString() : "";
-
-                    if (string.IsNullOrEmpty(code))
-                        throw new CallbackCodeNullException();
+                    (string code, string loginRequestId) = GetQueryParameters(httpRequest);
 
                     // Request and save an AuthorizationToken which we can use to do calls to the spotify api.
-                    await _spotifyAuthorizationService.RequestAndSaveAuthorizationToken(code);
+                    await _spotifyAuthorizationService.RequestAndSaveAuthorizationToken(code, loginRequestId);
 
                     // Send a reply that is visible in the browser where the used just logged in.
                     return new OkObjectResult(SuccessMessage);
@@ -54,6 +50,31 @@ namespace Spoti_bot
                     return new OkObjectResult(ErrorMessage);
                 }
             }
+        }
+
+        private (string, string) GetQueryParameters(HttpRequest httpRequest)
+        {
+            // Get the code and state from the callback url.
+            var code = GetFromQuery("code", httpRequest);
+            var loginRequestId = GetFromQuery("state", httpRequest);
+
+            if (string.IsNullOrEmpty(code))
+                throw new QueryParameterNullException(nameof(code));
+
+            if (string.IsNullOrEmpty(loginRequestId))
+                throw new QueryParameterNullException(nameof(loginRequestId));
+
+            return (code, loginRequestId);
+        }
+
+        private static string GetFromQuery(string key, HttpRequest httpRequest)
+        {
+            if (httpRequest == null || httpRequest.Query == null)
+                return string.Empty;
+
+            return httpRequest.Query.ContainsKey(key)
+                ? httpRequest.Query[key].ToString()
+                : string.Empty;
         }
     }
 }

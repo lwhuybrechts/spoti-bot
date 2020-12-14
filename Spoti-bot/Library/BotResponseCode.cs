@@ -4,9 +4,12 @@
     {
         NoAction,
         TestCommandHandled,
+        StartCommandHandled,
         HelpCommandHandled,
+        SetPlaylistCommandHandled,
         GetLoginLinkCommandHandled,
         ResetCommandHandled,
+        CommandRequirementNotFulfilled,
         TrackAlreadyExists,
         TrackAddedToPlaylist,
         UpvoteHandled,

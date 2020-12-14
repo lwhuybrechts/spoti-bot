@@ -1,12 +1,12 @@
-﻿using Spoti_bot.Library;
-using System.Threading.Tasks;
-using Telegram.Bot.Types;
+﻿using System;
 
 namespace Spoti_bot.Bot.HandleUpdate.Commands
 {
     public interface ICommandsService
     {
-        bool IsAnyCommand(Message message);
-        Task<BotResponseCode> TryHandleCommand(Message message);
+        bool IsAnyCommand<TCommand>(string text) where TCommand : Enum;
+        bool IsCommand<TCommand>(string text, TCommand command) where TCommand : Enum;
+        bool HasQuery<TCommand>(string text, TCommand command) where TCommand : Enum;
+        string GetQuery<TCommand>(string text, TCommand command) where TCommand : Enum;
     }
 }

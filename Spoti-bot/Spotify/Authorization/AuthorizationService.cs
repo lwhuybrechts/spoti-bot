@@ -10,54 +10,38 @@ namespace Spoti_bot.Spotify.Authorization
 {
     public class AuthorizationService : IAuthorizationService
     {
-        private const string _adminTokenRowKey = "admintoken";
-
         private readonly IAuthorizationTokenRepository _authorizationTokenRepository;
+        private readonly ILoginRequestService _loginRequestService;
         private readonly IMapper _mapper;
         private readonly SpotifyOptions _spotifyOptions;
         private readonly AzureOptions _azureOptions;
 
         public AuthorizationService(
             IAuthorizationTokenRepository authorizationTokenRepository,
+            ILoginRequestService loginRequestService,
             IMapper mapper,
             IOptions<SpotifyOptions> spotifyOptions,
             IOptions<AzureOptions> azureOptions)
         {
             _authorizationTokenRepository = authorizationTokenRepository;
+            _loginRequestService = loginRequestService;
             _mapper = mapper;
             _spotifyOptions = spotifyOptions.Value;
             _azureOptions = azureOptions.Value;
         }
 
         /// <summary>
-        /// Create a client to do calls to the spotify api with.
-        /// </summary>
-        /// <returns>A SpotifyClient, or null of no accessToken could be found.</returns>
-        public async Task<ISpotifyClient> CreateSpotifyClient()
-        {
-            var token = await _authorizationTokenRepository.Get(_adminTokenRowKey);
-
-            // Map the token to a model the Spotify library can work with.
-            var tokenResponse = _mapper.Map<AuthorizationCodeTokenResponse>(token);
-
-            // TODO: inject singleton httpclient from startup.
-            var config = SpotifyClientConfig
-                .CreateDefault()
-                .WithAuthenticator(new AuthorizationCodeAuthenticator(_spotifyOptions.ClientId, _spotifyOptions.Secret, tokenResponse))
-                .WithRetryHandler(new SimpleRetryHandler() { RetryAfter = TimeSpan.FromSeconds(1), TooManyRequestsConsumesARetry = true });
-
-            return new SpotifyClient(config);
-        }
-
-        /// <summary>
         /// Get an url to the spotify login web page, where we can authorize our bot.
         /// </summary>
         /// <returns>The url to the spotify login page.</returns>
-        public Uri GetLoginUri()
+        public async Task<Uri> CreateLoginRequest(long userId)
         {
-            return new LoginRequest(GetCallbackUri(), _spotifyOptions.ClientId, LoginRequest.ResponseType.Code)
+            var loginRequest = await _loginRequestService.Create(userId);
+
+            return new SpotifyAPI.Web.LoginRequest(GetCallbackUri(), _spotifyOptions.ClientId, SpotifyAPI.Web.LoginRequest.ResponseType.Code)
             {
-                Scope = new[] { Scopes.PlaylistModifyPublic, Scopes.UserModifyPlaybackState }
+                Scope = new[] { Scopes.PlaylistModifyPublic, Scopes.UserModifyPlaybackState },
+                State = loginRequest.Id
             }.ToUri();
         }
 
@@ -65,24 +49,32 @@ namespace Spoti_bot.Spotify.Authorization
         /// Request and save an AuthorizationToken, with the code we got from the spotify login callback.
         /// </summary>
         /// <param name="code">The code the spotify login page sends us after a successful login.</param>
-        public async Task RequestAndSaveAuthorizationToken(string code)
+        /// <param name="loginRequestId">The id of the loginRequest that was saved in storage.</param>
+        public async Task RequestAndSaveAuthorizationToken(string code, string loginRequestId)
         {
+            var loginRequest = await _loginRequestService.Get(loginRequestId);
+
+            if (loginRequest == null)
+                throw new LoginRequestNullException(loginRequestId);
+
+            var tokenRequest = new AuthorizationCodeTokenRequest(_spotifyOptions.ClientId, _spotifyOptions.Secret, code, GetCallbackUri());
+
             // TODO: reuse httpclient from startup.
-            var accessToken = await new OAuthClient().RequestToken(
-                new AuthorizationCodeTokenRequest(_spotifyOptions.ClientId, _spotifyOptions.Secret, code, GetCallbackUri())
-            );
+            var accessToken = await new OAuthClient().RequestToken(tokenRequest);
 
             if (accessToken == null)
                 throw new AccessTokenNullException();
 
             var token = _mapper.Map<AuthorizationToken>(accessToken);
-            token.RowKey = _adminTokenRowKey;
+            token.UserId = loginRequest.UserId;
 
             // Save it.
             await _authorizationTokenRepository.Upsert(token);
+
+            // The login request has been handled, delete it.
+            await _loginRequestService.Delete(loginRequest);
         }
 
-        // TODO: move to a helper file.
         private Uri GetCallbackUri()
         {
             var baseUri = new Uri(_azureOptions.FunctionAppUrl);

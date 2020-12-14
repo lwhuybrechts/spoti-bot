@@ -94,12 +94,15 @@ namespace Spoti_bot.Bot.HandleUpdate
 
             try
             {
-                await _sendMessageService.AnswerCallbackQueryAsync(callbackQuery.Id, text);
+                await _sendMessageService.AnswerCallbackQuery(callbackQuery.Id, text);
             }
-            catch (InvalidParameterException)
+            catch (InvalidParameterException exception)
             {
                 // This may crash when the callback query is too old, just ignore it.
-                return;
+                if (exception?.Message == "query is too old and response timeout expired or query ID is invalid")
+                    return;
+
+                throw;
             }
         }
     }

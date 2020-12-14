@@ -97,7 +97,7 @@ namespace Spoti_bot.Bot.Upvotes
             // Save the upvote in storage.
             await _upvoteRepository.Upsert(upvote);
 
-            var keyboard = await _keyboardService.GetUpdatedKeyboard(callbackQuery.Message, trackId);
+            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(callbackQuery.Message, trackId);
 
             // Increment upvote in the original message.
             var newText = _upvoteTextHelper.IncrementUpvote(text);
@@ -111,7 +111,7 @@ namespace Spoti_bot.Bot.Upvotes
             // Delete the upvote from storage.
             await _upvoteRepository.Delete(existingUpvote);
 
-            var keyboard = await _keyboardService.GetUpdatedKeyboard(callbackQuery.Message, trackId);
+            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(callbackQuery.Message, trackId);
 
             // Decrement upvote in the original message.
             var newText = _upvoteTextHelper.DecrementUpvote(text);
@@ -150,7 +150,7 @@ namespace Spoti_bot.Bot.Upvotes
         /// <param name="newText">The new text to replace the message text with.</param>
         private async Task EditOriginalMessage(Message message, string newText, InlineKeyboardMarkup replyMarkup)
         {
-            await _sendMessageService.EditMessageTextAsync(
+            await _sendMessageService.EditMessageText(
                 message.Chat.Id,
                 message.MessageId,
                 newText,

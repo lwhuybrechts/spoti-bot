@@ -7,16 +7,28 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
     /// </summary>
     public enum Command
     {
-        [Description("/help")]
-        Help,
         [Description("/test")]
         Test,
-        // Fetching an accesstoken is only needed once, since it's saved in storage and we can keep refreshing it.
-        // Therefore we don't expose this command to the end users (yet).
-        [Description("/geheimcommando")]
+
+        [Description("/help")]
+        [RequiresChat, RequiresPlaylist]
+        Help,
+
+        [Description("/start")]
+        [RequiresNoChat]
+        Start,
+                
+        [Description("/login")]
+        [RequiresChat, RequiresChatAdmin, RequiresPlaylist]
         GetLoginLink,
+        
         // Can be used while testing, when the playlist was edited in Spotify.
         [Description("/reset")]
-        ResetPlaylistStorage
+        [RequiresChat, RequiresChatAdmin, RequiresPlaylist]
+        ResetPlaylistStorage,
+        
+        [Description("/setplaylist")]
+        [RequiresChat, RequiresChatAdmin, RequiresNoPlaylist, RequiresQuery]
+        SetPlaylist
     }
 }

@@ -4,6 +4,6 @@ namespace Spoti_bot.Spotify.Tracks.SyncTracks
 {
     public interface ISyncTracksService
     {
-        Task SyncTracks();
+        Task SyncTracks(Bot.Chats.Chat chat, bool shouldUpdateExistingTracks = false);
     }
 }

@@ -6,6 +6,6 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
 {
     public interface IAddTrackService
     {
-        Task<BotResponseCode> TryAddTrackToPlaylist(Message message);
+        Task<BotResponseCode> TryAddTrackToPlaylist(Message message, Bot.Chats.Chat chat);
     }
 }

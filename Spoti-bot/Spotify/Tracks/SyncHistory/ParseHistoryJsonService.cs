@@ -70,7 +70,7 @@ namespace Spoti_bot.Spotify.Tracks.SyncHistory
             
             foreach (var text in texts)
             {
-                if (!_spotifyLinkHelper.HasAnySpotifyLink(text))
+                if (!_spotifyLinkHelper.HasAnyTrackLink(text))
                     continue;
 
                 var trackId = await _spotifyLinkHelper.ParseTrackId(text);

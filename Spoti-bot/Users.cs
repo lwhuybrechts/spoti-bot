@@ -42,7 +42,7 @@ namespace Spoti_bot
                     var users = await _userRepository.GetAll();
 
                     // Don't return the test user.
-                    users = users.Where(x => x.Id != _testOptions.TestUserId.ToString()).ToList();
+                    users = users.Where(x => x.Id != _testOptions.TestUserId).ToList();
 
                     // Map the users to api models.
                     var apiUsers = _mapper.Map<List<ApiModels.User>>(users);

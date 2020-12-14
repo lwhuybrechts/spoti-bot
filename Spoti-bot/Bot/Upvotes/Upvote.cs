@@ -13,9 +13,9 @@ namespace Spoti_bot.Bot.Upvotes
         }
 
         [IgnoreProperty]
-        public int UserId
+        public long UserId
         {
-            get { return int.Parse(RowKey); }
+            get { return long.Parse(RowKey); }
             set { RowKey = value.ToString(); }
         }
 

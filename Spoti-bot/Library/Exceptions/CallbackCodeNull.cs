@@ -2,7 +2,11 @@
 
 namespace Spoti_bot.Library.Exceptions
 {
-    public class CallbackCodeNullException : Exception
+    public class QueryParameterNullException : Exception
     {
+        public QueryParameterNullException(string queryParameterName)
+        {
+            Data[nameof(queryParameterName)] = queryParameterName;
+        }
     }
 }

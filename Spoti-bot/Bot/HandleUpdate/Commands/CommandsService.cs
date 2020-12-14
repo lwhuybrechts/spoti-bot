@@ -1,36 +1,18 @@
 ﻿using Microsoft.Extensions.Options;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify;
-using Spoti_bot.Spotify.Authorization;
-using Spoti_bot.Spotify.Tracks.SyncTracks;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.ReplyMarkups;
+using System.Text.RegularExpressions;
 
 namespace Spoti_bot.Bot.HandleUpdate.Commands
 {
     public class CommandsService : ICommandsService
     {
-        private readonly IAuthorizationService _spotifyAuthorizationService;
-        private readonly ISendMessageService _sendMessageService;
-        private readonly ISpotifyLinkHelper _spotifyLinkHelper;
-        private readonly ISyncTracksService _syncTracksService;
         private readonly TelegramOptions _telegramOptions;
 
-        public CommandsService(
-            IAuthorizationService spotifyAuthorizationService,
-            ISendMessageService sendMessageService,
-            ISpotifyLinkHelper spotifyLinkHelper,
-            ISyncTracksService trackService,
-            IOptions<TelegramOptions> telegramOptions)
+        public CommandsService(IOptions<TelegramOptions> telegramOptions)
         {
-            _spotifyAuthorizationService = spotifyAuthorizationService;
-            _sendMessageService = sendMessageService;
-            _spotifyLinkHelper = spotifyLinkHelper;
-            _syncTracksService = trackService;
             _telegramOptions = telegramOptions.Value;
         }
 
@@ -39,90 +21,66 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         /// </summary>
         /// <param name="message">The message to check for.</param>
         /// <returns>True if the message is one of the defined commands.</returns>
-        public bool IsAnyCommand(Message message)
+        public bool IsAnyCommand<TCommand>(string text) where TCommand : Enum
         {
-            if (message == null || string.IsNullOrEmpty(message.Text))
+            if (string.IsNullOrEmpty(text))
                 return false;
 
-            foreach (var command in Enum.GetValues(typeof(Command)).Cast<Command>())
-                if (IsCommand(message, command))
+            foreach (var command in Enum.GetValues(typeof(TCommand)).Cast<TCommand>())
+                if (IsCommand(text, command))
                     return true;
 
             return false;
         }
-
+        
         /// <summary>
-        /// Check if a message contains a command and if so, handle it.
+        /// Check if the message contains one of the defined commands.
         /// </summary>
-        /// <param name="message">The message to check for commands.</param>
-        /// <returns>True is a command was handled, false if no matching command was found.</returns>
-        public async Task<BotResponseCode> TryHandleCommand(Message message)
+        /// <returns>True if the message contains the command.</returns>
+        public bool IsCommand<TCommand>(string text, TCommand command) where TCommand : Enum
         {
-            if (IsCommand(message, Command.Test))
-            {
-                await _sendMessageService.SendTextMessageAsync(message.Chat.Id, GetRandomTestCommandResponse());
-                return BotResponseCode.TestCommandHandled;
-            }
-
-            if (IsCommand(message, Command.Help))
-            {
-                var helpText = $"Welcome to Spoti-bot.\n\n" +
-                    $"Post links to Spotify tracks in this chat and they will be added to the playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist()}.";
-
-                await _sendMessageService.SendTextMessageAsync(message.Chat.Id, helpText, disableWebPagePreview: false);
-                return BotResponseCode.HelpCommandHandled;
-            }
-
-            if (IsCommand(message, Command.GetLoginLink))
-            {
-                Uri loginUri = _spotifyAuthorizationService.GetLoginUri();
-                var keyboard = new InlineKeyboardMarkup(InlineKeyboardButton.WithUrl("Login to Spotify", loginUri.ToString()));
-
-                var loginText = $"Please login to authorize Spoti-Bot.\n" +
-                    $"It needs access to the playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist()} and to your queue.";
-
-                await _sendMessageService.SendTextMessageAsync(message.Chat.Id, loginText, replyMarkup: keyboard);
-                return BotResponseCode.GetLoginLinkCommandHandled;
-            }
-
-            if (IsCommand(message, Command.ResetPlaylistStorage))
-            {
-                await _syncTracksService.SyncTracks();
-                await _sendMessageService.SendTextMessageAsync(message.Chat.Id, "Spoti-bot playlist storage has been synced.");
-                return BotResponseCode.ResetCommandHandled;
-            }
-
-            return BotResponseCode.NoAction;
+            return GetRegex(command, true).Match(text).Success ||
+                GetRegex(command, false).Match(text).Success;
         }
 
         /// <summary>
-        /// Check if the message is extactly the same as one of the defined commands.
+        /// Check if the message contains a command with a query string.
+        /// For example: /setplaylist https://open.spotify.com/playlist/3CJH1ko8Dwo2ikJehcOcjM
         /// </summary>
-        /// <param name="message">The message to check for.</param>
-        /// <param name="command">The command we're checking.</param>
-        /// <returns>True if the message is the command.</returns>
-        private bool IsCommand(Message message, Command command)
+        /// <returns>True if the message contains a command with a query string.</returns>
+        public bool HasQuery<TCommand>(string text, TCommand command) where TCommand : Enum
         {
-            return message.Text == command.ToDescriptionString()
-                // TODO: get bot username from telegram api.
-                || message.Text == $"{command.ToDescriptionString()}@{_telegramOptions.BotUserName}";
+            return GetRegex(command, true).Match(text).Success;
         }
 
         /// <summary>
-        /// The test command can be used to check if the bot is running.
+        /// Get the query from the command.
         /// </summary>
-        /// <returns>A silly response to let us know the bot is running.</returns>
-        private string GetRandomTestCommandResponse()
+        public string GetQuery<TCommand>(string text, TCommand command) where TCommand : Enum
         {
-            var responses = new[]
-            {
-                $"Hi {Command.Test.ToDescriptionString()}, how's it going?",
-                "Beep boop, I'm a bot.",
-                "Spoti-bot is live and ready."
-            };
-            var randomIndex = new Random().Next(responses.Length);
+            return GetRegex(command, true).Match(text).Groups[1].Value;
+        }
 
-            return responses[randomIndex];
+        private Regex GetRegex<TCommand>(TCommand command, bool addQuery = false) where TCommand : Enum
+        {
+            var commandString = command.ToDescriptionString();
+
+            // If the command starts with a slash, escape it.
+            if (commandString.StartsWith('/'))
+                commandString = $"\\{commandString}";
+
+            // TODO: get the bot username from the telegram api.
+
+            // Match the command and optionally the bot username.
+            var pattern = $"^(?:{commandString})(?:@{_telegramOptions.BotUserName}|)";
+
+            if (addQuery)
+                // The query format is: a command, a space then the query.
+                pattern += $"\\s+(\\S+)";
+
+            pattern += "$";
+
+            return new Regex(pattern);
         }
     }
 }
