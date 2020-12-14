@@ -34,8 +34,11 @@ namespace Spoti_bot
             {
                 try
                 {
+                    // For now, only return tracks from the main playlist.
+                    const string playlistId = "2tnyzyB8Ku9XywzAYNjLxj";
+
                     // Get the tracks from storage.
-                    var tracks = await _trackRepository.GetAll();
+                    var tracks = await _trackRepository.GetAllByPartitionKey(playlistId);
 
                     // Map the tracks to api models.
                     var apiTracks = _mapper.Map<List<ApiModels.Track>>(tracks);
