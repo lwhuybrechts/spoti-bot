@@ -24,6 +24,9 @@ namespace Spoti_bot.Spotify.Tracks.SyncHistory
         /// </summary>
         public async Task<int> SyncTracksFromJson(string jsonString)
         {
+            // TODO: update this to support multiple chats. Read the chatId from the json.
+            throw new NotImplementedException();
+
             // Get the tracks from the chat history json.
             var tracksFromJson = await _parseHistoryJsonService.ParseTracks(jsonString, DateTimeKind.Local);
 
