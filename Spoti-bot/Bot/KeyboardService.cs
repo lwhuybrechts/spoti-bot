@@ -1,6 +1,7 @@
 ﻿using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Library;
+using Spoti_bot.Spotify.Tracks;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,12 +41,12 @@ namespace Spoti_bot.Bot
             });
         }
 
-        public async Task<InlineKeyboardMarkup> GetUpdatedUpvoteKeyboard(Message message, string trackId)
+        public async Task<InlineKeyboardMarkup> GetUpdatedUpvoteKeyboard(Message message, Track track)
         {
             var originalKeyboard = message.ReplyMarkup;
 
             // Don't show the See Upvote button if there are no upvotes.
-            if (!await HasUpvotes(trackId))
+            if (!await HasUpvotes(track))
                 return new InlineKeyboardMarkup(GetRowsWithoutSeeUpvoteButton(originalKeyboard));
 
             // See if the See Upvote button already exists, if so keep the original keyboard.
@@ -53,12 +54,12 @@ namespace Spoti_bot.Bot
                 return new InlineKeyboardMarkup(originalKeyboard.InlineKeyboard);
 
             // Add See Upvote button to the keyboard.
-            return new InlineKeyboardMarkup(GetRowsWithSeeUpvoteButton(trackId, originalKeyboard));
+            return new InlineKeyboardMarkup(GetRowsWithSeeUpvoteButton(track, originalKeyboard));
         }
 
-        private static List<List<InlineKeyboardButton>> GetRowsWithSeeUpvoteButton(string trackId, InlineKeyboardMarkup originalKeyboard)
+        private static List<List<InlineKeyboardButton>> GetRowsWithSeeUpvoteButton(Track track, InlineKeyboardMarkup originalKeyboard)
         {
-            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {trackId}";
+            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {track.Id}";
 
             // Create a button on the keybaord that starts an inline query with the GetUpvoteUsers command.
             var seeUpvotesButton = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat(SeeUpvoteButtonText, query);
@@ -107,10 +108,9 @@ namespace Spoti_bot.Bot
         /// <summary>
         /// Check if there are upvotes for this track.
         /// </summary>
-        private async Task<bool> HasUpvotes(string trackId)
+        private async Task<bool> HasUpvotes(Track track)
         {
-            // TODO: fetch 1 record only.
-            return (await _upvoteRepository.GetAllByPartitionKey(trackId)).Any();
+            return (await _upvoteRepository.GetUpvotes(track.PlaylistId, track.Id)).Any();
         }
     }
 }
