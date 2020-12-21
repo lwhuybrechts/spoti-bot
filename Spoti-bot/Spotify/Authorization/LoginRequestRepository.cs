@@ -24,8 +24,10 @@ namespace Spoti_bot.Spotify.Authorization
             
             // Don't return expired LoginRequests.
             var expiresAtFilter = TableQuery.GenerateFilterConditionForDate(nameof(LoginRequest.ExpiresAt), QueryComparisons.GreaterThan, DateTimeOffset.UtcNow);
-            
-            var query = new TableQuery<LoginRequest>().Where(paritionKeyFilter).Where(rowKeyFilter).Where(expiresAtFilter);
+
+            var filter = TableQuery.CombineFilters(TableQuery.CombineFilters(paritionKeyFilter, TableOperators.And, rowKeyFilter), TableOperators.And, expiresAtFilter );
+
+            var query = new TableQuery<LoginRequest>().Where(filter);
 
             return GetSingle(query);
         }

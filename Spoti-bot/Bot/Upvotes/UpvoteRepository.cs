@@ -18,7 +18,8 @@ namespace Spoti_bot.Bot.Upvotes
             var partitionKeyFilter = TableQuery.GenerateFilterCondition(nameof(Upvote.PartitionKey), QueryComparisons.Equal, playlistId);
             var trackIdFilter = TableQuery.GenerateFilterCondition(nameof(Upvote.TrackId), QueryComparisons.Equal, trackId);
 
-            var query = new TableQuery<Upvote>().Where(partitionKeyFilter).Where(trackIdFilter);
+            var filter = TableQuery.CombineFilters(partitionKeyFilter, TableOperators.And, trackIdFilter);
+            var query = new TableQuery<Upvote>().Where(filter);
 
             return ExecuteSegmentedQueries(query);
         }
