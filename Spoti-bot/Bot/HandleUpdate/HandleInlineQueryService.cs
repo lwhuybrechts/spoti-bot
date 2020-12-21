@@ -48,9 +48,22 @@ namespace Spoti_bot.Bot.HandleUpdate
             {
                 var queries = _commandsService.GetQueries(updateDto.Update.InlineQuery.Query, InlineQueryCommand.GetUpvoteUsers);
 
-                // The query should have a playlistId and a trackId.
-                var playlistId = queries.ElementAtOrDefault(1);
-                var trackId = queries.ElementAtOrDefault(2);
+                string playlistId;
+                string trackId;
+
+                if (queries.ElementAtOrDefault(2).Length > 0)
+                {
+                    // The query should have a playlistId and a trackId.
+                    playlistId = queries.ElementAtOrDefault(1);
+                    trackId = queries.ElementAtOrDefault(2);
+                }
+                else
+                {
+                    // TODO: remove.
+                    // Added for backwards compatability for messages without a playlistId.
+                    playlistId = "2tnyzyB8Ku9XywzAYNjLxj";
+                    trackId = queries.ElementAtOrDefault(1);
+                }
 
                 if (string.IsNullOrEmpty(playlistId) || string.IsNullOrEmpty(trackId))
                     return BotResponseCode.NoAction;

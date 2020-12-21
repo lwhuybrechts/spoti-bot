@@ -921,7 +921,7 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
-        public async Task Run_UpvoteInlineQuery_InlineQueryHandledReturned()
+        public async Task Run_UpvoteInlineQuery_OneQuery_InlineQueryHandledReturned()
         {
             // Arramge.
             await TruncateTables();
@@ -931,6 +931,24 @@ namespace Spoti_bot.IntegrationTests
             using var stream = new MemoryStream();
             var httpRequest = await CreateInlineQueryRequest(stream, query);
             
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.InlineQueryHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_UpvoteInlineQuery_TwoQueries_InlineQueryHandledReturned()
+        {
+            // Arramge.
+            await TruncateTables();
+
+            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {_testOptions.TestPlaylistId} {_testOptions.TestTrackId}";
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateInlineQueryRequest(stream, query);
+
             // Act.
             var result = await _sut.Run(httpRequest);
 
