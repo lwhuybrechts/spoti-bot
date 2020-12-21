@@ -43,8 +43,9 @@ namespace Spoti_bot.Bot.HandleUpdate
             var addTrackResponseCode = await _addTrackService.TryAddTrackToPlaylist(updateDto);
             if (addTrackResponseCode != BotResponseCode.NoAction)
             {
-                // Save users that added tracks to the playlist.
-                await _userService.SaveUser(updateDto.ParsedUser, updateDto.ParsedChat.Id);
+                if (addTrackResponseCode == BotResponseCode.TrackAddedToPlaylist)
+                    // Save users that added tracks to the playlist.
+                    await _userService.SaveUser(updateDto.ParsedUser, updateDto.ParsedChat.Id);
 
                 return addTrackResponseCode;
             }

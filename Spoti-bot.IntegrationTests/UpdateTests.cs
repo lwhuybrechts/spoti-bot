@@ -12,6 +12,7 @@ using Spoti_bot.Library;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
 using Spoti_bot.Spotify.Api;
+using Spoti_bot.Spotify.Authorization;
 using Spoti_bot.Spotify.Playlists;
 using Spoti_bot.Spotify.Tracks;
 using System;
@@ -34,8 +35,10 @@ namespace Spoti_bot.IntegrationTests
         private readonly ITrackRepository _trackRepository;
         private readonly IPlaylistRepository _playlistRepository;
         private readonly IChatRepository _chatRepository;
+        private readonly IChatMemberRepository _chatMemberRepository;
         private readonly IUserRepository _userRepository;
         private readonly IUpvoteRepository _upvoteRepository;
+        private readonly ILoginRequestRepository _loginRequestRepository;
         private readonly ISendMessageService _sendMessageService;
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
 
@@ -49,8 +52,10 @@ namespace Spoti_bot.IntegrationTests
             _trackRepository = testHost.GetService<ITrackRepository>();
             _playlistRepository = testHost.GetService<IPlaylistRepository>();
             _chatRepository = testHost.GetService<IChatRepository>();
+            _chatMemberRepository= testHost.GetService<IChatMemberRepository>();
             _userRepository = testHost.GetService<IUserRepository>();
             _upvoteRepository = testHost.GetService<IUpvoteRepository>();
+            _loginRequestRepository = testHost.GetService<ILoginRequestRepository>();
             _sendMessageService = testHost.GetService<ISendMessageService>();
             _spotifyLinkHelper = testHost.GetService<ISpotifyLinkHelper>();
 
@@ -72,6 +77,8 @@ namespace Spoti_bot.IntegrationTests
             await DeleteChat();
             await DeleteUser();
             await DeleteUpvotes();
+            await DeleteLoginRequests();
+            await DeleteChatMembers();
         }
 
         [Fact]
@@ -208,6 +215,29 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
+        public async Task Run_StartCommand_UserAndChatInserted()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.Start.ToDescriptionString());
+
+            // Act.
+            await _sut.Run(httpRequest);
+
+            // Assert.
+            var user = await _userRepository.Get(_testOptions.TestUserId);
+            Assert.NotNull(user);
+
+            var chat = await _chatRepository.Get(_testOptions.TestChatId);
+            Assert.NotNull(chat);
+
+            var chatMember = await _chatMemberRepository.Get(_testOptions.TestUserId, _testOptions.TestChatId.ToString());
+            Assert.NotNull(chatMember);
+        }
+
+        [Fact]
         public async Task Run_GetLoginLinkCommand_NoChat_CommandRequirementNotFulfilledReturned()
         {
             // Arrange.
@@ -313,6 +343,29 @@ namespace Spoti_bot.IntegrationTests
 
             // Assert.
             AssertHelper.Equal(BotResponseCode.GetLoginLinkCommandHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_GetLoginLinkCommand_LoginRequestInserted()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertPlaylist();
+            await InsertChat();
+            await InsertUser();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
+
+            // Act.
+            await _sut.Run(httpRequest);
+
+            // Assert.
+            var allLoginRequests = await _loginRequestRepository.GetAll();
+            var chatLoginRequest = allLoginRequests.Where(x => x.ChatId == _testOptions.TestChatId).Single();
+
+            Assert.Equal(chatLoginRequest.UserId, _testOptions.TestUserId);
         }
 
         [Fact]
@@ -541,6 +594,31 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
+        public async Task Run_SetPlaylist_PlaylistInserted()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+            await InsertUser();
+
+            var playlistUrl = _spotifyLinkHelper.GetLinkToPlaylist(_testOptions.TestPlaylistId);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, $"{Command.SetPlaylist.ToDescriptionString()} {playlistUrl}");
+
+            // Act.
+            await _sut.Run(httpRequest);
+
+            // Assert.
+            var playlist = await _playlistRepository.Get(_testOptions.TestPlaylistId);
+            Assert.NotNull(playlist);
+
+            var chat = await _chatRepository.Get(_testOptions.TestChatId);
+            Assert.Equal(_testOptions.TestPlaylistId, chat.PlaylistId);
+        }
+
+        [Fact]
         public async Task Run_AddTrack_NoChat_NoActionReturned()
         {
             // Arrange.
@@ -636,6 +714,50 @@ namespace Spoti_bot.IntegrationTests
                 // Make sure the track is deleted after the test is done.
                 await _spotifyClientService.RemoveTrackFromPlaylist(spotifyClient, _testOptions.TestTrackId, _testOptions.TestPlaylistId);
                 
+                // Remove the track from storage.
+                var track = await _trackRepository.Get(_testOptions.TestTrackId, _testOptions.TestPlaylistId);
+                await _trackRepository.Delete(track);
+            }
+        }
+
+        [Fact]
+        public async Task Run_AddTrack_UserInserted()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, trackUrl);
+
+            try
+            {
+                // Act.
+                var result = await _sut.Run(httpRequest);
+
+                // Assert.
+                AssertHelper.Equal(BotResponseCode.TrackAddedToPlaylist, result);
+
+                var track = await _trackRepository.Get(_testOptions.TestTrackId, _testOptions.TestPlaylistId.ToString());
+                Assert.NotNull(track);
+
+                var user = await _userRepository.Get(_testOptions.TestUserId);
+                Assert.NotNull(user);
+
+                var chatMember = await _chatMemberRepository.Get(_testOptions.TestUserId, _testOptions.TestChatId.ToString());
+                Assert.NotNull(chatMember);
+            }
+            finally
+            {
+                // TODO: make sure the testuser has an access token.
+                var spotifyClient = await _spotifyClientFactory.Create(_testOptions.TestUserId);
+
+                // Make sure the track is deleted after the test is done.
+                await _spotifyClientService.RemoveTrackFromPlaylist(spotifyClient, _testOptions.TestTrackId, _testOptions.TestPlaylistId);
+
                 // Remove the track from storage.
                 var track = await _trackRepository.Get(_testOptions.TestTrackId, _testOptions.TestPlaylistId);
                 await _trackRepository.Delete(track);
@@ -741,6 +863,22 @@ namespace Spoti_bot.IntegrationTests
 
                 // Assert.
                 AssertHelper.Equal(BotResponseCode.UpvoteHandled, upvoteResult);
+
+                var expectedUpvote = new Upvote
+                {
+                    PlaylistId = _testOptions.TestPlaylistId,
+                    UserId = _testOptions.TestUserId,
+                    TrackId = _testOptions.TestTrackId
+                };
+                
+                var upvote = await _upvoteRepository.Get(expectedUpvote);
+                Assert.NotNull(upvote);
+
+                var user = await _userRepository.Get(_testOptions.TestUserId);
+                Assert.NotNull(user);
+
+                var chatMember = await _chatMemberRepository.Get(_testOptions.TestUserId, _testOptions.TestChatId.ToString());
+                Assert.NotNull(chatMember);
             }
 
             // ...and then test a downvote.
@@ -753,6 +891,16 @@ namespace Spoti_bot.IntegrationTests
 
                 // Assert.
                 AssertHelper.Equal(BotResponseCode.DownvoteHandled, downvoteResult);
+
+                var expectedUpvote = new Upvote
+                {
+                    PlaylistId = _testOptions.TestPlaylistId,
+                    UserId = _testOptions.TestUserId,
+                    TrackId = _testOptions.TestTrackId
+                };
+
+                var upvote = await _upvoteRepository.Get(expectedUpvote);
+                Assert.Null(upvote);
             }
         }
 
@@ -878,6 +1026,24 @@ namespace Spoti_bot.IntegrationTests
 
             if (upvotes.Any())
                 await _upvoteRepository.Delete(upvotes);
+        }
+
+        private async Task DeleteLoginRequests()
+        {
+            var loginRequests = await _loginRequestRepository.GetAll();
+
+            var testLoginRequests = loginRequests.Where(x => x.ChatId == _testOptions.TestChatId).ToList();
+
+            if (testLoginRequests.Any())
+                await _loginRequestRepository.Delete(testLoginRequests);
+        }
+
+        private async Task DeleteChatMembers()
+        {
+            var chatMembers = await _chatMemberRepository.GetAllByPartitionKey(_testOptions.TestChatId.ToString());
+
+            if (chatMembers.Any())
+                await _chatMemberRepository.Delete(chatMembers);
         }
 
         private Track CreateTrack()
