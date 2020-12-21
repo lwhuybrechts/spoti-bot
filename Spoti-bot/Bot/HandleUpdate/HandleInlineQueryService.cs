@@ -1,10 +1,9 @@
 ﻿using AutoMapper;
 using Spoti_bot.Bot.HandleUpdate.Commands;
+using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Spotify;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,37 +18,36 @@ namespace Spoti_bot.Bot.HandleUpdate
         private readonly ISendMessageService _sendMessageService;
         private readonly ICommandsService _commandsService;
         private readonly IUserService _userService;
-        private readonly ISpotifyLinkHelper _spotifyLinkHelper;
         private readonly IMapper _mapper;
 
         public HandleInlineQueryService(
             ISendMessageService sendMessageService,
             ICommandsService commandsService,
             IUserService userService,
-            ISpotifyLinkHelper spotifyLinkHelper,
             IMapper mapper)
         {
             _sendMessageService = sendMessageService;
             _commandsService = commandsService;
             _userService = userService;
-            _spotifyLinkHelper = spotifyLinkHelper;
             _mapper = mapper;
         }
 
-        public async Task<BotResponseCode> TryHandleInlineQuery(Telegram.Bot.Types.Update update)
+        public async Task<BotResponseCode> TryHandleInlineQuery(UpdateDto updateDto)
         {
             // If the bot can't do anything with the update's inline query, we're done.
-            if (!CanHandleInlineQuery(update))
+            if (!CanHandleInlineQuery(updateDto.Update))
             {
-                if (!string.IsNullOrEmpty(update?.InlineQuery?.Id))
-                    await AnswerInlineQuery(update, new List<InlineQueryResultArticle>());
+                // If there is an id, let telegram know the inline query has been handled.
+                if (!string.IsNullOrEmpty(updateDto.Update?.InlineQuery?.Id))
+                    await AnswerInlineQuery(updateDto.Update.InlineQuery.Id, new List<InlineQueryResultArticle>());
+                
                 return BotResponseCode.NoAction;
             }
 
-            if (_commandsService.IsCommand(update.InlineQuery.Query, InlineQueryCommand.GetUpvoteUsers))
+            if (_commandsService.IsCommand(updateDto.Update.InlineQuery.Query, InlineQueryCommand.GetUpvoteUsers))
             {
                 // The query should be a trackId.
-                var trackId = _commandsService.GetQuery(update.InlineQuery.Query, InlineQueryCommand.GetUpvoteUsers);
+                var trackId = _commandsService.GetQuery(updateDto.Update.InlineQuery.Query, InlineQueryCommand.GetUpvoteUsers);
 
                 if (string.IsNullOrEmpty(trackId))
                     return BotResponseCode.NoAction;
@@ -69,7 +67,7 @@ namespace Spoti_bot.Bot.HandleUpdate
                     inlineQueryResults.Insert(0, new InlineQueryResultArticle("resultId", titleText, new InputTextMessageContent(titleText)));
                 }
 
-                await AnswerInlineQuery(update, inlineQueryResults);
+                await AnswerInlineQuery(updateDto.Update.InlineQuery.Id, inlineQueryResults);
 
                 return BotResponseCode.InlineQueryHandled;
             }
@@ -96,11 +94,11 @@ namespace Spoti_bot.Bot.HandleUpdate
             return false;
         }
 
-        private async Task AnswerInlineQuery(Telegram.Bot.Types.Update update, IEnumerable<InlineQueryResultBase> results)
+        private async Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultBase> results)
         {
             try
             {
-                await _sendMessageService.AnswerInlineQuery(update.InlineQuery.Id, results);
+                await _sendMessageService.AnswerInlineQuery(inlineQueryId, results);
             }
             catch (InvalidParameterException exception)
             {

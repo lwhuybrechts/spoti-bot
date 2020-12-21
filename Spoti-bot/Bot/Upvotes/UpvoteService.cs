@@ -1,6 +1,8 @@
-﻿using Spoti_bot.Library;
+﻿using Spoti_bot.Bot.HandleUpdate.Dto;
+using Spoti_bot.Library;
 using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Spotify;
+using Spoti_bot.Spotify.Tracks;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,19 +19,22 @@ namespace Spoti_bot.Bot.Upvotes
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
         private readonly IUpvoteTextHelper _upvoteTextHelper;
         private readonly IUpvoteRepository _upvoteRepository;
+        private readonly ITrackRepository _trackRepository;
 
         public UpvoteService(
             ISendMessageService sendMessageService,
             IKeyboardService keyboardService,
             ISpotifyLinkHelper spotifyLinkHelper,
             IUpvoteTextHelper upvoteTextHelper,
-            IUpvoteRepository upvoteRepository)
+            IUpvoteRepository upvoteRepository,
+            ITrackRepository trackRepository)
         {
             _sendMessageService = sendMessageService;
             _keyboardService = keyboardService;
             _spotifyLinkHelper = spotifyLinkHelper;
             _upvoteTextHelper = upvoteTextHelper;
             _upvoteRepository = upvoteRepository;
+            _trackRepository = trackRepository;
         }
 
         /// <summary>
@@ -46,76 +51,84 @@ namespace Spoti_bot.Bot.Upvotes
         /// Check if a message contains an upvote callback and if so, handle it.
         /// </summary>
         /// <param name="callbackQuery">The callback query to handle.</param>
-        public async Task<BotResponseCode> TryHandleUpvote(CallbackQuery callbackQuery)
+        public async Task<BotResponseCode> TryHandleUpvote(UpdateDto updateDto)
         {
-            if (!IsUpvoteCallback(callbackQuery))
+            if (!IsUpvoteCallback(updateDto.Update.CallbackQuery))
                 return BotResponseCode.NoAction;
 
-            var trackId = await GetTrackId(callbackQuery);
+            var track = await GetTrack(updateDto);
 
-            // Every callback query should have a trackId.
-            if (string.IsNullOrEmpty(trackId))
+            // Every callback query should have a track.
+            if (track == null)
                 throw new TrackIdNullException();
 
-            return await HandleUpvote(callbackQuery, trackId);
+            return await HandleUpvote(updateDto, track);
         }
 
         /// <summary>
-        /// Get the trackId from the callback query.
+        /// Get the track from the callback query.
         /// </summary>
-        private async Task<string> GetTrackId(CallbackQuery callbackQuery)
+        private async Task<Track> GetTrack(UpdateDto updateDto)
         {
             // Get the message with the trackId.
-            var trackMessageText = callbackQuery.Message.ReplyToMessage.Text;
+            var trackMessageText = updateDto.Update.CallbackQuery.Message.ReplyToMessage.Text;
 
-            return await _spotifyLinkHelper.ParseTrackId(trackMessageText);
+            var trackId = await _spotifyLinkHelper.ParseTrackId(trackMessageText);
+
+            if (string.IsNullOrEmpty(trackId))
+                return null;
+
+            return await _trackRepository.Get(trackId, updateDto.Playlist.Id);
         }
 
         /// <summary>
         /// Upvote a track, or if it was already upvoted remove the upvote.
         /// </summary>
-        private async Task<BotResponseCode> HandleUpvote(CallbackQuery callbackQuery, string trackId)
+        private async Task<BotResponseCode> HandleUpvote(UpdateDto updateDto, Track track)
         {
             var newUpvote = new Upvote
             {
-                TrackId = trackId,
-                UserId = callbackQuery.From.Id,
+                PlaylistId = track.PlaylistId,
+                TrackId = track.Id,
+                UserId = updateDto.ParsedUser.Id,
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
-            var text = GetTextMessageWithTextLinks(callbackQuery.Message);
+            var text = GetTextMessageWithTextLinks(updateDto.Update.CallbackQuery.Message);
 
             var existingUpvote = await _upvoteRepository.Get(newUpvote);
 
             return existingUpvote == null
-                ? await Upvote(callbackQuery, newUpvote, text, trackId)
-                : await Downvote(callbackQuery, existingUpvote, text, trackId);
+                ? await Upvote(updateDto, newUpvote, text, track.Id)
+                : await Downvote(updateDto, existingUpvote, text, track.Id);
         }
 
-        private async Task<BotResponseCode> Upvote(CallbackQuery callbackQuery, Upvote upvote, string text, string trackId)
+        private async Task<BotResponseCode> Upvote(UpdateDto updateDto, Upvote upvote, string text, string trackId)
         {
             // Save the upvote in storage.
             await _upvoteRepository.Upsert(upvote);
 
-            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(callbackQuery.Message, trackId);
+            var message = updateDto.Update.CallbackQuery.Message;
+            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(message, trackId);
 
             // Increment upvote in the original message.
             var newText = _upvoteTextHelper.IncrementUpvote(text);
-            await EditOriginalMessage(callbackQuery.Message, newText, keyboard);
+            await EditOriginalMessage(updateDto, message, newText, keyboard);
             
             return BotResponseCode.UpvoteHandled;
         }
 
-        private async Task<BotResponseCode> Downvote(CallbackQuery callbackQuery, Upvote existingUpvote, string text, string trackId)
+        private async Task<BotResponseCode> Downvote(UpdateDto updateDto, Upvote existingUpvote, string text, string trackId)
         {
             // Delete the upvote from storage.
             await _upvoteRepository.Delete(existingUpvote);
 
-            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(callbackQuery.Message, trackId);
+            var message = updateDto.Update.CallbackQuery.Message;
+            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(message, trackId);
 
             // Decrement upvote in the original message.
             var newText = _upvoteTextHelper.DecrementUpvote(text);
-            await EditOriginalMessage(callbackQuery.Message, newText, keyboard);
+            await EditOriginalMessage(updateDto, message, newText, keyboard);
 
             return BotResponseCode.DownvoteHandled;
         }
@@ -148,10 +161,10 @@ namespace Spoti_bot.Bot.Upvotes
         /// </summary>
         /// <param name="message">The message to edit.</param>
         /// <param name="newText">The new text to replace the message text with.</param>
-        private async Task EditOriginalMessage(Message message, string newText, InlineKeyboardMarkup replyMarkup)
+        private async Task EditOriginalMessage(UpdateDto updateDto, Message message, string newText, InlineKeyboardMarkup replyMarkup)
         {
             await _sendMessageService.EditMessageText(
-                message.Chat.Id,
+                updateDto.Chat.Id,
                 message.MessageId,
                 newText,
                 replyMarkup: replyMarkup);

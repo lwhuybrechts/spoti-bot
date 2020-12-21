@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Spoti_bot.Bot.Chats;
 using Spoti_bot.Bot.Upvotes;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +11,18 @@ namespace Spoti_bot.Bot.Users
     {
         private readonly IUserRepository _userRepository;
         private readonly IUpvoteRepository _upvoteRepository;
+        private readonly IChatMemberRepository _chatMemberRepository;
         private readonly IMapper _mapper;
 
-        public UserService(IUserRepository userRepository, IUpvoteRepository upvoteRepository, IMapper mapper)
+        public UserService(
+            IUserRepository userRepository,
+            IUpvoteRepository upvoteRepository,
+            IChatMemberRepository chatMemberRepository,
+            IMapper mapper)
         {
             _userRepository = userRepository;
             _upvoteRepository = upvoteRepository;
+            _chatMemberRepository = chatMemberRepository;
             _mapper = mapper;
         }
 
@@ -24,14 +31,19 @@ namespace Spoti_bot.Bot.Users
             return _userRepository.Get(id);
         }
 
-        public async Task<User> SaveUser(Telegram.Bot.Types.User telegramUser)
+        public async Task<User> SaveUser(User user, long chatId)
         {
-            // TODO: map before calling this service.
-
             // Save the user to the storage.
-            var user = _mapper.Map<User>(telegramUser);
+            var savedUser = await _userRepository.Upsert(user);
 
-            return await _userRepository.Upsert(user);
+            // Save the user as a ChatMember.
+            await _chatMemberRepository.Upsert(new ChatMember
+            {
+                ChatId = chatId,
+                UserId = savedUser.Id
+            });
+
+            return savedUser;
         }
 
         /// <summary>

@@ -45,8 +45,7 @@ namespace Spoti_bot.Spotify.Tracks.SyncHistory
             // Only update tracks that are already in our storage.
             var tracksToSave = firstPostedTracksFromJson
                 .Where(x => tracksFromStorage
-                    .Select(ts => ts.Id)
-                    .Contains(x.TrackId)
+                    .Any(track => track.Id == x.TrackId)
                 ).ToList();
 
             // Save the tracks to storage.

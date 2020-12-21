@@ -24,7 +24,6 @@ namespace Spoti_bot.Spotify.Api
         public async Task<Track> GetTrack(ISpotifyClient spotifyClient, string trackId)
         {
             return _mapper.Map<Track>(await GetTrackFromApi(spotifyClient, trackId));
-
         }
 
         public async Task<Playlist> GetPlaylist(ISpotifyClient spotifyClient, string playlistId)
@@ -44,13 +43,18 @@ namespace Spoti_bot.Spotify.Api
             // Tracks can be podcasts or fulltracks.
             var fullTracks = allTracks.Select(x => x.Track as FullTrack).ToList();
 
-            return _mapper.Map<List<Track>>(fullTracks);
+            var tracks = _mapper.Map<List<Track>>(fullTracks);
+
+            foreach (var track in tracks)
+                track.PlaylistId = playlistId;
+
+            return tracks;
         }
 
-        public async Task AddTrackToPlaylist(ISpotifyClient spotifyClient, Track track, string playlistId)
+        public async Task AddTrackToPlaylist(ISpotifyClient spotifyClient, Track track)
         {
             // Add the track to the playlist.
-            await spotifyClient.Playlists.AddItems(playlistId, new PlaylistAddItemsRequest(new List<string>
+            await spotifyClient.Playlists.AddItems(track.PlaylistId, new PlaylistAddItemsRequest(new List<string>
             {
                 $"{_trackInlineBaseUri}{track.Id}"
             }));

@@ -8,7 +8,7 @@ namespace Spoti_bot.Bot.Upvotes
     public class UpvoteRepository : BaseRepository<Upvote>, IUpvoteRepository
     {
         public UpvoteRepository(CloudTableClient cloudTableClient)
-            : base(cloudTableClient.GetTableReference(typeof(Upvote).Name), "upvotes")
+            : base(cloudTableClient.GetTableReference(typeof(Upvote).Name), null)
         {
             
         }

@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Spoti_bot.Bot.HandleUpdate.Dto;
+using System;
 using System.Collections.Generic;
-using Telegram.Bot.Types;
 
 namespace Spoti_bot.Spotify.Tracks.AddTrack
 {
@@ -19,7 +19,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         /// <param name="message">The message that contains the added trackId.</param>
         /// <param name="track">The track that was added.</param>
         /// <returns>A text to reply to the chat with.</returns>
-        public string GetSuccessResponseText(Message message, Track track)
+        public string GetSuccessResponseText(UpdateDto updateDto, Track track)
         {
             var successMessage = $"Track added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(track.PlaylistId, "playlist")}!";
 
@@ -28,7 +28,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             if (!ShouldAddAwesomeResponse(random))
                 return successMessage;
 
-            var firstName = message?.From?.FirstName;
+            var firstName = updateDto.User.FirstName;
 
             if (string.IsNullOrEmpty(firstName))
                 return successMessage;

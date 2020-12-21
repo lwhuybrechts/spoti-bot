@@ -1,4 +1,5 @@
-﻿using Spoti_bot.Bot.Upvotes;
+﻿using Spoti_bot.Bot.HandleUpdate.Dto;
+using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Exceptions;
@@ -22,21 +23,21 @@ namespace Spoti_bot.Bot.HandleUpdate
             _userService = userService;
         }
 
-        public async Task<BotResponseCode> TryHandleCallbackQuery(Telegram.Bot.Types.Update update)
+        public async Task<BotResponseCode> TryHandleCallbackQuery(UpdateDto updateDto)
         {
             // If the bot can't do anything with the update's callback query, we're done.
-            if (!CanHandleCallbackQuery(update))
+            if (!CanHandleCallbackQuery(updateDto))
                 return BotResponseCode.NoAction;
 
             // Check if an upvote should be handled and if so handle it.
-            var upvoteResponseCode = await _upvoteService.TryHandleUpvote(update.CallbackQuery);
+            var upvoteResponseCode = await _upvoteService.TryHandleUpvote(updateDto);
             if (upvoteResponseCode != BotResponseCode.NoAction)
             {
                 // Save users that upvoted.
-                await _userService.SaveUser(update.CallbackQuery.From);
+                await _userService.SaveUser(updateDto.ParsedUser, updateDto.Chat.Id);
 
                 // Let telegram know the callback query has been handled.
-                await AnswerCallback(update.CallbackQuery, upvoteResponseCode);
+                await AnswerCallback(updateDto.Update.CallbackQuery, upvoteResponseCode);
 
                 return upvoteResponseCode;
             }
@@ -50,8 +51,14 @@ namespace Spoti_bot.Bot.HandleUpdate
         /// </summary>
         /// <param name="update">The update to check.</param>
         /// <returns>True if the bot can handle the callback query.</returns>
-        private bool CanHandleCallbackQuery(Telegram.Bot.Types.Update update)
+        private bool CanHandleCallbackQuery(UpdateDto updateDto)
         {
+            // Only handle callback queries in registered chats with a playlist.
+            if (updateDto?.Chat == null || updateDto?.Playlist == null)
+                return false;
+
+            var update = updateDto.Update;
+
             // Check if we have all the data we need.
             if (update == null ||
                 // Filter everything but callback queries.
@@ -63,6 +70,7 @@ namespace Spoti_bot.Bot.HandleUpdate
                 update.CallbackQuery.Message == null ||
                 update.CallbackQuery.Message.Type != MessageType.Text ||
                 string.IsNullOrEmpty(update.CallbackQuery.Message.Text) ||
+                update.CallbackQuery.Message.Chat == null ||
                 // We only support callback queries on messages that are a reply to another text message.
                 update.CallbackQuery.Message.ReplyToMessage == null ||
                 update.CallbackQuery.Message.ReplyToMessage.Type != MessageType.Text ||

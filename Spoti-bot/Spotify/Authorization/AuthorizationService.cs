@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.Extensions.Options;
+using Spoti_bot.Bot;
 using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Library.Options;
 using SpotifyAPI.Web;
@@ -12,6 +13,7 @@ namespace Spoti_bot.Spotify.Authorization
     {
         private readonly IAuthorizationTokenRepository _authorizationTokenRepository;
         private readonly ILoginRequestService _loginRequestService;
+        private readonly ISendMessageService _sendMessageService;
         private readonly IMapper _mapper;
         private readonly SpotifyOptions _spotifyOptions;
         private readonly AzureOptions _azureOptions;
@@ -19,12 +21,14 @@ namespace Spoti_bot.Spotify.Authorization
         public AuthorizationService(
             IAuthorizationTokenRepository authorizationTokenRepository,
             ILoginRequestService loginRequestService,
+            ISendMessageService sendMessageService,
             IMapper mapper,
             IOptions<SpotifyOptions> spotifyOptions,
             IOptions<AzureOptions> azureOptions)
         {
             _authorizationTokenRepository = authorizationTokenRepository;
             _loginRequestService = loginRequestService;
+            _sendMessageService = sendMessageService;
             _mapper = mapper;
             _spotifyOptions = spotifyOptions.Value;
             _azureOptions = azureOptions.Value;
@@ -34,9 +38,9 @@ namespace Spoti_bot.Spotify.Authorization
         /// Get an url to the spotify login web page, where we can authorize our bot.
         /// </summary>
         /// <returns>The url to the spotify login page.</returns>
-        public async Task<Uri> CreateLoginRequest(long userId)
+        public async Task<Uri> CreateLoginRequest(long userId, long chatId)
         {
-            var loginRequest = await _loginRequestService.Create(userId);
+            var loginRequest = await _loginRequestService.Create(userId, chatId);
 
             return new SpotifyAPI.Web.LoginRequest(GetCallbackUri(), _spotifyOptions.ClientId, SpotifyAPI.Web.LoginRequest.ResponseType.Code)
             {
@@ -68,11 +72,14 @@ namespace Spoti_bot.Spotify.Authorization
             var token = _mapper.Map<AuthorizationToken>(accessToken);
             token.UserId = loginRequest.UserId;
 
-            // Save it.
+            // Save the token.
             await _authorizationTokenRepository.Upsert(token);
 
             // The login request has been handled, delete it.
             await _loginRequestService.Delete(loginRequest);
+
+            // Answer in the chat.
+            await _sendMessageService.SendTextMessage(loginRequest.ChatId, Callback.SuccessMessage);
         }
 
         private Uri GetCallbackUri()

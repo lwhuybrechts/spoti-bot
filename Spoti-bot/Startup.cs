@@ -8,6 +8,7 @@ using Spoti_bot.Bot;
 using Spoti_bot.Bot.Chats;
 using Spoti_bot.Bot.HandleUpdate;
 using Spoti_bot.Bot.HandleUpdate.Commands;
+using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Library.Options;
@@ -56,6 +57,7 @@ namespace Spoti_bot
             services.AddTransient<IHandleCallbackQueryService, HandleCallbackQueryService>();
             services.AddTransient<IHandleInlineQueryService, HandleInlineQueryService>();
             services.AddTransient<IHandleCommandService, HandleCommandService>();
+            services.AddTransient<IUpdateDtoService, UpdateDtoService>();
             services.AddTransient<ISendMessageService, SendMessageService>();
             services.AddTransient<IKeyboardService, KeyboardService>();
             services.AddTransient<IUserService, UserService>();
@@ -64,6 +66,7 @@ namespace Spoti_bot
             services.AddTransient<IUserRepository, UserRepository>();
             services.AddTransient<IUpvoteRepository, UpvoteRepository>();
             services.AddTransient<IChatRepository, ChatRepository>();
+            services.AddTransient<IChatMemberRepository, ChatMemberRepository>();
 
             // TODO: only use 1 http client, so inject it here.
             services.AddSingleton<ITelegramBotClient>((serviceProvider) =>

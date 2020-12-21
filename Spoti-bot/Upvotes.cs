@@ -34,8 +34,11 @@ namespace Spoti_bot
             {
                 try
                 {
+                    // For now, only return upvotes from the main playlist.
+                    const string playlistId = "2tnyzyB8Ku9XywzAYNjLxj";
+
                     // Get the upvotes and put them into the response message of the API.
-                    var upvotes = await _upvoteRepository.GetAll();
+                    var upvotes = await _upvoteRepository.GetAllByPartitionKey(playlistId);
 
                     // Map the upvotes to api models.
                     var apiUpvotes= _mapper.Map<List<ApiModels.Upvote>>(upvotes);

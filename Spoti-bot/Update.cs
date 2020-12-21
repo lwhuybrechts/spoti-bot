@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Spoti_bot.Library;
 using Spoti_bot.Bot.HandleUpdate;
+using Spoti_bot.Bot.HandleUpdate.Dto;
 
 namespace Spoti_bot
 {
@@ -20,17 +21,20 @@ namespace Spoti_bot
         private readonly IHandleMessageService _handleMessageService;
         private readonly IHandleCallbackQueryService _handleCallbackQueryService;
         private readonly IHandleInlineQueryService _handleInlineQueryService;
+        private readonly IUpdateDtoService _updateDtoService;
         private readonly Library.Options.SentryOptions _sentryOptions;
 
         public Update(
             IHandleMessageService handleMessageService,
             IHandleCallbackQueryService handleCallbackQueryService,
             IHandleInlineQueryService handleInlineQueryService,
+            IUpdateDtoService updateDtoService,
             IOptions<Library.Options.SentryOptions> sentryOptions)
         {
             _handleMessageService = handleMessageService;
             _handleCallbackQueryService = handleCallbackQueryService;
             _handleInlineQueryService = handleInlineQueryService;
+            _updateDtoService = updateDtoService;
             _sentryOptions = sentryOptions.Value;
         }
 
@@ -45,27 +49,26 @@ namespace Spoti_bot
                 try
                 {
                     var update = JsonConvert.DeserializeObject<Telegram.Bot.Types.Update>(requestBody);
-
-                    // TODO: get userId and chat and put them in some sort of session variables.
+                    var updateDto = await _updateDtoService.Build(update);
 
                     // Only handle updates on certain conditions.
-                    if (!ShouldHandle(update))
+                    if (!ShouldHandle(updateDto))
                         return new OkObjectResult(BotResponseCode.NoAction);
 
                     // Check if we can do something with the text message.
-                    var messageResponseCode = await _handleMessageService.TryHandleMessage(update);
+                    var messageResponseCode = await _handleMessageService.TryHandleMessage(updateDto);
                     if (messageResponseCode != BotResponseCode.NoAction)
                         return new OkObjectResult(messageResponseCode);
 
                     // Check if we can do something with the callback query.
                     // Callback queries are sent when the user clicks a button.
-                    var callbackQueryResponseCode = await _handleCallbackQueryService.TryHandleCallbackQuery(update);
+                    var callbackQueryResponseCode = await _handleCallbackQueryService.TryHandleCallbackQuery(updateDto);
                     if (callbackQueryResponseCode != BotResponseCode.NoAction)
                         return new OkObjectResult(callbackQueryResponseCode);
 
                     // Check if we can do something with the inline query.
                     // Inline queries are sent when the user types a query behind the bot username tag: @Spotibot query
-                    var inlineQueryResponseCode = await _handleInlineQueryService.TryHandleInlineQuery(update);
+                    var inlineQueryResponseCode = await _handleInlineQueryService.TryHandleInlineQuery(updateDto);
                     if (inlineQueryResponseCode != BotResponseCode.NoAction)
                         return new OkObjectResult(inlineQueryResponseCode);
 
@@ -96,13 +99,16 @@ namespace Spoti_bot
             }
         }
 
-        private static bool ShouldHandle(Telegram.Bot.Types.Update update)
+        private static bool ShouldHandle(UpdateDto updateDto)
         {
+            if (updateDto == null)
+                return false;
+
             // Always handle inline queries, since they do not have chat info.
-            if (update?.Type == Telegram.Bot.Types.Enums.UpdateType.InlineQuery)
+            if (updateDto.Update?.Type == Telegram.Bot.Types.Enums.UpdateType.InlineQuery)
                 return true;
             
-            var chatType = GetChatType(update);
+            var chatType = GetChatType(updateDto.Update);
 
             if (!chatType.HasValue)
                 return false;

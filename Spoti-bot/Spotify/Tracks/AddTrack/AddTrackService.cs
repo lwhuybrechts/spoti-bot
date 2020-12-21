@@ -1,10 +1,10 @@
 ﻿using Spoti_bot.Bot;
+using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Library;
 using Spoti_bot.Spotify.Api;
 using SpotifyAPI.Web;
 using System;
 using System.Threading.Tasks;
-using Telegram.Bot.Types;
 
 namespace Spoti_bot.Spotify.Tracks.AddTrack
 {
@@ -36,26 +36,26 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             _keyboardService = keyboardService;
         }
 
-        public async Task<BotResponseCode> TryAddTrackToPlaylist(Message message, Bot.Chats.Chat chat)
+        public async Task<BotResponseCode> TryAddTrackToPlaylist(UpdateDto updateDto)
         {
             // Parse the trackId from the message.
-            var newTrackId = await _spotifyLinkHelper.ParseTrackId(message.Text);
+            var newTrackId = await _spotifyLinkHelper.ParseTrackId(updateDto.ParsedTextMessage);
             if (string.IsNullOrEmpty(newTrackId))
                 return BotResponseCode.NoAction;
 
             // Check if the track already exists in the playlist.
-            if (await DoesExistInPlaylist(newTrackId, chat.PlaylistId))
+            if (await DoesExistInPlaylist(newTrackId, updateDto.Chat.PlaylistId))
             {
-                await _sendMessageService.SendTextMessage(message, $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(chat.PlaylistId, "playlist")}!");
+                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}!");
                 return BotResponseCode.TrackAlreadyExists;
             }
 
-            var spotifyClient = await _spotifyClientFactory.Create(chat.AdminUserId);
+            var spotifyClient = await _spotifyClientFactory.Create(updateDto.Chat.AdminUserId);
 
             // We can't continue if we can't use the spotify api.
             if (spotifyClient == null)
             {
-                await _sendMessageService.SendTextMessage(message, "Spoti-bot is not authorized to add this track to Spotify.");
+                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, "Spoti-bot is not authorized to add this track to Spotify.");
                 return BotResponseCode.NoAction;
             }
 
@@ -63,14 +63,14 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             var newTrack = await _spotifyClientService.GetTrack(spotifyClient, newTrackId);
             if (newTrack == null)
             {
-                await _sendMessageService.SendTextMessage(message, $"Track not found in Spotify api :(");
+                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, $"Track not found in Spotify api :(");
                 return BotResponseCode.NoAction;
             }
 
-            await AddTrack(spotifyClient, message, newTrack, chat.PlaylistId);
+            await AddTrack(spotifyClient, updateDto.ParsedUser, newTrack, updateDto.Chat.PlaylistId);
 
             // Reply that the message has been added successfully.
-            await SendReplyMessage(message, newTrack);
+            await SendReplyMessage(updateDto, newTrack);
 
             // Add the track to my queue.
             await _spotifyClientService.AddToQueue(spotifyClient, newTrack);
@@ -86,27 +86,27 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         /// <summary>
         /// Add the track to the playlist.
         /// </summary>
-        private async Task AddTrack(ISpotifyClient spotifyClient, Message message, Track newTrack, string playlistId)
+        private async Task AddTrack(ISpotifyClient spotifyClient, Bot.Users.User user, Track newTrack, string playlistId)
         {
             newTrack.PlaylistId = playlistId;
             newTrack.CreatedAt = DateTimeOffset.UtcNow;
-            newTrack.AddedByTelegramUserId = message.From.Id;
+            newTrack.AddedByTelegramUserId = user.Id;
 
             // Add the track to the playlist.
             await _trackRepository.Upsert(newTrack);
-            await _spotifyClientService.AddTrackToPlaylist(spotifyClient, newTrack, playlistId);
+            await _spotifyClientService.AddTrackToPlaylist(spotifyClient, newTrack);
         }
 
         /// <summary>
         /// Reply when a track has been added to the playlist.
         /// </summary>
-        private async Task SendReplyMessage(Message message, Track track)
+        private async Task SendReplyMessage(UpdateDto updateDto, Track track)
         {
-            var originalMessageId = message.MessageId;
+            var originalMessageId = updateDto.Update.Message.MessageId;
 
             await _sendMessageService.SendTextMessage(
-                message,
-                _successResponseService.GetSuccessResponseText(message, track),
+                updateDto.Chat.Id,
+                _successResponseService.GetSuccessResponseText(updateDto, track),
                 replyToMessageId: originalMessageId,
                 replyMarkup: _keyboardService.CreatePostedTrackResponseKeyboard());
         }

@@ -1,8 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -30,11 +28,6 @@ namespace Spoti_bot.Bot
             var message = await _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode, disableWebPagePreview, replyToMessageId: replyToMessageId, replyMarkup: replyMarkup);
 
             return message.MessageId;
-        }
-
-        public Task<int> SendTextMessage(Message messageToRepondTo, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
-        {
-            return SendTextMessage(messageToRepondTo.Chat.Id, text, parseMode, disableWebPagePreview, replyToMessageId, replyMarkup);
         }
 
         public Task EditMessageText(long chatId, int messageId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, InlineKeyboardMarkup replyMarkup = null)

@@ -4,6 +4,7 @@ using Spoti_bot.Bot;
 using Spoti_bot.Bot.Chats;
 using Spoti_bot.Bot.HandleUpdate;
 using Spoti_bot.Bot.HandleUpdate.Commands;
+using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.IntegrationTests.Library;
@@ -56,9 +57,10 @@ namespace Spoti_bot.IntegrationTests
             var handleMessageService = testHost.GetService<IHandleMessageService>();
             var handleCallbackQueryService = testHost.GetService<IHandleCallbackQueryService>();
             var handleInlineQueryService = testHost.GetService<IHandleInlineQueryService>();
+            var updateDtoService = testHost.GetService<IUpdateDtoService>();
             var sentryOptions = testHost.GetService<IOptions<SentryOptions>>();
 
-            _sut = new Update(handleMessageService, handleCallbackQueryService, handleInlineQueryService, sentryOptions);
+            _sut = new Update(handleMessageService, handleCallbackQueryService, handleInlineQueryService, updateDtoService, sentryOptions);
         }
 
         private async Task TruncateTables()
@@ -194,8 +196,6 @@ namespace Spoti_bot.IntegrationTests
         {
             // Arrange.
             await TruncateTables();
-
-            await InsertUser();
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateRequest(stream, Command.Start.ToDescriptionString());
@@ -643,10 +643,87 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
+        public async Task Run_UpvoteCallback_NoChat_NoActionReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertPlaylist();
+
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
+
+            // Send the two messages that go before an upvote callback: one with a trackUrl and a reply from the bot with an upvote button.
+            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, "Track added to playlist!", replyToMessageId: trackMessageId);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
+
+            // Act.
+            var upvoteResult = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.NoAction, upvoteResult);
+        }
+        
+        [Fact]
+        public async Task Run_UpvoteCallback_NoPlaylist_NoActionReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
+
+            // Send the two messages that go before an upvote callback: one with a trackUrl and a reply from the bot with an upvote button.
+            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, "Track added to playlist!", replyToMessageId: trackMessageId);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
+
+            // Act.
+            var upvoteResult = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.NoAction, upvoteResult);
+        }
+
+        [Fact]
+        public async Task Run_UpvoteCallback_NoTrack_ExceptionHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+            await InsertPlaylist();
+
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
+
+            // Send the two messages that go before an upvote callback: one with a trackUrl and a reply from the bot with an upvote button.
+            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, "Track added to playlist!", replyToMessageId: trackMessageId);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
+
+            // Act.
+            var upvoteResult = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.ExceptionHandled, upvoteResult);
+        }
+
+        [Fact]
         public async Task Run_UpvoteCallbackTwice_UpvoteHandledReturned_DownvoteHandledReturned()
         {
             // Arrange.
             await TruncateTables();
+
+            await InsertTrack();
+            await InsertPlaylist();
+            await InsertChat();
 
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
@@ -661,7 +738,6 @@ namespace Spoti_bot.IntegrationTests
 
                 // Act.
                 var upvoteResult = await _sut.Run(httpRequest);
-
 
                 // Assert.
                 AssertHelper.Equal(BotResponseCode.UpvoteHandled, upvoteResult);

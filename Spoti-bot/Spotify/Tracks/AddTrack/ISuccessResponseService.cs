@@ -1,9 +1,9 @@
-﻿using Telegram.Bot.Types;
+﻿using Spoti_bot.Bot.HandleUpdate.Dto;
 
 namespace Spoti_bot.Spotify.Tracks.AddTrack
 {
     public interface ISuccessResponseService
     {
-        string GetSuccessResponseText(Message message, Track track);
+        string GetSuccessResponseText(UpdateDto updateDto, Track track);
     }
 }

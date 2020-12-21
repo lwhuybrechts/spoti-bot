@@ -115,7 +115,8 @@ namespace Spoti_bot.IntegrationTests
                 UserId = _testOptions.TestUserId,
                 // Make sure the same LoginRequest is used in all tests.
                 Id = "ab6025ef-e707-46bc-b06f-7b30f7b1fd1e",
-                ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(10)
+                ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(10),
+                ChatId = _testOptions.TestChatId
             };
         }
     }

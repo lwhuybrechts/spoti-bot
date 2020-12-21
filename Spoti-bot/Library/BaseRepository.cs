@@ -49,6 +49,10 @@ namespace Spoti_bot.Library
             var operation = TableOperation.Retrieve<T>(partitionKey, rowKey);
             
             var tableResult = await _cloudTable.ExecuteAsync(operation);
+
+            if (tableResult.HttpStatusCode == 404)
+                return null;
+
             return tableResult.Result as T;
         }
 
