@@ -13,9 +13,14 @@ namespace Spoti_bot.Bot.Upvotes
             
         }
 
-        public Task<List<Upvote>> GetUpvotes(long userId)
+        public Task<List<Upvote>> GetUpvotes(string playlistId, string trackId)
         {
-            return GetAllByRowKey(userId.ToString());
+            var partitionKeyFilter = TableQuery.GenerateFilterCondition(nameof(Upvote.PartitionKey), QueryComparisons.Equal, playlistId);
+            var trackIdFilter = TableQuery.GenerateFilterCondition(nameof(Upvote.TrackId), QueryComparisons.Equal, trackId);
+
+            var query = new TableQuery<Upvote>().Where(partitionKeyFilter).Where(trackIdFilter);
+
+            return ExecuteSegmentedQueries(query);
         }
     }
 }

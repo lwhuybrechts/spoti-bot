@@ -1022,7 +1022,7 @@ namespace Spoti_bot.IntegrationTests
 
         private async Task DeleteUpvotes()
         {
-            var upvotes = await _upvoteRepository.GetUpvotes(_testOptions.TestUserId);
+            var upvotes = await _upvoteRepository.GetUpvotes(_testOptions.TestPlaylistId, _testOptions.TestTrackId);
 
             if (upvotes.Any())
                 await _upvoteRepository.Delete(upvotes);

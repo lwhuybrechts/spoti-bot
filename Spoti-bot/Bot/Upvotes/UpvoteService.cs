@@ -99,17 +99,17 @@ namespace Spoti_bot.Bot.Upvotes
             var existingUpvote = await _upvoteRepository.Get(newUpvote);
 
             return existingUpvote == null
-                ? await Upvote(updateDto, newUpvote, text, track.Id)
-                : await Downvote(updateDto, existingUpvote, text, track.Id);
+                ? await Upvote(updateDto, newUpvote, text, track)
+                : await Downvote(updateDto, existingUpvote, text, track);
         }
 
-        private async Task<BotResponseCode> Upvote(UpdateDto updateDto, Upvote upvote, string text, string trackId)
+        private async Task<BotResponseCode> Upvote(UpdateDto updateDto, Upvote upvote, string text, Track track)
         {
             // Save the upvote in storage.
             await _upvoteRepository.Upsert(upvote);
 
             var message = updateDto.Update.CallbackQuery.Message;
-            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(message, trackId);
+            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(message, track);
 
             // Increment upvote in the original message.
             var newText = _upvoteTextHelper.IncrementUpvote(text);
@@ -118,13 +118,13 @@ namespace Spoti_bot.Bot.Upvotes
             return BotResponseCode.UpvoteHandled;
         }
 
-        private async Task<BotResponseCode> Downvote(UpdateDto updateDto, Upvote existingUpvote, string text, string trackId)
+        private async Task<BotResponseCode> Downvote(UpdateDto updateDto, Upvote existingUpvote, string text, Track track)
         {
             // Delete the upvote from storage.
             await _upvoteRepository.Delete(existingUpvote);
 
             var message = updateDto.Update.CallbackQuery.Message;
-            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(message, trackId);
+            var keyboard = await _keyboardService.GetUpdatedUpvoteKeyboard(message, track);
 
             // Decrement upvote in the original message.
             var newText = _upvoteTextHelper.DecrementUpvote(text);

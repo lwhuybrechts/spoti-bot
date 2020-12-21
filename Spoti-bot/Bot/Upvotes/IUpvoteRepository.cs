@@ -6,6 +6,6 @@ namespace Spoti_bot.Bot.Upvotes
 {
     public interface IUpvoteRepository : IBaseRepository<Upvote>
     {
-        Task<List<Upvote>> GetUpvotes(long userId);
+        Task<List<Upvote>> GetUpvotes(string playlistId, string trackId);
     }
 }
