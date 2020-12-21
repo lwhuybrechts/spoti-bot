@@ -7,6 +7,6 @@ namespace Spoti_bot.Bot.Users
     {
         Task<User> Get(long id);
         Task<User> SaveUser(User user, long chatId);
-        Task<List<User>> GetUpvoteUsers(string trackId);
+        Task<List<User>> GetUpvoteUsers(string playlistId, string trackId);
     }
 }

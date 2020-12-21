@@ -59,7 +59,7 @@ namespace Spoti_bot.Bot
 
         private static List<List<InlineKeyboardButton>> GetRowsWithSeeUpvoteButton(Track track, InlineKeyboardMarkup originalKeyboard)
         {
-            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {track.Id}";
+            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {track.PlaylistId} {track.Id}";
 
             // Create a button on the keybaord that starts an inline query with the GetUpvoteUsers command.
             var seeUpvotesButton = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat(SeeUpvoteButtonText, query);

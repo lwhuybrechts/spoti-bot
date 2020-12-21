@@ -2,6 +2,7 @@
 using Spoti_bot.Library;
 using Spoti_bot.Library.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -10,6 +11,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
     public class CommandsService : ICommandsService
     {
         private readonly TelegramOptions _telegramOptions;
+        private const int _maxAmountOfQueries = 3;
 
         public CommandsService(IOptions<TelegramOptions> telegramOptions)
         {
@@ -61,6 +63,14 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             return GetRegex(command, true).Match(text).Groups[1].Value;
         }
 
+        /// <summary>
+        /// Get multiple queries from the command.
+        /// </summary>
+        public List<string> GetQueries<TCommand>(string text, TCommand command) where TCommand : Enum
+        {
+            return GetRegex(command, true).Match(text).Groups.Values.Select(x => x.Value).ToList();
+        }
+
         private Regex GetRegex<TCommand>(TCommand command, bool addQuery = false) where TCommand : Enum
         {
             var commandString = command.ToDescriptionString();
@@ -75,8 +85,14 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             var pattern = $"^(?:{commandString})(?:@{_telegramOptions.BotUserName}|)";
 
             if (addQuery)
+            {
                 // The query format is: a command, a space then the query.
-                pattern += $"\\s+(\\S+)";
+                pattern += "\\s+(\\S+)";
+
+                // Add optional queries.
+                for (var i = 1; i < _maxAmountOfQueries; i++)
+                    pattern += "\\s*(\\S*)";
+            }
 
             pattern += "$";
 

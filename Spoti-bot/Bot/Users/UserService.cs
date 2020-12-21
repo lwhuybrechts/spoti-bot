@@ -49,9 +49,9 @@ namespace Spoti_bot.Bot.Users
         /// <summary>
         /// Get the users that upvoted a track.
         /// </summary>
-        public async Task<List<User>> GetUpvoteUsers(string trackId)
+        public async Task<List<User>> GetUpvoteUsers(string playlistId, string trackId)
         {
-            var upvotes = await _upvoteRepository.GetAllByPartitionKey(trackId);
+            var upvotes = await _upvoteRepository.GetUpvotes(playlistId, trackId);
 
             if (!upvotes.Any())
                 return new List<User>();

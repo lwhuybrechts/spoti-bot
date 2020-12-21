@@ -46,14 +46,16 @@ namespace Spoti_bot.Bot.HandleUpdate
 
             if (_commandsService.IsCommand(updateDto.Update.InlineQuery.Query, InlineQueryCommand.GetUpvoteUsers))
             {
-                // The query should be a trackId.
-                var trackId = _commandsService.GetQuery(updateDto.Update.InlineQuery.Query, InlineQueryCommand.GetUpvoteUsers);
+                var queries = _commandsService.GetQueries(updateDto.Update.InlineQuery.Query, InlineQueryCommand.GetUpvoteUsers);
 
-                if (string.IsNullOrEmpty(trackId))
+                // The query should have a playlistId and a trackId.
+                var playlistId = queries.ElementAtOrDefault(1);
+                var trackId = queries.ElementAtOrDefault(2);
+
+                if (string.IsNullOrEmpty(playlistId) || string.IsNullOrEmpty(trackId))
                     return BotResponseCode.NoAction;
 
-                // TODO: only get upvotes from the current chat/playlist.
-                var users = await _userService.GetUpvoteUsers(trackId);
+                var users = await _userService.GetUpvoteUsers(playlistId, trackId);
 
                 // TODO: add user images.
 
