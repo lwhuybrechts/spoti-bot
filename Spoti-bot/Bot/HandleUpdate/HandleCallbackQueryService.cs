@@ -10,13 +10,11 @@ namespace Spoti_bot.Bot.HandleUpdate
     public class HandleCallbackQueryService : IHandleCallbackQueryService
     {
         private readonly IVoteService _voteService;
-        private readonly ISendMessageService _sendMessageService;
         private readonly IUserService _userService;
 
-        public HandleCallbackQueryService(IVoteService voteService, ISendMessageService sendMessageService, IUserService userService)
+        public HandleCallbackQueryService(IVoteService voteService, IUserService userService)
         {
             _voteService = voteService;
-            _sendMessageService = sendMessageService;
             _userService = userService;
         }
 
@@ -32,9 +30,6 @@ namespace Spoti_bot.Bot.HandleUpdate
             {
                 // Save users that voted.
                 await _userService.SaveUser(updateDto.ParsedUser, updateDto.Chat.Id);
-
-                // Let telegram know the callback query has been handled.
-                await AnswerCallback(updateDto, voteResponseCode);
 
                 return voteResponseCode;
             }
@@ -68,25 +63,6 @@ namespace Spoti_bot.Bot.HandleUpdate
                 return false;
 
             return true;
-        }
-
-        /// <summary>
-        /// Let telegram know the callback query has been handled.
-        /// </summary>
-        private Task AnswerCallback(UpdateDto updateDto, BotResponseCode botResponseCode)
-        {
-            string text = null;
-            switch (botResponseCode)
-            {
-                case BotResponseCode.AddVoteHandled:
-                    text = "Added vote";
-                    break;
-                case BotResponseCode.RemoveVoteHandled:
-                    text = "Removed vote";
-                    break;
-            }
-
-            return _sendMessageService.AnswerCallbackQuery(updateDto.ParsedUpdateId, text);
         }
     }
 }

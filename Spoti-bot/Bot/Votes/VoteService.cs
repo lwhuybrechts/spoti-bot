@@ -104,14 +104,15 @@ namespace Spoti_bot.Bot.Votes
 
             var keyboard = await _keyboardService.GetUpdatedVoteKeyboard(updateDto.ParsedInlineKeyboard, updateDto.Track);
 
-            var useNegativeOperator = vote.Type.HasAttribute<VoteType, UseNegativeOperatorAttribute>();
-
-            var newText = useNegativeOperator
+            var newText = UseNegativeOperator(vote)
                 // Increment or decrement the vote in the original message.
                 ? _voteTextHelper.DecrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type)
                 : _voteTextHelper.IncrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type);
-            
+
             await EditOriginalMessage(updateDto, newText, keyboard);
+
+            // Let telegram know the callback query has been handled.
+            await AnswerCallback(updateDto, $"Added {vote.Type}");
 
             return BotResponseCode.AddVoteHandled;
         }
@@ -126,14 +127,15 @@ namespace Spoti_bot.Bot.Votes
 
             var keyboard = await _keyboardService.GetUpdatedVoteKeyboard(updateDto.ParsedInlineKeyboard, updateDto.Track);
 
-            var useNegativeOperator = existingVote.Type.HasAttribute<VoteType, UseNegativeOperatorAttribute>();
-
-            var newText = useNegativeOperator
+            var newText = UseNegativeOperator(existingVote)
                 // Increment or decrement the vote in the original message.
                 ? _voteTextHelper.IncrementVote(updateDto.ParsedTextMessageWithLinks, existingVote.Type)
                 : _voteTextHelper.DecrementVote(updateDto.ParsedTextMessageWithLinks, existingVote.Type);
 
             await EditOriginalMessage(updateDto, newText, keyboard);
+
+            // Let telegram know the callback query has been handled.
+            await AnswerCallback(updateDto, $"Removed {existingVote.Type}");
 
             return BotResponseCode.RemoveVoteHandled;
         }
@@ -151,6 +153,19 @@ namespace Spoti_bot.Bot.Votes
                 updateDto.ParsedBotMessageId.Value,
                 newText,
                 replyMarkup: replyMarkup);
+        }
+
+        /// <summary>
+        /// Let telegram know the callback query has been handled.
+        /// </summary>
+        private Task AnswerCallback(UpdateDto updateDto, string text)
+        {
+            return _sendMessageService.AnswerCallbackQuery(updateDto.ParsedUpdateId, text);
+        }
+
+        private static bool UseNegativeOperator(Vote vote)
+        {
+            return vote.Type.HasAttribute<VoteType, UseNegativeOperatorAttribute>();
         }
     }
 }

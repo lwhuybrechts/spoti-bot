@@ -60,6 +60,8 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
                 $"Right on, {firstName}!",
                 $"Oh my goodness, I love it {firstName}!",
                 $"Ooooh yes, that is really swell {firstName}.",
+                $"This shit slaps, {firstName}!",
+                $"This track is on and crackin, {firstName}!",
                 "BOUNCE!"
             };
 
