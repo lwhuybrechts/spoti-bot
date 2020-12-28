@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot;
+using Telegram.Bot.Exceptions;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -35,14 +36,36 @@ namespace Spoti_bot.Bot
             return _telegramBotClient.EditMessageTextAsync(chatId, messageId, text, parseMode, disableWebPagePreview, replyMarkup);
         }
 
-        public Task AnswerCallbackQuery(string callbackQueryId, string text = null)
+        public async Task AnswerCallbackQuery(string callbackQueryId, string text = null)
         {
-            return _telegramBotClient.AnswerCallbackQueryAsync(callbackQueryId, text);
+            try
+            {
+                await _telegramBotClient.AnswerCallbackQueryAsync(callbackQueryId, text);
+            }
+            catch (InvalidParameterException exception)
+            {
+                // This may crash when the inline query is too old, just ignore it.
+                if (exception?.Message == "query is too old and response timeout expired or query ID is invalid")
+                    return;
+
+                throw;
+            }
         }
 
-        public Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultBase> results)
+        public async Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultBase> results)
         {
-            return _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results, cacheTime: 10);
+            try
+            {
+                await _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results, cacheTime: 10);
+            }
+            catch (InvalidParameterException exception)
+            {
+                // This may crash when the inline query is too old, just ignore it.
+                if (exception?.Message == "query is too old and response timeout expired or query ID is invalid")
+                    return;
+
+                throw;
+            }
         }
     }
 }

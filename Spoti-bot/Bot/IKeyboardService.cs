@@ -1,6 +1,5 @@
 ﻿using Spoti_bot.Spotify.Tracks;
 using System.Threading.Tasks;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Spoti_bot.Bot
@@ -9,6 +8,6 @@ namespace Spoti_bot.Bot
     {
         InlineKeyboardMarkup CreateButtonKeyboard(string text, string url);
         InlineKeyboardMarkup CreatePostedTrackResponseKeyboard();
-        Task<InlineKeyboardMarkup> GetUpdatedUpvoteKeyboard(Message message, Track track);
+        Task<InlineKeyboardMarkup> GetUpdatedVoteKeyboard(InlineKeyboardMarkup inlineKeyboard, Track track);
     }
 }

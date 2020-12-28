@@ -38,13 +38,11 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
 
         public async Task<BotResponseCode> TryAddTrackToPlaylist(UpdateDto updateDto)
         {
-            // Parse the trackId from the message.
-            var newTrackId = await _spotifyLinkHelper.ParseTrackId(updateDto.ParsedTextMessage);
-            if (string.IsNullOrEmpty(newTrackId))
+            if (string.IsNullOrEmpty(updateDto.ParsedTrackId))
                 return BotResponseCode.NoAction;
 
             // Check if the track already exists in the playlist.
-            if (await DoesExistInPlaylist(newTrackId, updateDto.Chat.PlaylistId))
+            if (await DoesExistInPlaylist(updateDto.ParsedTrackId, updateDto.Chat.PlaylistId))
             {
                 await _sendMessageService.SendTextMessage(updateDto.Chat.Id, $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}!");
                 return BotResponseCode.TrackAlreadyExists;
@@ -60,7 +58,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             }
 
             // Get the track from the spotify api.
-            var newTrack = await _spotifyClientService.GetTrack(spotifyClient, newTrackId);
+            var newTrack = await _spotifyClientService.GetTrack(spotifyClient, updateDto.ParsedTrackId);
             if (newTrack == null)
             {
                 await _sendMessageService.SendTextMessage(updateDto.Chat.Id, $"Track not found in Spotify api :(");
@@ -102,12 +100,10 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         /// </summary>
         private async Task SendReplyMessage(UpdateDto updateDto, Track track)
         {
-            var originalMessageId = updateDto.Update.Message.MessageId;
-
             await _sendMessageService.SendTextMessage(
                 updateDto.Chat.Id,
                 _successResponseService.GetSuccessResponseText(updateDto, track),
-                replyToMessageId: originalMessageId,
+                replyToMessageId: int.Parse(updateDto.ParsedUpdateId),
                 replyMarkup: _keyboardService.CreatePostedTrackResponseKeyboard());
         }
     }

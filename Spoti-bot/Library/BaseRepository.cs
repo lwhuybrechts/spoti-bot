@@ -20,17 +20,6 @@ namespace Spoti_bot.Library
             //_cloudTable.CreateIfNotExists();
         }
 
-        // TODO: setup correct partition and rowkeys.
-        // - For tracks: playlistId, trackId.
-        // - For upvote records: (date, messageId, or trackId), guid?
-        // - For access tokens: userId, ...?
-        //     Is er een scenario waar er meerdere accesstokens in 1 query opgehaald moeten worden? Zo nee, partition per userId.
-
-        // TODO: write custom queries with:
-        //var rowKeyFilter = TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, rowKey);
-        //var query = new TableQuery<T>().Where(rowKeyFilter);
-        //return _cloudTable.ExecuteQuery(query).FirstOrDefault();
-
         public Task<T> Get(long rowKey, string partitionKey = "")
         {
             return Get(rowKey.ToString(), partitionKey);

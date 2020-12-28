@@ -1,6 +1,5 @@
-﻿using AutoMapper;
-using Spoti_bot.Bot.Chats;
-using Spoti_bot.Bot.Upvotes;
+﻿using Spoti_bot.Bot.Chats;
+using Spoti_bot.Bot.Votes;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,20 +9,17 @@ namespace Spoti_bot.Bot.Users
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IUpvoteRepository _upvoteRepository;
+        private readonly IVoteRepository _voteRepository;
         private readonly IChatMemberRepository _chatMemberRepository;
-        private readonly IMapper _mapper;
 
         public UserService(
             IUserRepository userRepository,
-            IUpvoteRepository upvoteRepository,
-            IChatMemberRepository chatMemberRepository,
-            IMapper mapper)
+            IVoteRepository voteRepository,
+            IChatMemberRepository chatMemberRepository)
         {
             _userRepository = userRepository;
-            _upvoteRepository = upvoteRepository;
+            _voteRepository = voteRepository;
             _chatMemberRepository = chatMemberRepository;
-            _mapper = mapper;
         }
 
         public Task<User> Get(long id)
@@ -51,7 +47,8 @@ namespace Spoti_bot.Bot.Users
         /// </summary>
         public async Task<List<User>> GetUpvoteUsers(string playlistId, string trackId)
         {
-            var upvotes = await _upvoteRepository.GetUpvotes(playlistId, trackId);
+            var votes = await _voteRepository.GetVotes(playlistId, trackId);
+            var upvotes = votes.Where(x => x.Type == VoteType.Upvote).ToList();
 
             if (!upvotes.Any())
                 return new List<User>();

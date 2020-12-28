@@ -2,9 +2,9 @@
 using Spoti_bot.Library;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.HandleUpdate
+namespace Spoti_bot.Bot.HandleUpdate.Commands
 {
-    public interface IHandleCommandService
+    public interface IBaseCommandsService
     {
         bool IsAnyCommand(string text);
         Task<BotResponseCode> TryHandleCommand(UpdateDto updateDto);

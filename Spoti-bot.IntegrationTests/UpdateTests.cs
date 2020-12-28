@@ -5,8 +5,8 @@ using Spoti_bot.Bot.Chats;
 using Spoti_bot.Bot.HandleUpdate;
 using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Bot.Users;
+using Spoti_bot.Bot.Votes;
 using Spoti_bot.IntegrationTests.Library;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Options;
@@ -37,7 +37,8 @@ namespace Spoti_bot.IntegrationTests
         private readonly IChatRepository _chatRepository;
         private readonly IChatMemberRepository _chatMemberRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IUpvoteRepository _upvoteRepository;
+        private readonly IVoteRepository _voteRepository;
+        private readonly IVoteTextHelper _voteTextHelper;
         private readonly ILoginRequestRepository _loginRequestRepository;
         private readonly ISendMessageService _sendMessageService;
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
@@ -54,7 +55,8 @@ namespace Spoti_bot.IntegrationTests
             _chatRepository = testHost.GetService<IChatRepository>();
             _chatMemberRepository= testHost.GetService<IChatMemberRepository>();
             _userRepository = testHost.GetService<IUserRepository>();
-            _upvoteRepository = testHost.GetService<IUpvoteRepository>();
+            _voteRepository = testHost.GetService<IVoteRepository>();
+            _voteTextHelper = testHost.GetService<IVoteTextHelper>();
             _loginRequestRepository = testHost.GetService<ILoginRequestRepository>();
             _sendMessageService = testHost.GetService<ISendMessageService>();
             _spotifyLinkHelper = testHost.GetService<ISpotifyLinkHelper>();
@@ -76,7 +78,7 @@ namespace Spoti_bot.IntegrationTests
             await DeletePlaylist();
             await DeleteChat();
             await DeleteUser();
-            await DeleteUpvotes();
+            await DeleteVotes();
             await DeleteLoginRequests();
             await DeleteChatMembers();
         }
@@ -657,12 +659,33 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
+        public async Task Run_AddTrack_NoPlaylist_NoActionReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertChat();
+
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, trackUrl);
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.NoAction, result);
+        }
+
+        [Fact]
         public async Task Run_AddTrackThatAlreadyExists_TrackAlreadyExistsReturned()
         {
             // Arrange.
             await TruncateTables();
 
             await InsertChat();
+            await InsertPlaylist();
 
             var track = await InsertTrack();
             var trackUrlThatAlreadyExists = _spotifyLinkHelper.GetLinkToTrack(track.Id);
@@ -692,6 +715,7 @@ namespace Spoti_bot.IntegrationTests
             await TruncateTables();
 
             await InsertChat();
+            await InsertPlaylist();
 
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
@@ -727,6 +751,7 @@ namespace Spoti_bot.IntegrationTests
             await TruncateTables();
 
             await InsertChat();
+            await InsertPlaylist();
 
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
@@ -764,8 +789,10 @@ namespace Spoti_bot.IntegrationTests
             }
         }
 
-        [Fact]
-        public async Task Run_UpvoteCallback_NoChat_NoActionReturned()
+        [Theory]
+        [InlineData(VoteType.Upvote)]
+        [InlineData(VoteType.Downvote)]
+        public async Task Run_VoteCallback_NoChat_NoActionReturned(VoteType voteType)
         {
             // Arrange.
             await TruncateTables();
@@ -774,22 +801,25 @@ namespace Spoti_bot.IntegrationTests
 
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
-            // Send the two messages that go before an upvote callback: one with a trackUrl and a reply from the bot with an upvote button.
+            // Send the two messages that go before a vote callback: one with a trackUrl and a reply from the bot with a vote button.
             var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
-            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, "Track added to playlist!", replyToMessageId: trackMessageId);
+            const string botReplyMessageText = "Track added to playlist!";
+            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
 
             using var stream = new MemoryStream();
-            var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
+            var httpRequest = await CreateVoteCallbackQueryRequest(stream, voteType, botReplyMessageId, botReplyMessageText, trackUrl);
 
             // Act.
-            var upvoteResult = await _sut.Run(httpRequest);
+            var voteResult = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertHelper.Equal(BotResponseCode.NoAction, upvoteResult);
+            AssertHelper.Equal(BotResponseCode.NoAction, voteResult);
         }
-        
-        [Fact]
-        public async Task Run_UpvoteCallback_NoPlaylist_NoActionReturned()
+
+        [Theory]
+        [InlineData(VoteType.Upvote)]
+        [InlineData(VoteType.Downvote)]
+        public async Task Run_VoteCallback_NoPlaylist_NoActionReturned(VoteType voteType)
         {
             // Arrange.
             await TruncateTables();
@@ -798,22 +828,25 @@ namespace Spoti_bot.IntegrationTests
 
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
-            // Send the two messages that go before an upvote callback: one with a trackUrl and a reply from the bot with an upvote button.
+            // Send the two messages that go before a vote callback: one with a trackUrl and a reply from the bot with a vote button.
             var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
-            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, "Track added to playlist!", replyToMessageId: trackMessageId);
+            const string botReplyMessageText = "Track added to playlist!";
+            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
 
             using var stream = new MemoryStream();
-            var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
+            var httpRequest = await CreateVoteCallbackQueryRequest(stream, voteType, botReplyMessageId, botReplyMessageText, trackUrl);
 
             // Act.
-            var upvoteResult = await _sut.Run(httpRequest);
+            var voteResult = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertHelper.Equal(BotResponseCode.NoAction, upvoteResult);
+            AssertHelper.Equal(BotResponseCode.NoAction, voteResult);
         }
 
-        [Fact]
-        public async Task Run_UpvoteCallback_NoTrack_ExceptionHandledReturned()
+        [Theory]
+        [InlineData(VoteType.Upvote)]
+        [InlineData(VoteType.Downvote)]
+        public async Task Run_VoteCallback_NoTrack_NoActionReturned(VoteType voteType)
         {
             // Arrange.
             await TruncateTables();
@@ -823,22 +856,25 @@ namespace Spoti_bot.IntegrationTests
 
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
-            // Send the two messages that go before an upvote callback: one with a trackUrl and a reply from the bot with an upvote button.
+            // Send the two messages that go before a vote callback: one with a trackUrl and a reply from the bot with a vote button.
             var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
-            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, "Track added to playlist!", replyToMessageId: trackMessageId);
+            const string botReplyMessageText = "Track added to playlist!";
+            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
 
             using var stream = new MemoryStream();
-            var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
+            var httpRequest = await CreateVoteCallbackQueryRequest(stream, voteType, botReplyMessageId, botReplyMessageText, trackUrl);
 
             // Act.
-            var upvoteResult = await _sut.Run(httpRequest);
+            var voteResult = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertHelper.Equal(BotResponseCode.ExceptionHandled, upvoteResult);
+            AssertHelper.Equal(BotResponseCode.NoAction, voteResult);
         }
 
-        [Fact]
-        public async Task Run_UpvoteCallbackTwice_UpvoteHandledReturned_DownvoteHandledReturned()
+        [Theory]
+        [InlineData(VoteType.Upvote)]
+        [InlineData(VoteType.Downvote)]
+        public async Task Run_VoteCallbackTwice_AddVoteHandledReturned_RemoveVoteHandledReturned(VoteType voteType)
         {
             // Arrange.
             await TruncateTables();
@@ -849,30 +885,32 @@ namespace Spoti_bot.IntegrationTests
 
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
-            // Send the two messages that go before an upvote callback: one with a trackUrl and a reply from the bot with an upvote button.
+            // Send the two messages that go before an vote callback: one with a trackUrl and a reply from the bot with a vote button.
             var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
-            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, "Track added to playlist!", replyToMessageId: trackMessageId);
+            var botReplyMessageText = "Track added to the playlist!";
+            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
 
-            // Send two callback updates, first to test an upvote...
+            // Send two callback updates, first to test to add a vote...
             using (var stream = new MemoryStream())
             {
-                var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
+                var httpRequest = await CreateVoteCallbackQueryRequest(stream, voteType, botReplyMessageId, botReplyMessageText, trackUrl);
 
                 // Act.
-                var upvoteResult = await _sut.Run(httpRequest);
+                var voteResult = await _sut.Run(httpRequest);
 
                 // Assert.
-                AssertHelper.Equal(BotResponseCode.UpvoteHandled, upvoteResult);
+                AssertHelper.Equal(BotResponseCode.AddVoteHandled, voteResult);
 
-                var expectedUpvote = new Upvote
+                var expectedVote = new Vote
                 {
                     PlaylistId = _testOptions.TestPlaylistId,
                     UserId = _testOptions.TestUserId,
-                    TrackId = _testOptions.TestTrackId
+                    TrackId = _testOptions.TestTrackId,
+                    Type = voteType
                 };
                 
-                var upvote = await _upvoteRepository.Get(expectedUpvote);
-                Assert.NotNull(upvote);
+                var vote = await _voteRepository.Get(expectedVote);
+                Assert.NotNull(vote);
 
                 var user = await _userRepository.Get(_testOptions.TestUserId);
                 Assert.NotNull(user);
@@ -881,31 +919,36 @@ namespace Spoti_bot.IntegrationTests
                 Assert.NotNull(chatMember);
             }
 
-            // ...and then test a downvote.
+            // ...and then test to remove a vote.
             using (var stream = new MemoryStream())
             {
-                var httpRequest = await CreateUpvoteCallbackQueryRequest(stream, botReplyMessageId, trackUrl);
+                // Arrange.
+                botReplyMessageText = voteType.HasAttribute<VoteType, VoteAttributes.UseNegativeOperatorAttribute>()
+                    ? _voteTextHelper.DecrementVote(botReplyMessageText, voteType)
+                    : _voteTextHelper.IncrementVote(botReplyMessageText, voteType);
+                var httpRequest = await CreateVoteCallbackQueryRequest(stream, voteType, botReplyMessageId, botReplyMessageText, trackUrl);
 
                 // Act.
-                var downvoteResult = await _sut.Run(httpRequest);
+                var voteResult = await _sut.Run(httpRequest);
 
                 // Assert.
-                AssertHelper.Equal(BotResponseCode.DownvoteHandled, downvoteResult);
+                AssertHelper.Equal(BotResponseCode.RemoveVoteHandled, voteResult);
 
-                var expectedUpvote = new Upvote
+                var expectedVote = new Vote
                 {
                     PlaylistId = _testOptions.TestPlaylistId,
                     UserId = _testOptions.TestUserId,
-                    TrackId = _testOptions.TestTrackId
+                    TrackId = _testOptions.TestTrackId,
+                    Type = voteType
                 };
 
-                var upvote = await _upvoteRepository.Get(expectedUpvote);
-                Assert.Null(upvote);
+                var vote = await _voteRepository.Get(expectedVote);
+                Assert.Null(vote);
             }
         }
 
         [Fact]
-        public async Task Run_UpvoteInlineQuery_NoQuery_NoActionReturned()
+        public async Task Run_UpvoteInlineQuery_NoQuery_CommandRequirementNotFulfilledReturned()
         {
             // Arramge.
             await TruncateTables();
@@ -917,7 +960,7 @@ namespace Spoti_bot.IntegrationTests
             var result = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertHelper.Equal(BotResponseCode.NoAction, result);
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
         }
 
         [Fact]
@@ -963,9 +1006,9 @@ namespace Spoti_bot.IntegrationTests
             return CreateRequestWithBody(stream);
         }
 
-        private async Task<HttpRequest> CreateUpvoteCallbackQueryRequest(Stream stream, int messageId, string trackUrl)
+        private async Task<HttpRequest> CreateVoteCallbackQueryRequest(Stream stream, VoteType voteType, int messageId, string messageText, string trackUrl)
         {
-            await _generateUpdateStreamService.WriteUpvoteCallbackQueryToStream(stream, messageId, trackUrl);
+            await _generateUpdateStreamService.WriteVoteCallbackQueryToStream(stream, voteType, messageId, messageText, trackUrl);
 
             return CreateRequestWithBody(stream);
         }
@@ -1038,12 +1081,12 @@ namespace Spoti_bot.IntegrationTests
                 await _userRepository.Delete(user);
         }
 
-        private async Task DeleteUpvotes()
+        private async Task DeleteVotes()
         {
-            var upvotes = await _upvoteRepository.GetUpvotes(_testOptions.TestPlaylistId, _testOptions.TestTrackId);
+            var votes = await _voteRepository.GetVotes(_testOptions.TestPlaylistId, _testOptions.TestTrackId);
 
-            if (upvotes.Any())
-                await _upvoteRepository.Delete(upvotes);
+            if (votes.Any())
+                await _voteRepository.Delete(votes);
         }
 
         private async Task DeleteLoginRequests()

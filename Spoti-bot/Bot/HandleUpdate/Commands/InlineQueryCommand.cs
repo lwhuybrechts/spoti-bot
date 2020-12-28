@@ -8,6 +8,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
     public enum InlineQueryCommand
     {
         [Description("upvotes")]
+        [RequiresQuery]
         GetUpvoteUsers
     }
 }

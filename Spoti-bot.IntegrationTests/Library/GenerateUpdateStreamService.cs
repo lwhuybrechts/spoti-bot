@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Spoti_bot.Bot;
+using Spoti_bot.Bot.Votes;
 using Spoti_bot.Library.Options;
 using System;
 using System.IO;
@@ -46,23 +47,25 @@ namespace Spoti_bot.IntegrationTests
         }
 
         /// <summary>
-        /// Write an upvote callback query to the stream.
+        /// Write a vote callback query to the stream.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
+        /// <param name="voteType">The type of the vote.</param>
         /// <param name="messageId">The id of the message that the callback was triggered by.</param>
+        /// <param name="messageText">The text of the message that the callback was triggered by.</param>
         /// <param name="trackUrl">The url in de original message the bot replied to.</param>
-        public Task WriteUpvoteCallbackQueryToStream(Stream stream, int messageId, string trackUrl)
+        public Task WriteVoteCallbackQueryToStream(Stream stream, VoteType voteType, int messageId, string messageText, string trackUrl)
         {
             var update = new Telegram.Bot.Types.Update
             {
                 CallbackQuery = new Telegram.Bot.Types.CallbackQuery
                 {
                     Id = "testId",
-                    Data = KeyboardService.UpvoteButtonText,
+                    Data = KeyboardService.GetVoteButtonText(voteType),
                     From = GetTestUser(),
                     Message = new Telegram.Bot.Types.Message()
                     {
-                        Text = "Track added to the playlist!",
+                        Text = messageText,
                         Date = DateTime.UtcNow,
                         From = GetTestUser(isBot: true),
                         Chat = GetTestChat(),

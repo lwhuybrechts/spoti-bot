@@ -25,5 +25,22 @@ namespace Spoti_bot.Library
 
             return attributes.Single().Description;
         }
+
+        /// <summary>
+        /// Check if an attribute exists on an enum value.
+        /// </summary>
+        /// <returns>True if the enum value has the attribute.</returns>
+        public static bool HasAttribute<TEnum, TAttribute>(this TEnum enumValue) where TEnum : Enum where TAttribute : Attribute
+        {
+            var attributes = (TAttribute[])enumValue
+                .GetType()
+                .GetField(enumValue.ToString())
+                .GetCustomAttributes(typeof(TAttribute), false);
+
+            if (attributes.Length >= 1)
+                return true;
+
+            return false;
+        }
     }
 }

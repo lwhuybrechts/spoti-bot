@@ -12,8 +12,8 @@
         CommandRequirementNotFulfilled,
         TrackAlreadyExists,
         TrackAddedToPlaylist,
-        UpvoteHandled,
-        DownvoteHandled,
+        AddVoteHandled,
+        RemoveVoteHandled,
         InlineQueryHandled,
         ExceptionHandled
     }

@@ -1,5 +1,4 @@
 ﻿using Spoti_bot.Bot.Chats;
-using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Library;
@@ -10,12 +9,11 @@ using Spoti_bot.Spotify.Authorization;
 using Spoti_bot.Spotify.Playlists;
 using Spoti_bot.Spotify.Tracks.SyncTracks;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.HandleUpdate
+namespace Spoti_bot.Bot.HandleUpdate.Commands
 {
-    public class HandleCommandService : IHandleCommandService
+    public class HandleCommandService : BaseCommandsService<Command>, IHandleCommandService
     {
         private readonly ICommandsService _commandsService;
         private readonly IAuthorizationService _spotifyAuthorizationService;
@@ -29,7 +27,6 @@ namespace Spoti_bot.Bot.HandleUpdate
         private readonly IUserService _userService;
         private readonly ISpotifyClientFactory _spotifyClientFactory;
         private readonly ISpotifyClientService _spotifyClientService;
-        private readonly IChatMemberRepository _chatMemberRepository;
 
         public HandleCommandService(
             ICommandsService commandsService,
@@ -43,8 +40,8 @@ namespace Spoti_bot.Bot.HandleUpdate
             IChatRepository chatRepository,
             IUserService userService,
             ISpotifyClientFactory spotifyClientFactory,
-            ISpotifyClientService spotifyClientService,
-            IChatMemberRepository chatMemberRepository)
+            ISpotifyClientService spotifyClientService)
+            : base(commandsService, userService, sendMessageService, spotifyLinkHelper)
         {
             _commandsService = commandsService;
             _spotifyAuthorizationService = spotifyAuthorizationService;
@@ -58,110 +55,23 @@ namespace Spoti_bot.Bot.HandleUpdate
             _userService = userService;
             _spotifyClientFactory = spotifyClientFactory;
             _spotifyClientService = spotifyClientService;
-            _chatMemberRepository = chatMemberRepository;
-        }
-
-        /// <summary>
-        /// Check if the message contains a command.
-        /// </summary>
-        public bool IsAnyCommand(string text)
-        {
-            return _commandsService.IsAnyCommand<Command>(text);
-        }
-
-        /// <summary>
-        /// Check if a message contains a command and if so, handle it.
-        /// </summary>
-        /// <param name="message">The message to check for commands.</param>
-        /// <param name="chat">The chat the message was posted in.</param>
-        /// <returns>A BotResponseCode if a command was handled, or NoAction if no matching command was found.</returns>
-        public async Task<BotResponseCode> TryHandleCommand(UpdateDto updateDto)
-        {
-            foreach (var command in Enum.GetValues(typeof(Command)).Cast<Command>())
-                if (_commandsService.IsCommand(updateDto.ParsedTextMessage, command))
-                {
-                    var responseCode = await HandleCommand(command, updateDto);
-                    if (responseCode != BotResponseCode.NoAction)
-                        return responseCode;
-                }
-
-            return BotResponseCode.NoAction;
         }
 
         /// <summary>
         /// Handle a command and respond in the chat.
         /// </summary>
-        private async Task<BotResponseCode> HandleCommand(Command command, UpdateDto updateDto)
+        protected override Task<BotResponseCode> HandleCommand(Command command, UpdateDto updateDto)
         {
-            var text = await ValidateRequirements(command, updateDto);
-
-            if (!string.IsNullOrEmpty(text))
-            {
-                await _sendMessageService.SendTextMessage(updateDto.ParsedChat.Id, text);
-                return BotResponseCode.CommandRequirementNotFulfilled;
-            }
-
             return command switch
             {
-                Command.Test => await HandleTest(updateDto),
-                Command.Help => await HandleHelp(updateDto),
-                Command.Start => await HandleStart(updateDto),
-                Command.GetLoginLink => await HandleGetLoginLink(updateDto),
-                Command.ResetPlaylistStorage => await HandleResetPlaylistStorage(updateDto),
-                Command.SetPlaylist => await HandleSetPlaylist(updateDto),
-                _ => throw new NotImplementedException($"Command {command} has no handle function defined."),
+                Command.Test => HandleTest(updateDto),
+                Command.Help => HandleHelp(updateDto),
+                Command.Start => HandleStart(updateDto),
+                Command.GetLoginLink => HandleGetLoginLink(updateDto),
+                Command.ResetPlaylistStorage => HandleResetPlaylistStorage(updateDto),
+                Command.SetPlaylist => HandleSetPlaylist(updateDto),
+                _ => throw new NotImplementedException($"Command {command} has no handle function defined.")
             };
-        }
-
-        /// <summary>
-        /// Validates if all the commands requirements were met.
-        /// </summary>
-        /// <returns>An empty string if all requirements were met, or an error message.</returns>
-        private async Task<string> ValidateRequirements(Command command, UpdateDto updateDto)
-        {
-            // TODO: replace with fluent validation.
-            if (command.RequiresChat() && updateDto.Chat == null)
-                return $"Spoti-bot first needs to be added to this chat by sending the {Command.Start.ToDescriptionString()} command.";
-
-            if (command.RequiresNoChat() && updateDto.Chat != null)
-            {
-                var admin = await _userService.Get(updateDto.Chat.AdminUserId);
-
-                // A chat should always have an admin.
-                if (admin == null)
-                    throw new ChatAdminNullException(updateDto.Chat.Id, updateDto.Chat.AdminUserId);
-
-                if (updateDto.User.Id != admin.Id)
-                    return $"Spoti-bot is already added to this chat, {admin.FirstName} is it's admin.";
-                else
-                    return $"Spoti-bot is already added to this chat, you are it's admin.";
-            }
-
-            if (command.RequiresChatAdmin())
-            {
-                if (updateDto.Chat == null)
-                    return $"Spoti-bot first needs to be added to this chat by sending the {Command.Start.ToDescriptionString()} command.";
-
-                var admin = await _userService.Get(updateDto.Chat.AdminUserId);
-
-                // A chat should always have an admin.
-                if (admin == null)
-                    throw new ChatAdminNullException(updateDto.Chat.Id, updateDto.Chat.AdminUserId);
-
-                if (updateDto.User.Id != admin.Id)
-                    return $"Only the chat admin ({admin.FirstName}) can use this command.";
-            }
-
-            if (command.RequiresPlaylist() && updateDto.Playlist == null)
-                return $"Please set a playlist first, with command {Command.SetPlaylist.ToDescriptionString()}.";
-
-            if (command.RequiresNoPlaylist() && updateDto.Playlist != null)
-                return $"This chat already has a { _spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Playlist.Id, "playlist")} set.";
-
-            if (command.RequiresQuery() && !_commandsService.HasQuery(updateDto.ParsedTextMessage, command))
-                return $"Please add a query after the {command.ToDescriptionString()} command.";
-
-            return string.Empty;
         }
 
         /// <summary>
@@ -188,7 +98,7 @@ namespace Spoti_bot.Bot.HandleUpdate
         {
             var text = "Welcome to Spoti-bot.\n\n" +
                 $"Post links to Spotify tracks in this chat and they will be added to the playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Playlist.Id, updateDto.Playlist.Name)}.";
-            
+
             await _sendMessageService.SendTextMessage(updateDto.ParsedChat.Id, text, disableWebPagePreview: false);
             return BotResponseCode.HelpCommandHandled;
         }
@@ -201,7 +111,7 @@ namespace Spoti_bot.Bot.HandleUpdate
         {
             // Save the user in storage.
             var admin = await _userService.SaveUser(updateDto.ParsedUser, updateDto.ParsedChat.Id);
-            
+
             // Save the chat in storage.
             var chat = await _chatRepository.Upsert(new Chat
             {
@@ -262,7 +172,7 @@ namespace Spoti_bot.Bot.HandleUpdate
                 await _sendMessageService.SendTextMessage(updateDto.Chat.Id, text);
                 return BotResponseCode.SetPlaylistCommandHandled;
             }
-            
+
             // Get the playlist info from the spotify api.
             var playlist = await _spotifyClientService.GetPlaylist(spotifyClient, playlistId);
             if (playlist == null)
@@ -285,6 +195,7 @@ namespace Spoti_bot.Bot.HandleUpdate
         /// </summary>
         private async Task<BotResponseCode> HandleResetPlaylistStorage(UpdateDto updateDto)
         {
+            // TODO: also sync playlist name.
             await _syncTracksService.SyncTracks(updateDto.Chat);
             var responseText = "Spoti-bot playlist storage has been synced.";
 

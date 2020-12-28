@@ -19,10 +19,10 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         }
 
         /// <summary>
-        /// Check if the message is extactly the same as any of the defined commands.
+        /// Check if the text contains one of the defined commands.
         /// </summary>
-        /// <param name="message">The message to check for.</param>
-        /// <returns>True if the message is one of the defined commands.</returns>
+        /// <param name="text">The text to check for.</param>
+        /// <returns>True if the text contains one of the defined commands.</returns>
         public bool IsAnyCommand<TCommand>(string text) where TCommand : Enum
         {
             if (string.IsNullOrEmpty(text))

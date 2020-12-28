@@ -14,7 +14,7 @@ namespace Spoti_bot.ApiModels
                 .ForMember(destination => destination.AddedAt, options => options.MapFrom(source => source.CreatedAt))
                 .ForAllOtherMembers(memberOptions => memberOptions.Ignore());
 
-            CreateMap<Bot.Upvotes.Upvote, Upvote>()
+            CreateMap<Bot.Votes.Vote, Upvote>()
                 .ForMember(destination => destination.UserId, options => options.MapFrom(source => source.UserId))
                 .ForMember(destination => destination.TrackId, options => options.MapFrom(source => source.TrackId))
                 .ForMember(destination => destination.AddedAt, options => options.MapFrom(source => source.CreatedAt))

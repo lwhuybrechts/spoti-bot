@@ -1,11 +1,11 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Dto;
+﻿using Spoti_bot.Bot.HandleUpdate.Commands;
+using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Spotify;
 using Spoti_bot.Spotify.Tracks.AddTrack;
 using System.Threading.Tasks;
-using Telegram.Bot.Types.Enums;
 
 namespace Spoti_bot.Bot.HandleUpdate
 {
@@ -60,12 +60,10 @@ namespace Spoti_bot.Bot.HandleUpdate
         private bool CanHandleMessage(UpdateDto updateDto)
         {
             // Check if we have all the data we need.
-            if (updateDto.Update == null ||
+            if (
                 // Filter everything but messages.
-                updateDto.Update.Type != UpdateType.Message ||
-                updateDto.Update.Message == null ||
-                // Filter everything but text messages.
-                updateDto.Update.Message.Type != MessageType.Text)
+                updateDto.ParsedUpdateType != UpdateType.Message ||
+                string.IsNullOrEmpty(updateDto.ParsedTextMessage))
                 return false;
 
             // Always handle commands.
@@ -73,7 +71,7 @@ namespace Spoti_bot.Bot.HandleUpdate
                 return true;
 
             // If no playlist was set for this chat, we're done.
-            if (updateDto.Chat == null || string.IsNullOrEmpty(updateDto.Chat.PlaylistId))
+            if (updateDto.Chat == null || updateDto.Playlist == null)
                 return false;
 
             if (!_spotifyTextHelper.HasAnyTrackLink(updateDto.ParsedTextMessage))

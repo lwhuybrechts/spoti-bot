@@ -9,19 +9,20 @@ using Sentry;
 using System;
 using AutoMapper;
 using System.Collections.Generic;
-using Spoti_bot.Bot.Upvotes;
+using Spoti_bot.Bot.Votes;
+using System.Linq;
 
 namespace Spoti_bot
 {
     public class Upvotes
     {
-        private readonly IUpvoteRepository _upvoteRepository;
+        private readonly IVoteRepository _voteRepository;
         private readonly IMapper _mapper;
         private readonly Library.Options.SentryOptions _sentryOptions;
 
-        public Upvotes(IUpvoteRepository upvoteRepository, IMapper mapper, IOptions<Library.Options.SentryOptions> sentryOptions)
+        public Upvotes(IVoteRepository voteRepository, IMapper mapper, IOptions<Library.Options.SentryOptions> sentryOptions)
         {
-            _upvoteRepository = upvoteRepository;
+            _voteRepository = voteRepository;
             _mapper = mapper;
             _sentryOptions = sentryOptions.Value;
         }
@@ -37,11 +38,12 @@ namespace Spoti_bot
                     // For now, only return upvotes from the main playlist.
                     const string playlistId = "2tnyzyB8Ku9XywzAYNjLxj";
 
-                    // Get the upvotes and put them into the response message of the API.
-                    var upvotes = await _upvoteRepository.GetAllByPartitionKey(playlistId);
+                    var votes = await _voteRepository.GetAllByPartitionKey(playlistId);
+
+                    var upvotes = votes.Where(x => x.Type == VoteType.Upvote).ToList();
 
                     // Map the upvotes to api models.
-                    var apiUpvotes= _mapper.Map<List<ApiModels.Upvote>>(upvotes);
+                    var apiUpvotes = _mapper.Map<List<ApiModels.Upvote>>(upvotes);
 
                     return new OkObjectResult(apiUpvotes);
                 }

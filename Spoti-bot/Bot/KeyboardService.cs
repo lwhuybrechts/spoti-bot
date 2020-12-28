@@ -1,7 +1,8 @@
 ﻿using Spoti_bot.Bot.HandleUpdate.Commands;
-using Spoti_bot.Bot.Upvotes;
+using Spoti_bot.Bot.Votes;
 using Spoti_bot.Library;
 using Spoti_bot.Spotify.Tracks;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,12 +16,13 @@ namespace Spoti_bot.Bot
         private const string SeeUpvoteButtonTextLegacy = "See upvotes";
         private const string SeeUpvoteButtonText = "👥";
         public const string UpvoteButtonText = "👍";
+        public const string DownvoteButtonText = "👎";
         private const string SpotiViewButtonText = "🔗";
-        private readonly IUpvoteRepository _upvoteRepository;
+        private readonly IVoteRepository _voteRepository;
 
-        public KeyboardService(IUpvoteRepository upvoteRepository)
+        public KeyboardService(IVoteRepository voteRepository)
         {
-            _upvoteRepository = upvoteRepository;
+            _voteRepository = voteRepository;
         }
 
         public InlineKeyboardMarkup CreateButtonKeyboard(string text, string url)
@@ -37,24 +39,33 @@ namespace Spoti_bot.Bot
             return new InlineKeyboardMarkup(new []
             {
                 InlineKeyboardButton.WithCallbackData(UpvoteButtonText),
+                InlineKeyboardButton.WithCallbackData(DownvoteButtonText),
                 InlineKeyboardButton.WithUrl(SpotiViewButtonText, "https://skranenburg.outsystemscloud.com/SpotiView/")
             });
         }
 
-        public async Task<InlineKeyboardMarkup> GetUpdatedUpvoteKeyboard(Message message, Track track)
+        public static string GetVoteButtonText(VoteType voteType)
         {
-            var originalKeyboard = message.ReplyMarkup;
+            return voteType switch
+            {
+                VoteType.Upvote => UpvoteButtonText,
+                VoteType.Downvote => DownvoteButtonText,
+                _ => throw new NotImplementedException($"{nameof(VoteType)} {voteType} is not implemented in the {nameof(KeyboardService)}."),
+            };
+        }
 
+        public async Task<InlineKeyboardMarkup> GetUpdatedVoteKeyboard(InlineKeyboardMarkup inlineKeyboard, Track track)
+        {
             // Don't show the See Upvote button if there are no upvotes.
             if (!await HasUpvotes(track))
-                return new InlineKeyboardMarkup(GetRowsWithoutSeeUpvoteButton(originalKeyboard));
+                return new InlineKeyboardMarkup(GetRowsWithoutSeeUpvoteButton(inlineKeyboard));
 
             // See if the See Upvote button already exists, if so keep the original keyboard.
-            if (HasSeeUpvoteButton(originalKeyboard))
-                return new InlineKeyboardMarkup(originalKeyboard.InlineKeyboard);
+            if (HasSeeUpvoteButton(inlineKeyboard))
+                return new InlineKeyboardMarkup(inlineKeyboard.InlineKeyboard);
 
             // Add See Upvote button to the keyboard.
-            return new InlineKeyboardMarkup(GetRowsWithSeeUpvoteButton(track, originalKeyboard));
+            return new InlineKeyboardMarkup(GetRowsWithSeeUpvoteButton(track, inlineKeyboard));
         }
 
         private static List<List<InlineKeyboardButton>> GetRowsWithSeeUpvoteButton(Track track, InlineKeyboardMarkup originalKeyboard)
@@ -110,7 +121,9 @@ namespace Spoti_bot.Bot
         /// </summary>
         private async Task<bool> HasUpvotes(Track track)
         {
-            return (await _upvoteRepository.GetUpvotes(track.PlaylistId, track.Id)).Any();
+            var votes = await _voteRepository.GetVotes(track.PlaylistId, track.Id);
+
+            return votes.Where(x => x.Type == VoteType.Upvote).Any();
         }
     }
 }

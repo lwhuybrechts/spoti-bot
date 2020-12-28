@@ -9,8 +9,8 @@ using Spoti_bot.Bot.Chats;
 using Spoti_bot.Bot.HandleUpdate;
 using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Upvotes;
 using Spoti_bot.Bot.Users;
+using Spoti_bot.Bot.Votes;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
 using Spoti_bot.Spotify.Api;
@@ -57,14 +57,15 @@ namespace Spoti_bot
             services.AddTransient<IHandleCallbackQueryService, HandleCallbackQueryService>();
             services.AddTransient<IHandleInlineQueryService, HandleInlineQueryService>();
             services.AddTransient<IHandleCommandService, HandleCommandService>();
+            services.AddTransient<IHandleInlineQueryCommandService, HandleInlineQueryCommandService>();
             services.AddTransient<IUpdateDtoService, UpdateDtoService>();
             services.AddTransient<ISendMessageService, SendMessageService>();
             services.AddTransient<IKeyboardService, KeyboardService>();
             services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IUpvoteService, UpvoteService>();
-            services.AddTransient<IUpvoteTextHelper, UpvoteTextHelper>();
+            services.AddTransient<IVoteService, VoteService>();
+            services.AddTransient<IVoteTextHelper, VoteTextHelper>();
             services.AddTransient<IUserRepository, UserRepository>();
-            services.AddTransient<IUpvoteRepository, UpvoteRepository>();
+            services.AddTransient<IVoteRepository, VoteRepository>();
             services.AddTransient<IChatRepository, ChatRepository>();
             services.AddTransient<IChatMemberRepository, ChatMemberRepository>();
 

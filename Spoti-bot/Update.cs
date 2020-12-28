@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Spoti_bot.Library;
 using Spoti_bot.Bot.HandleUpdate;
 using Spoti_bot.Bot.HandleUpdate.Dto;
+using Spoti_bot.Bot.Chats;
 
 namespace Spoti_bot
 {
@@ -105,10 +106,10 @@ namespace Spoti_bot
                 return false;
 
             // Always handle inline queries, since they do not have chat info.
-            if (updateDto.Update?.Type == Telegram.Bot.Types.Enums.UpdateType.InlineQuery)
+            if (updateDto.ParsedUpdateType == UpdateType.InlineQuery)
                 return true;
             
-            var chatType = GetChatType(updateDto.Update);
+            var chatType = updateDto.ParsedChat?.Type;
 
             if (!chatType.HasValue)
                 return false;
@@ -116,22 +117,14 @@ namespace Spoti_bot
             switch (chatType.Value)
             {
                 // The bot only handles updates in groups.
-                case Telegram.Bot.Types.Enums.ChatType.Group:
-                case Telegram.Bot.Types.Enums.ChatType.Supergroup:
+                case ChatType.Group:
+                case ChatType.Supergroup:
                     return true;
-                case Telegram.Bot.Types.Enums.ChatType.Channel:
-                case Telegram.Bot.Types.Enums.ChatType.Private:
+                case ChatType.Channel:
+                case ChatType.Private:
                 default:
                     return false;
             }
-        }
-
-        private static Telegram.Bot.Types.Enums.ChatType? GetChatType(Telegram.Bot.Types.Update update)
-        {
-            // Try to get the chat type from the message.
-            return update?.Message?.Chat?.Type
-                // Try to get the chat type from the callback query's message.
-                ?? update?.CallbackQuery?.Message?.Chat?.Type;
         }
     }
 }
