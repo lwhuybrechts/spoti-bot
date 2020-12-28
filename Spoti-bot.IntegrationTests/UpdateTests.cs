@@ -948,6 +948,52 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
+        public async Task Run_LastDownvoteCallback_TrackDeleted()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertTrack();
+            await InsertPlaylist();
+            await InsertChat();
+
+            // Add downvotes of other users.
+            for (var i = 1; i < VoteService.DeleteTrackOnDownvoteCount; i++)
+                await InsertVote(VoteType.Downvote, _testOptions.TestUserId + i);
+
+            var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
+
+            // Send the two messages that go before an vote callback: one with a trackUrl and a reply from the bot with a vote button.
+            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var botReplyMessageText = "Track added to the playlist!";
+            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateVoteCallbackQueryRequest(stream, VoteType.Downvote, botReplyMessageId, botReplyMessageText, trackUrl);
+
+            // Act.
+            var voteResult = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.AddVoteHandled, voteResult);
+
+            var expectedVote = new Vote
+            {
+                PlaylistId = _testOptions.TestPlaylistId,
+                UserId = _testOptions.TestUserId,
+                TrackId = _testOptions.TestTrackId,
+                Type = VoteType.Downvote
+            };
+
+            var vote = await _voteRepository.Get(expectedVote);
+            Assert.NotNull(vote);
+
+            // Make sure that the track is removed.
+            var track = await _trackRepository.Get(_testOptions.TestTrackId, _testOptions.TestPlaylistId);
+            Assert.Null(track);
+        }
+
+        [Fact]
         public async Task Run_UpvoteInlineQuery_NoQuery_CommandRequirementNotFulfilledReturned()
         {
             // Arramge.
@@ -1046,6 +1092,11 @@ namespace Spoti_bot.IntegrationTests
         private Task<User> InsertUser(long? id = null)
         {
             return _userRepository.Upsert(CreateUser(id));
+        }
+
+        private Task<Vote> InsertVote(VoteType voteType, long? userId = null)
+        {
+            return _voteRepository.Upsert(CreateVote(voteType, userId));
         }
 
         private async Task DeleteTrack()
@@ -1147,6 +1198,18 @@ namespace Spoti_bot.IntegrationTests
             {
                 Id = id ?? _testOptions.TestUserId,
                 FirstName = "Spoti-bot test user"
+            };
+        }
+
+        private Vote CreateVote(VoteType voteType, long? userId = null)
+        {
+            return new Vote
+            {
+                PlaylistId = _testOptions.TestPlaylistId,
+                UserId = userId ?? _testOptions.TestUserId,
+                TrackId = _testOptions.TestTrackId,
+                Type = voteType,
+                CreatedAt = DateTimeOffset.UtcNow
             };
         }
     }

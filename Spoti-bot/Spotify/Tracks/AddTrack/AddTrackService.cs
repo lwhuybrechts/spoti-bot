@@ -53,7 +53,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             // We can't continue if we can't use the spotify api.
             if (spotifyClient == null)
             {
-                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, "Spoti-bot is not authorized to add this track to Spotify.");
+                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, "Spoti-bot is not authorized to add this track to the Spotify playlist.");
                 return BotResponseCode.NoAction;
             }
 

@@ -12,6 +12,7 @@
         CommandRequirementNotFulfilled,
         TrackAlreadyExists,
         TrackAddedToPlaylist,
+        TrackRemovedFromPlaylist,
         AddVoteHandled,
         RemoveVoteHandled,
         InlineQueryHandled,

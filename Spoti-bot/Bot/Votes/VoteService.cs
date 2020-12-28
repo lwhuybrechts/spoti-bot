@@ -1,5 +1,6 @@
 ﻿using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Library;
+using Spoti_bot.Spotify.Tracks.RemoveTrack;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,21 +11,26 @@ namespace Spoti_bot.Bot.Votes
 {
     public class VoteService : IVoteService
     {
+        public const int DeleteTrackOnDownvoteCount = 3;
+
         private readonly ISendMessageService _sendMessageService;
         private readonly IKeyboardService _keyboardService;
         private readonly IVoteTextHelper _voteTextHelper;
         private readonly IVoteRepository _voteRepository;
+        private readonly IRemoveTrackService _removeTrackService;
 
         public VoteService(
             ISendMessageService sendMessageService,
             IKeyboardService keyboardService,
             IVoteTextHelper voteTextHelper,
-            IVoteRepository voteRepository)
+            IVoteRepository voteRepository,
+            IRemoveTrackService removeTrackService)
         {
             _sendMessageService = sendMessageService;
             _keyboardService = keyboardService;
             _voteTextHelper = voteTextHelper;
             _voteRepository = voteRepository;
+            _removeTrackService = removeTrackService;
         }
 
         /// <summary>
@@ -102,13 +108,31 @@ namespace Spoti_bot.Bot.Votes
             // Save the vote in storage.
             await _voteRepository.Upsert(vote);
 
-            var keyboard = await _keyboardService.GetUpdatedVoteKeyboard(updateDto.ParsedInlineKeyboard, updateDto.Track);
+            string newText = null;
+            InlineKeyboardMarkup keyboard = null;
+            if (vote.Type == VoteType.Downvote)
+            {
+                var votes = await _voteRepository.GetVotes(updateDto.Track.PlaylistId, updateDto.Track.Id);
+                var downVotes = votes.Where(x => x.Type == VoteType.Downvote).ToList();
 
-            var newText = UseNegativeOperator(vote)
-                // Increment or decrement the vote in the original message.
-                ? _voteTextHelper.DecrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type)
-                : _voteTextHelper.IncrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type);
+                if (downVotes.Count >= DeleteTrackOnDownvoteCount)
+                {
+                    await _removeTrackService.TryRemoveTrackFromPlaylist(updateDto);
 
+                    newText = $"This track has been removed from the playlist because of {DeleteTrackOnDownvoteCount} downvotes.";
+                }
+            }
+
+            if (string.IsNullOrEmpty(newText))
+            {
+                newText = UseNegativeOperator(vote)
+                    // Increment or decrement the vote in the original message.
+                    ? _voteTextHelper.DecrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type)
+                    : _voteTextHelper.IncrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type);
+
+                keyboard = await _keyboardService.GetUpdatedVoteKeyboard(updateDto.ParsedInlineKeyboard, updateDto.Track);
+            }
+            
             await EditOriginalMessage(updateDto, newText, keyboard);
 
             // Let telegram know the callback query has been handled.

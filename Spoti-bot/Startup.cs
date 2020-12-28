@@ -18,6 +18,7 @@ using Spoti_bot.Spotify.Authorization;
 using Spoti_bot.Spotify.Playlists;
 using Spoti_bot.Spotify.Tracks;
 using Spoti_bot.Spotify.Tracks.AddTrack;
+using Spoti_bot.Spotify.Tracks.RemoveTrack;
 using Spoti_bot.Spotify.Tracks.SyncHistory;
 using Spoti_bot.Spotify.Tracks.SyncTracks;
 using Telegram.Bot;
@@ -81,6 +82,7 @@ namespace Spoti_bot
             services.AddTransient<IAuthorizationService, AuthorizationService>();
             services.AddTransient<ILoginRequestService, LoginRequestService>();
             services.AddTransient<IAddTrackService, AddTrackService>();
+            services.AddTransient<IRemoveTrackService, RemoveTrackService>();
             services.AddTransient<ISyncTracksService, SyncTracksService>();
             services.AddTransient<ISyncHistoryService, SyncHistoryService>();
             services.AddTransient<IParseHistoryJsonService, ParseHistoryJsonService>();
