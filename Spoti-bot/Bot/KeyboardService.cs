@@ -13,8 +13,8 @@ namespace Spoti_bot.Bot
 {
     public class KeyboardService : IKeyboardService
     {
-        private const string SeeUpvoteButtonTextLegacy = "See upvotes";
-        private const string SeeUpvoteButtonText = "👥";
+        private const string SeeVotesButtonTextLegacy = "See upvotes";
+        private const string SeeVotesButtonText = "👥";
         public const string UpvoteButtonText = "👍";
         public const string DownvoteButtonText = "👎";
         private const string SpotiViewButtonText = "🔗";
@@ -63,24 +63,24 @@ namespace Spoti_bot.Bot
 
         public async Task<InlineKeyboardMarkup> GetUpdatedVoteKeyboard(InlineKeyboardMarkup inlineKeyboard, Track track)
         {
-            // Don't show the See Upvote button if there are no upvotes.
-            if (!await HasUpvotes(track))
-                return new InlineKeyboardMarkup(GetRowsWithoutSeeUpvoteButton(inlineKeyboard));
+            // Don't show the See Votes button if there are no votes.
+            if (!await HasVotes(track))
+                return new InlineKeyboardMarkup(GetRowsWithoutSeeVotesButton(inlineKeyboard));
 
-            // See if the See Upvote button already exists, if so keep the original keyboard.
-            if (HasSeeUpvoteButton(inlineKeyboard))
+            // Check if the See Votes button already exists, if so keep the original keyboard.
+            if (HasSeeVotesButton(inlineKeyboard))
                 return new InlineKeyboardMarkup(inlineKeyboard.InlineKeyboard);
 
-            // Add See Upvote button to the keyboard.
-            return new InlineKeyboardMarkup(GetRowsWithSeeUpvoteButton(track, inlineKeyboard));
+            // Add the See Votes button to the keyboard.
+            return new InlineKeyboardMarkup(GetRowsWithSeeVotesButton(track, inlineKeyboard));
         }
 
-        private static List<List<InlineKeyboardButton>> GetRowsWithSeeUpvoteButton(Track track, InlineKeyboardMarkup originalKeyboard)
+        private static List<List<InlineKeyboardButton>> GetRowsWithSeeVotesButton(Track track, InlineKeyboardMarkup originalKeyboard)
         {
             var query = $"{InlineQueryCommand.GetVoteUsers.ToDescriptionString()} {track.PlaylistId} {track.Id}";
 
-            // Create a button on the keybaord that starts an inline query with the GetUpvoteUsers command.
-            var seeUpvotesButton = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat(SeeUpvoteButtonText, query);
+            // Create a button on the keybaord that starts an inline query with the GetVoteUsers command.
+            var seeVotesButton = InlineKeyboardButton.WithSwitchInlineQueryCurrentChat(SeeVotesButtonText, query);
 
             // Copy the original keyboard.
             var rows = new List<List<InlineKeyboardButton>>();
@@ -88,49 +88,47 @@ namespace Spoti_bot.Bot
                 rows.Add(row.ToList());
 
             var lastRow = rows.Last();
-            var upvoteButton = lastRow.SingleOrDefault(x => x.CallbackData == UpvoteButtonText);
+            var downvoteButton = lastRow.SingleOrDefault(x => x.CallbackData == DownvoteButtonText);
 
-            if (upvoteButton != null)
-                // Add the button after the upvote button.
-                lastRow.Insert(lastRow.IndexOf(upvoteButton) + 1, seeUpvotesButton);
+            if (downvoteButton != null)
+                // Add the button after the downvote button.
+                lastRow.Insert(lastRow.IndexOf(downvoteButton) + 1, seeVotesButton);
             else
-                lastRow.Add(seeUpvotesButton);
+                lastRow.Add(seeVotesButton);
             
             return rows;
         }
 
         /// <summary>
-        /// Check if the See Upvote button is on the keyboard.
+        /// Check if the See Votes button is on the keyboard.
         /// </summary>
-        private bool HasSeeUpvoteButton(InlineKeyboardMarkup originalKeyboard)
+        private bool HasSeeVotesButton(InlineKeyboardMarkup originalKeyboard)
         {
             var allButtons = originalKeyboard.InlineKeyboard.SelectMany(x => x).ToList();
             
-            return allButtons.Any(x => x.Text == SeeUpvoteButtonText || x.Text == SeeUpvoteButtonTextLegacy);
+            return allButtons.Any(x => x.Text == SeeVotesButtonText || x.Text == SeeVotesButtonTextLegacy);
         }
 
         /// <summary>
-        /// Return all rows from the original keyboard, without the See Upvote button.
+        /// Return all rows from the original keyboard, without the See Votes button.
         /// </summary>
-        private static List<List<InlineKeyboardButton>> GetRowsWithoutSeeUpvoteButton(InlineKeyboardMarkup originalKeyboard)
+        private static List<List<InlineKeyboardButton>> GetRowsWithoutSeeVotesButton(InlineKeyboardMarkup originalKeyboard)
         {
             var newRows = new List<List<InlineKeyboardButton>>();
 
-            // Add everything but the See Upvote button.
+            // Add everything but the See Votes button.
             foreach (var row in originalKeyboard.InlineKeyboard)
-                newRows.Add(row.Where(x => x.Text != SeeUpvoteButtonText && x.Text != SeeUpvoteButtonTextLegacy).ToList());
+                newRows.Add(row.Where(x => x.Text != SeeVotesButtonText && x.Text != SeeVotesButtonTextLegacy).ToList());
             
             return newRows;
         }
 
         /// <summary>
-        /// Check if there are upvotes for this track.
+        /// Check if there are votes for this track.
         /// </summary>
-        private async Task<bool> HasUpvotes(Track track)
+        private async Task<bool> HasVotes(Track track)
         {
-            var votes = await _voteRepository.GetVotes(track.PlaylistId, track.Id);
-
-            return votes.Where(x => x.Type == VoteType.Upvote).Any();
+            return (await _voteRepository.GetVotes(track.PlaylistId, track.Id)).Any();
         }
     }
 }
