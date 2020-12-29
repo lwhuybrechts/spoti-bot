@@ -40,9 +40,10 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             IKeyboardService keyboardService,
             IChatRepository chatRepository,
             IUserService userService,
+            IUserRepository userRepository,
             ISpotifyClientFactory spotifyClientFactory,
             ISpotifyClientService spotifyClientService)
-            : base(commandsService, userService, sendMessageService, spotifyLinkHelper)
+            : base(commandsService, userRepository, sendMessageService, spotifyLinkHelper)
         {
             _commandsService = commandsService;
             _spotifyAuthorizationService = spotifyAuthorizationService;

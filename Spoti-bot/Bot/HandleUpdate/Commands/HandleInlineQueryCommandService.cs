@@ -1,6 +1,6 @@
-﻿using AutoMapper;
-using Spoti_bot.Bot.HandleUpdate.Dto;
+﻿using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Bot.Users;
+using Spoti_bot.Bot.Votes;
 using Spoti_bot.Library;
 using Spoti_bot.Spotify;
 using System;
@@ -14,22 +14,22 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
     public class HandleInlineQueryCommandService : BaseCommandsService<InlineQueryCommand>, IHandleInlineQueryCommandService
     {
         private readonly ICommandsService _commandsService;
-        private readonly IUserService _userService;
+        private readonly IUserRepository _userRepository;
         private readonly ISendMessageService _sendMessageService;
-        private readonly IMapper _mapper;
+        private readonly IVoteRepository _voteRepository;
 
         public HandleInlineQueryCommandService(
             ICommandsService commandsService,
-            IUserService userService,
+            IUserRepository userRepository,
             ISendMessageService sendMessageService,
-            ISpotifyLinkHelper spotifyLinkHelper,
-            IMapper mapper)
-            : base(commandsService, userService, sendMessageService, spotifyLinkHelper)
+            IVoteRepository voteRepository,
+            ISpotifyLinkHelper spotifyLinkHelper)
+            : base(commandsService, userRepository, sendMessageService, spotifyLinkHelper)
         {
             _commandsService = commandsService;
-            _userService = userService;
+            _userRepository = userRepository;
             _sendMessageService = sendMessageService;
-            _mapper = mapper;
+            _voteRepository = voteRepository;
         }
 
         protected override Task<BotResponseCode> HandleCommand(InlineQueryCommand command, UpdateDto updateDto)
@@ -37,7 +37,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             return command switch
             {
                 InlineQueryCommand.Connect => HandleConnectInPrivateChatLink(updateDto),
-                InlineQueryCommand.GetUpvoteUsers => HandleGetUpvoteUsers(updateDto),
+                InlineQueryCommand.GetVoteUsers => HandleGetVoteUsers(updateDto),
                 _ => throw new NotImplementedException($"InlineQueryCommand {command} has no handle function defined.")
             };
         }
@@ -57,16 +57,23 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             return BotResponseCode.InlineQueryHandled;
         }
 
-        private async Task<BotResponseCode> HandleGetUpvoteUsers(UpdateDto updateDto)
+        private async Task<BotResponseCode> HandleGetVoteUsers(UpdateDto updateDto)
         {
             var (playlistId, trackId) = GetUpvoteUsersQueries(updateDto);
 
             if (string.IsNullOrEmpty(playlistId) || string.IsNullOrEmpty(trackId))
                 return BotResponseCode.CommandRequirementNotFulfilled;
 
-            var users = await _userService.GetUpvoteUsers(playlistId, trackId);
+            var votes = await _voteRepository.GetVotes(playlistId, trackId);
 
-            var results = CreateResults(users);
+            List<User> users;
+            if (!votes.Any())
+                users = new List<User>();
+            else
+                // TODO: only get users that voted?
+                users = await _userRepository.GetAll();
+
+            var results = CreateResults(votes, users);
 
             // Send the results to the chat.
             await _sendMessageService.AnswerInlineQuery(updateDto.ParsedUpdateId, results);
@@ -74,26 +81,48 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             return BotResponseCode.InlineQueryHandled;
         }
 
-        private IEnumerable<InlineQueryResultBase> CreateResults(List<User> users)
+        private IEnumerable<InlineQueryResultBase> CreateResults(List<Vote> votes, List<User> users)
         {
             // TODO: add user images.
 
-            var inlineQueryResults = _mapper.Map<List<InlineQueryResultArticle>>(users);
+            var results = new List<InlineQueryResultBase>();
 
-            // Add a description as the first row.
-            if (inlineQueryResults.Any())
+            // Add the users that voted per VoteType.
+            foreach (var voteType in Enum.GetValues(typeof(VoteType)).Cast<VoteType>())
             {
-                // TODO: hide image for this row.
-                var titleText = "This track is upvoted by:";
-                inlineQueryResults.Insert(0, new InlineQueryResultArticle("resultId", titleText, new InputTextMessageContent(titleText)));
+                var voteTypeVotes = votes.Where(x => x.Type == voteType).ToList();
+
+                if (!voteTypeVotes.Any())
+                    continue;
+
+                var voteTypeUsers = users
+                    .Where(x => voteTypeVotes
+                        .Select(x => x.UserId)
+                        .Contains(x.Id)
+                    ).ToList();
+
+                if (!voteTypeUsers.Any())
+                    continue;
+
+                // Add a description as the first row.
+                var titleText = $"Users that gave this a track a {KeyboardService.GetVoteButtonText(voteType)}";
+                var inlineQueryResults = new List<InlineQueryResultArticle>
+                {
+                    CreateArticle(titleText)
+                };
+
+                foreach (var voteTypeUser in voteTypeUsers)
+                    inlineQueryResults.Add(CreateArticle(voteTypeUser.FirstName));
+                
+                results.AddRange(inlineQueryResults);
             }
 
-            return inlineQueryResults;
+            return results;
         }
 
         private (string, string) GetUpvoteUsersQueries(UpdateDto updateDto)
         {
-            var queries = _commandsService.GetQueries(updateDto.ParsedTextMessage, InlineQueryCommand.GetUpvoteUsers);
+            var queries = _commandsService.GetQueries(updateDto.ParsedTextMessage, InlineQueryCommand.GetVoteUsers);
 
             string playlistId;
             string trackId;
@@ -113,6 +142,11 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             }
 
             return (playlistId, trackId);
+        }
+
+        private InlineQueryResultArticle CreateArticle(string text)
+        {
+            return new InlineQueryResultArticle(Guid.NewGuid().ToString(), text, new InputTextMessageContent(text));
         }
     }
 }

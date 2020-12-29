@@ -12,18 +12,18 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
     public abstract class BaseCommandsService<TCommand> : IBaseCommandsService where TCommand : Enum
     {
         private readonly ICommandsService _commandsService;
-        private readonly IUserService _userService;
+        private readonly IUserRepository _userRepository;
         private readonly ISendMessageService _sendMessageService;
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
 
         public BaseCommandsService(
             ICommandsService commandsService,
-            IUserService userService,
+            IUserRepository userRepository,
             ISendMessageService sendMessageService,
             ISpotifyLinkHelper spotifyLinkHelper)
         {
             _commandsService = commandsService;
-            _userService = userService;
+            _userRepository = userRepository;
             _sendMessageService = sendMessageService;
             _spotifyLinkHelper = spotifyLinkHelper;
         }
@@ -79,7 +79,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
 
             if (command.HasAttribute<TCommand, RequiresNoChatAttribute>() && updateDto.Chat != null)
             {
-                var admin = await _userService.Get(updateDto.Chat.AdminUserId);
+                var admin = await _userRepository.Get(updateDto.Chat.AdminUserId);
 
                 // A chat should always have an admin.
                 if (admin == null)
@@ -96,7 +96,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
                 if (updateDto.Chat == null)
                     return $"Spoti-bot first needs to be added to this chat by sending the {Command.Start.ToDescriptionString()} command.";
 
-                var admin = await _userService.Get(updateDto.Chat.AdminUserId);
+                var admin = await _userRepository.Get(updateDto.Chat.AdminUserId);
 
                 // A chat should always have an admin.
                 if (admin == null)

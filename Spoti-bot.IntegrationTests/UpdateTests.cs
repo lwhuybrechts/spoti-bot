@@ -1027,7 +1027,7 @@ namespace Spoti_bot.IntegrationTests
             await TruncateTables();
 
             using var stream = new MemoryStream();
-            var httpRequest = await CreateInlineQueryRequest(stream, InlineQueryCommand.GetUpvoteUsers.ToDescriptionString());
+            var httpRequest = await CreateInlineQueryRequest(stream, InlineQueryCommand.GetVoteUsers.ToDescriptionString());
 
             // Act.
             var result = await _sut.Run(httpRequest);
@@ -1042,7 +1042,7 @@ namespace Spoti_bot.IntegrationTests
             // Arramge.
             await TruncateTables();
 
-            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {_testOptions.TestTrackId}";
+            var query = $"{InlineQueryCommand.GetVoteUsers.ToDescriptionString()} {_testOptions.TestTrackId}";
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateInlineQueryRequest(stream, query);
@@ -1060,7 +1060,7 @@ namespace Spoti_bot.IntegrationTests
             // Arramge.
             await TruncateTables();
 
-            var query = $"{InlineQueryCommand.GetUpvoteUsers.ToDescriptionString()} {_testOptions.TestPlaylistId} {_testOptions.TestTrackId}";
+            var query = $"{InlineQueryCommand.GetVoteUsers.ToDescriptionString()} {_testOptions.TestPlaylistId} {_testOptions.TestTrackId}";
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateInlineQueryRequest(stream, query);
