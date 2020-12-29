@@ -65,59 +65,14 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
                 return BotResponseCode.CommandRequirementNotFulfilled;
 
             var votes = await _voteRepository.GetVotes(playlistId, trackId);
+            var users = await GetUsersForVotes(votes);
 
-            List<User> users;
-            if (!votes.Any())
-                users = new List<User>();
-            else
-                // TODO: only get users that voted?
-                users = await _userRepository.GetAll();
-
-            var results = CreateResults(votes, users);
+            var results = CreateVoteUsersResults(votes, users);
 
             // Send the results to the chat.
             await _sendMessageService.AnswerInlineQuery(updateDto.ParsedUpdateId, results);
 
             return BotResponseCode.InlineQueryHandled;
-        }
-
-        private IEnumerable<InlineQueryResultBase> CreateResults(List<Vote> votes, List<User> users)
-        {
-            // TODO: add user images.
-
-            var results = new List<InlineQueryResultBase>();
-
-            // Add the users that voted per VoteType.
-            foreach (var voteType in Enum.GetValues(typeof(VoteType)).Cast<VoteType>())
-            {
-                var voteTypeVotes = votes.Where(x => x.Type == voteType).ToList();
-
-                if (!voteTypeVotes.Any())
-                    continue;
-
-                var voteTypeUsers = users
-                    .Where(x => voteTypeVotes
-                        .Select(x => x.UserId)
-                        .Contains(x.Id)
-                    ).ToList();
-
-                if (!voteTypeUsers.Any())
-                    continue;
-
-                // Add a description as the first row.
-                var titleText = $"Users that gave this a track a {KeyboardService.GetVoteButtonText(voteType)}";
-                var inlineQueryResults = new List<InlineQueryResultArticle>
-                {
-                    CreateArticle(titleText)
-                };
-
-                foreach (var voteTypeUser in voteTypeUsers)
-                    inlineQueryResults.Add(CreateArticle(voteTypeUser.FirstName));
-                
-                results.AddRange(inlineQueryResults);
-            }
-
-            return results;
         }
 
         private (string, string) GetUpvoteUsersQueries(UpdateDto updateDto)
@@ -142,6 +97,62 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             }
 
             return (playlistId, trackId);
+        }
+
+        private async Task<List<User>> GetUsersForVotes(List<Vote> votes)
+        {
+            if (!votes.Any())
+                return new List<User>();
+
+            var userIds = votes.Select(x => x.UserId).Distinct().ToList();
+            
+            // Fetch all users (since Azure table storage does not support WHERE IN queries).
+            var users = await _userRepository.GetAll();
+            
+            // Only return users that voted.
+            return users.Where(x => userIds.Contains(x.Id)).ToList();
+        }
+
+        private IEnumerable<InlineQueryResultBase> CreateVoteUsersResults(List<Vote> votes, List<User> users)
+        {
+            var results = new List<InlineQueryResultBase>();
+
+            // Add the users that voted per VoteType.
+            foreach (var voteType in Enum.GetValues(typeof(VoteType)).Cast<VoteType>())
+            {
+                var voteTypeArticles = GetArticles(voteType, votes, users);
+
+                if (voteTypeArticles.Any())
+                    results.AddRange(voteTypeArticles);
+            }
+
+            return results;
+        }
+
+        private List<InlineQueryResultArticle> GetArticles(VoteType voteType, List<Vote> votes, List<User> users)
+        {
+            var voteTypeVotes = votes.Where(x => x.Type == voteType).ToList();
+
+            if (!voteTypeVotes.Any())
+                return new List<InlineQueryResultArticle>();
+
+            var voteTypeUserIds = voteTypeVotes.Select(x => x.UserId);
+
+            var voteTypeUsers = users.Where(x => voteTypeUserIds.Contains(x.Id)).ToList();
+
+            if (!voteTypeUsers.Any())
+                return new List<InlineQueryResultArticle>();
+
+            var inlineQueryResults = new List<InlineQueryResultArticle>
+            {
+                // Add a description as the first row.
+                CreateArticle($"Users that gave this a track a {KeyboardService.GetVoteButtonText(voteType)}")
+            };
+
+            foreach (var voteTypeUser in voteTypeUsers)
+                inlineQueryResults.Add(CreateArticle(voteTypeUser.FirstName));
+
+            return inlineQueryResults;
         }
 
         private InlineQueryResultArticle CreateArticle(string text)
