@@ -11,6 +11,6 @@ namespace Spoti_bot.Bot
         Task<int> SendTextMessage(long chatId, string text, ParseMode parseMode = ParseMode.Markdown, bool disableWebPagePreview = true, int replyToMessageId = 0, IReplyMarkup replyMarkup = null);
         Task EditMessageText(long chatId, int messageId, string text, ParseMode parseMode = ParseMode.Markdown, bool disableWebPagePreview = true, InlineKeyboardMarkup replyMarkup = null);
         Task AnswerCallbackQuery(string callbackQueryId, string text = null);
-        Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultBase> results);
+        Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultBase> results, string switchPmText = null, string switchPmParameter = null);
     }
 }

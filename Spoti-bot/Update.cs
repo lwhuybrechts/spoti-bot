@@ -14,6 +14,7 @@ using Spoti_bot.Library;
 using Spoti_bot.Bot.HandleUpdate;
 using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Bot.Chats;
+using Spoti_bot.Bot.HandleUpdate.Commands;
 
 namespace Spoti_bot
 {
@@ -22,6 +23,7 @@ namespace Spoti_bot
         private readonly IHandleMessageService _handleMessageService;
         private readonly IHandleCallbackQueryService _handleCallbackQueryService;
         private readonly IHandleInlineQueryService _handleInlineQueryService;
+        private readonly ICommandsService _commandsService;
         private readonly IUpdateDtoService _updateDtoService;
         private readonly Library.Options.SentryOptions _sentryOptions;
 
@@ -29,12 +31,14 @@ namespace Spoti_bot
             IHandleMessageService handleMessageService,
             IHandleCallbackQueryService handleCallbackQueryService,
             IHandleInlineQueryService handleInlineQueryService,
+            ICommandsService commandsService,
             IUpdateDtoService updateDtoService,
             IOptions<Library.Options.SentryOptions> sentryOptions)
         {
             _handleMessageService = handleMessageService;
             _handleCallbackQueryService = handleCallbackQueryService;
             _handleInlineQueryService = handleInlineQueryService;
+            _commandsService = commandsService;
             _updateDtoService = updateDtoService;
             _sentryOptions = sentryOptions.Value;
         }
@@ -100,7 +104,7 @@ namespace Spoti_bot
             }
         }
 
-        private static bool ShouldHandle(UpdateDto updateDto)
+        private bool ShouldHandle(UpdateDto updateDto)
         {
             if (updateDto == null)
                 return false;
@@ -116,15 +120,26 @@ namespace Spoti_bot
 
             switch (chatType.Value)
             {
-                // The bot only handles updates in groups.
                 case ChatType.Group:
                 case ChatType.Supergroup:
                     return true;
-                case ChatType.Channel:
                 case ChatType.Private:
+                    // The only thing the bot handles in a private chat is one of the following commands.
+                    return IsStartCommand(updateDto) || IsGetLoginLinkCommand(updateDto);
+                case ChatType.Channel:
                 default:
                     return false;
             }
+        }
+
+        private bool IsStartCommand(UpdateDto updateDto)
+        {
+            return _commandsService.IsCommand(updateDto.ParsedTextMessage, Command.Start);
+        }
+
+        private bool IsGetLoginLinkCommand(UpdateDto updateDto)
+        {
+            return _commandsService.IsCommand(updateDto.ParsedTextMessage, Command.GetLoginLink);
         }
     }
 }

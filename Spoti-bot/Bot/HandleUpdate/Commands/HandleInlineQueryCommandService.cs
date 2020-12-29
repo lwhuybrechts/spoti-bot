@@ -36,9 +36,25 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         {
             return command switch
             {
+                InlineQueryCommand.Connect => HandleConnectInPrivateChatLink(updateDto),
                 InlineQueryCommand.GetUpvoteUsers => HandleGetUpvoteUsers(updateDto),
                 _ => throw new NotImplementedException($"InlineQueryCommand {command} has no handle function defined.")
             };
+        }
+
+        private async Task<BotResponseCode> HandleConnectInPrivateChatLink(UpdateDto updateDto)
+        {
+            var groupChatId = _commandsService.GetQuery(updateDto.ParsedTextMessage, InlineQueryCommand.Connect);
+
+            if (string.IsNullOrEmpty(groupChatId))
+                return BotResponseCode.CommandRequirementNotFulfilled;
+
+            var switchPmText = "Connect in private chat";
+            var switchPmParameter = groupChatId;
+
+            await _sendMessageService.AnswerInlineQuery(updateDto.ParsedUpdateId, new List<InlineQueryResultArticle>(), switchPmText, switchPmParameter);
+
+            return BotResponseCode.InlineQueryHandled;
         }
 
         private async Task<BotResponseCode> HandleGetUpvoteUsers(UpdateDto updateDto)
@@ -46,7 +62,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             var (playlistId, trackId) = GetUpvoteUsersQueries(updateDto);
 
             if (string.IsNullOrEmpty(playlistId) || string.IsNullOrEmpty(trackId))
-                return BotResponseCode.NoAction;
+                return BotResponseCode.CommandRequirementNotFulfilled;
 
             var users = await _userService.GetUpvoteUsers(playlistId, trackId);
 

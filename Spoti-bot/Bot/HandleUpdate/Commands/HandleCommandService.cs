@@ -10,6 +10,7 @@ using Spoti_bot.Spotify.Playlists;
 using Spoti_bot.Spotify.Tracks.SyncTracks;
 using System;
 using System.Threading.Tasks;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace Spoti_bot.Bot.HandleUpdate.Commands
 {
@@ -66,7 +67,9 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             {
                 Command.Test => HandleTest(updateDto),
                 Command.Help => HandleHelp(updateDto),
-                Command.Start => HandleStart(updateDto),
+                Command.Start => updateDto.ParsedChat?.Type == ChatType.Private
+                    ? HandleStartInPrivateChat(updateDto)
+                    : HandleStartInGroupChat(updateDto),
                 Command.GetLoginLink => HandleGetLoginLink(updateDto),
                 Command.ResetPlaylistStorage => HandleResetPlaylistStorage(updateDto),
                 Command.SetPlaylist => HandleSetPlaylist(updateDto),
@@ -104,10 +107,26 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         }
 
         /// <summary>
-        /// The start command will be triggered when the bot is first added to a chat.
-        /// It sets the user that sent the Start command as the admin of spoti-bot for this chat.
+        /// The start command in a private chat is triggered after the start command in a group chat.
+        /// The chatId should be added as a query.
         /// </summary>
-        private async Task<BotResponseCode> HandleStart(UpdateDto updateDto)
+        private async Task<BotResponseCode> HandleStartInPrivateChat(UpdateDto updateDto)
+        {
+            // The Start command in private chats should have a chatId as a query.
+            if (!_commandsService.HasQuery(updateDto.ParsedTextMessage, Command.Start))
+                return BotResponseCode.CommandRequirementNotFulfilled;
+
+            if (!int.TryParse(_commandsService.GetQuery(updateDto.ParsedTextMessage, Command.Start), out var chatId))
+                return BotResponseCode.CommandRequirementNotFulfilled;
+            
+            return await HandleGetLoginLink(updateDto, chatId);
+        }
+
+        /// <summary>
+        /// The start command will be triggered when the bot is first added to a chat.
+        /// It sets the user that sent the Start command as the admin of Spoti-Bot for this chat.
+        /// </summary>
+        private async Task<BotResponseCode> HandleStartInGroupChat(UpdateDto updateDto)
         {
             // Save the user in storage.
             var admin = await _userService.SaveUser(updateDto.ParsedUser, updateDto.ParsedChat.Id);
@@ -117,34 +136,47 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             {
                 Id = updateDto.ParsedChat.Id,
                 Title = updateDto.ParsedChat.Title,
-                AdminUserId = admin.Id
+                AdminUserId = admin.Id,
+                Type = updateDto.ParsedChat.Type
             });
 
             var responseText = $"Spoti-bot is added to the chat, {admin.FirstName} is it's admin.";
 
-            // Check if the user already is logged in to Spotify.
-            if (_authorizationTokenRepository.Get(admin.Id) == null)
-                responseText += $"\n\nPlease login to Spotify by sending the {Command.GetLoginLink.ToDescriptionString()} command.";
-            else
+            IReplyMarkup keyboard = null;
+            // Check if the user has already logged in to Spotify.
+            if (_authorizationTokenRepository.Get(admin.Id) != null)
                 responseText += $"\n\nPlease set the spotify playlist for this chat by sending the {Command.SetPlaylist.ToDescriptionString()} command.";
+            else
+            {
+                keyboard = _keyboardService.CreateSwitchToPmKeyboard(chat);
+                responseText += $"\n\nThe next step is to connect your Spotify account. Click the button below and then click _Connect in private chat_.\n\nThis switches you to a private chat where you can login.";
+            }
 
-            await _sendMessageService.SendTextMessage(chat.Id, responseText);
+            await _sendMessageService.SendTextMessage(chat.Id, responseText, replyMarkup: keyboard);
             return BotResponseCode.StartCommandHandled;
         }
 
         /// <summary>
         /// The GetLoginLink command will let the admin login to spotify and save it's accesstoken.
         /// </summary>
-        private async Task<BotResponseCode> HandleGetLoginLink(UpdateDto updateDto)
+        private async Task<BotResponseCode> HandleGetLoginLink(UpdateDto updateDto, long? groupChatId = null)
         {
-            // TODO: Only send the loginLink to private chats.
-            var responseText = $"Please login to authorize Spoti-Bot.\n" +
-            $"It needs access to the playlist {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Playlist.Id, updateDto.Playlist.Name)} and to your queue.";
+            if (groupChatId.HasValue)
+            {
+                // Only the admin can request a login link for a group.
+                var groupChat = await _chatRepository.Get(groupChatId.Value);
+                if (groupChat == null || groupChat.AdminUserId != updateDto.ParsedUser.Id)
+                    return BotResponseCode.CommandRequirementNotFulfilled;
+            }
 
-            var loginRequestUri = await _spotifyAuthorizationService.CreateLoginRequest(updateDto.Chat.AdminUserId, updateDto.Chat.Id);
+            var responseText = "Please login to authorize Spoti-Bot.\nIt needs access to your playlists and to your queue.";
+
+            var loginRequestUri = await _spotifyAuthorizationService.CreateLoginRequest(updateDto.ParsedUser.Id, groupChatId, updateDto.ParsedChat.Id);
+            
             var keyboard = _keyboardService.CreateButtonKeyboard("Login to Spotify", loginRequestUri.ToString());
 
-            await _sendMessageService.SendTextMessage(updateDto.Chat.Id, responseText, replyMarkup: keyboard);
+            await _sendMessageService.SendTextMessage(updateDto.ParsedChat.Id, responseText, replyMarkup: keyboard);
+
             return BotResponseCode.GetLoginLinkCommandHandled;
         }
 
@@ -161,16 +193,16 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             {
                 var text = $"The playlist link could not be found in your query.";
                 await _sendMessageService.SendTextMessage(updateDto.Chat.Id, text);
-                return BotResponseCode.SetPlaylistCommandHandled;
+                return BotResponseCode.CommandRequirementNotFulfilled;
             }
 
             var spotifyClient = await _spotifyClientFactory.Create(updateDto.Chat.AdminUserId);
 
             if (spotifyClient == null)
             {
-                var text = $"Spoti-bot is not authorized to set the Playlist for this chat. Please authorize Spoti-bot by sending the {Command.GetLoginLink.ToDescriptionString()} command.";
+                var text = $"Spoti-bot is not authorized to set the Playlist for this chat. Please authorize Spoti-bot first, by sending the {Command.Start.ToDescriptionString()} command.";
                 await _sendMessageService.SendTextMessage(updateDto.Chat.Id, text);
-                return BotResponseCode.SetPlaylistCommandHandled;
+                return BotResponseCode.CommandRequirementNotFulfilled;
             }
 
             // Get the playlist info from the spotify api.

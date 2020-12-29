@@ -29,7 +29,8 @@ namespace Spoti_bot.IntegrationTests
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="text">The text to use in the text message.</param>
-        public Task WriteTextMessageToStream(Stream stream, string text)
+        /// <param name="isPrivateChat">Whether or not the chat the message is sent in should be regarded as a private chat.</param>
+        public Task WriteTextMessageToStream(Stream stream, string text, bool isPrivateChat)
         {
             var update = new Telegram.Bot.Types.Update
             {
@@ -38,7 +39,7 @@ namespace Spoti_bot.IntegrationTests
                     Text = text,
                     Date = DateTime.UtcNow,
                     From = GetTestUser(),
-                    Chat = GetTestChat(),
+                    Chat = GetTestChat(isPrivateChat),
                     Entities = new Telegram.Bot.Types.MessageEntity[0]
                 }
             };
@@ -118,12 +119,16 @@ namespace Spoti_bot.IntegrationTests
             stream.Position = 0;
         }
 
-        private Telegram.Bot.Types.Chat GetTestChat()
+        private Telegram.Bot.Types.Chat GetTestChat(bool isPrivateChat = false)
         {
             return new Telegram.Bot.Types.Chat
             {
-                Id = _testOptions.TestChatId,
-                Type = Telegram.Bot.Types.Enums.ChatType.Group
+                Id = isPrivateChat
+                    ? _testOptions.PrivateTestChatId
+                    : _testOptions.GroupTestChatId,
+                Type = isPrivateChat
+                    ? Telegram.Bot.Types.Enums.ChatType.Private
+                    : Telegram.Bot.Types.Enums.ChatType.Group
             };
         }
 

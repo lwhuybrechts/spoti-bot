@@ -15,14 +15,15 @@ namespace Spoti_bot.Spotify.Authorization
             _loginRequestRepository = loginRequestRepository;
         }
 
-        public Task<LoginRequest> Create(long userId, long chatId)
+        public Task<LoginRequest> Create(long userId, long? groupChatId, long privateChatId)
         {
             return _loginRequestRepository.Upsert(new LoginRequest
             {
                 UserId = userId,
                 Id = Guid.NewGuid().ToString(),
                 ExpiresAt = DateTimeOffset.UtcNow.AddMinutes(_loginRequestExpiresInMinutes),
-                ChatId = chatId
+                GroupChatId = groupChatId,
+                PrivateChatId = privateChatId
             });
         }
 

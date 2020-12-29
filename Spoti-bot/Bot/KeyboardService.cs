@@ -31,6 +31,13 @@ namespace Spoti_bot.Bot
         }
 
 
+        public InlineKeyboardMarkup CreateSwitchToPmKeyboard(Chats.Chat chat)
+        {
+            var query = $"{InlineQueryCommand.Connect.ToDescriptionString()} {chat.Id}";
+            
+            return new InlineKeyboardMarkup(InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Let's go", query));
+        }
+
         /// <summary>
         /// Create the keyboard that is added to the response the bot sends after a message with a spotify track.
         /// </summary>

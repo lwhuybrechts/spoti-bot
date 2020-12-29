@@ -3,9 +3,13 @@
     public class TestOptions
     {
         /// <summary>
-        /// The id of the chat the integrationtests will send messages to.
+        /// The id of the private chat the integrationtests will send messages to.
         /// </summary>
-        public int TestChatId { get; set; }
+        public int PrivateTestChatId { get; set; }
+        /// <summary>
+        /// The id of the group chat the integrationtests will send messages to.
+        /// </summary>
+        public int GroupTestChatId { get; set; }
         public int TestUserId { get; set; }
         public string TestUserFirstName { get; set; }
         /// <summary>

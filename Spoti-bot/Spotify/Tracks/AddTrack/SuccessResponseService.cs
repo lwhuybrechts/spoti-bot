@@ -28,7 +28,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             if (!ShouldAddAwesomeResponse(random))
                 return successMessage;
 
-            var firstName = updateDto.User.FirstName;
+            var firstName = updateDto.User?.FirstName;
 
             if (string.IsNullOrEmpty(firstName))
                 return successMessage;

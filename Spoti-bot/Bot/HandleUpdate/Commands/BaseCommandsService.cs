@@ -45,13 +45,13 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             foreach (var command in Enum.GetValues(typeof(TCommand)).Cast<TCommand>())
                 if (_commandsService.IsCommand(updateDto.ParsedTextMessage, command))
                 {
-                    var text = await ValidateRequirements(command, updateDto);
+                    var errorText = await ValidateRequirements(command, updateDto);
 
-                    if (!string.IsNullOrEmpty(text))
+                    if (!string.IsNullOrEmpty(errorText))
                     {
-                        // If there is a chat, answer that the requirement is not fulfilled.
+                        // If there is a chat, answer with the errorText.
                         if (updateDto.ParsedChat != null)
-                            await _sendMessageService.SendTextMessage(updateDto.ParsedChat.Id, text);
+                            await _sendMessageService.SendTextMessage(updateDto.ParsedChat.Id, errorText);
                         
                         return BotResponseCode.CommandRequirementNotFulfilled;
                     }
@@ -71,6 +71,9 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         private async Task<string> ValidateRequirements(TCommand command, UpdateDto updateDto)
         {
             // TODO: replace with fluent validation.
+            if (command.HasAttribute<TCommand, RequiresPrivateChatAttribute>() && updateDto.ParsedChat?.Type != Chats.ChatType.Private)
+                return $"The {command} command is only supported in private chats.";
+
             if (command.HasAttribute<TCommand, RequiresChatAttribute>() && updateDto.Chat == null)
                 return $"Spoti-bot first needs to be added to this chat by sending the {Command.Start.ToDescriptionString()} command.";
 
@@ -104,13 +107,20 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             }
 
             if (command.HasAttribute<TCommand, RequiresPlaylistAttribute>() && updateDto.Playlist == null)
-                return $"Please set a playlist first, with command {Command.SetPlaylist.ToDescriptionString()}.";
+                return $"Please set a playlist first, with the {Command.SetPlaylist.ToDescriptionString()} command.";
 
             if (command.HasAttribute<TCommand, RequiresNoPlaylistAttribute>() && updateDto.Playlist != null)
                 return $"This chat already has a { _spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Playlist.Id, "playlist")} set.";
 
             if (command.HasAttribute<TCommand, RequiresQueryAttribute>() && !_commandsService.HasQuery(updateDto.ParsedTextMessage, command))
-                return $"Please add a query after the {command.ToDescriptionString()} command.";
+            {
+                var text = $"Please add a query after the {command.ToDescriptionString()} command.";
+
+                if (command.GetType() == typeof(Command) && (Command)(object)command == Command.SetPlaylist)
+                    text += $"\n\nFor example:\n{command.ToDescriptionString()} https://open.spotify.com/playlist/37i9dQZEVXbMDoHDwVN2tF";
+
+                return text;
+            }
 
             return string.Empty;
         }

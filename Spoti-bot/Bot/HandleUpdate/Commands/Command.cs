@@ -19,7 +19,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         Start,
                 
         [Description("/login")]
-        [RequiresChat, RequiresChatAdmin, RequiresPlaylist]
+        [RequiresPrivateChat]
         GetLoginLink,
         
         // Can be used while testing, when the playlist was edited in Spotify.

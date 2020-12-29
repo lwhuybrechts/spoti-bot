@@ -52,11 +52,11 @@ namespace Spoti_bot.Bot
             }
         }
 
-        public async Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultBase> results)
+        public async Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultBase> results, string switchPmText = null, string switchPmParameter = null)
         {
             try
             {
-                await _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results, cacheTime: 10);
+                await _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results, cacheTime: 10, switchPmText: switchPmText, switchPmParameter: switchPmParameter);
             }
             catch (InvalidParameterException exception)
             {

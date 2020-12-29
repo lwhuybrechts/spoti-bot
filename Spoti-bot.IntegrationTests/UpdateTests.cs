@@ -64,10 +64,11 @@ namespace Spoti_bot.IntegrationTests
             var handleMessageService = testHost.GetService<IHandleMessageService>();
             var handleCallbackQueryService = testHost.GetService<IHandleCallbackQueryService>();
             var handleInlineQueryService = testHost.GetService<IHandleInlineQueryService>();
+            var commandsService = testHost.GetService<ICommandsService>();
             var updateDtoService = testHost.GetService<IUpdateDtoService>();
             var sentryOptions = testHost.GetService<IOptions<SentryOptions>>();
 
-            _sut = new Update(handleMessageService, handleCallbackQueryService, handleInlineQueryService, updateDtoService, sentryOptions);
+            _sut = new Update(handleMessageService, handleCallbackQueryService, handleInlineQueryService, commandsService, updateDtoService, sentryOptions);
         }
 
         private async Task TruncateTables()
@@ -229,102 +230,107 @@ namespace Spoti_bot.IntegrationTests
             await _sut.Run(httpRequest);
 
             // Assert.
-            var user = await _userRepository.Get(_testOptions.TestUserId);
+            var user = await GetUser();
             Assert.NotNull(user);
 
-            var chat = await _chatRepository.Get(_testOptions.TestChatId);
+            var chat = await GetChat();
             Assert.NotNull(chat);
 
-            var chatMember = await _chatMemberRepository.Get(_testOptions.TestUserId, _testOptions.TestChatId.ToString());
+            var chatMember = await GetChatMember();
             Assert.NotNull(chatMember);
         }
-
+        
         [Fact]
-        public async Task Run_GetLoginLinkCommand_NoChat_CommandRequirementNotFulfilledReturned()
+        public async Task Run_StartCommand_PrivateChat_NoQuery_StartCommandHandledReturned()
         {
             // Arrange.
             await TruncateTables();
 
-            await InsertPlaylist();
-            await InsertUser();
-
             using var stream = new MemoryStream();
-            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
+            var httpRequest = await CreateRequest(stream, Command.Start.ToDescriptionString(), isPrivateChat: true);
 
             // Act.
             var result = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+            AssertHelper.Equal(BotResponseCode.StartCommandHandled, result);
         }
 
         [Fact]
-        public async Task Run_GetLoginLinkCommand_NoPlaylist_CommandRequirementNotFulfilledReturned()
+        public async Task Run_StartCommand_PrivateChat_NoGroupChat_StartCommandHandledReturned()
         {
             // Arrange.
             await TruncateTables();
 
-            await InsertChat();
-            await InsertUser();
+            var text = $"{Command.Start.ToDescriptionString()} {_testOptions.GroupTestChatId}";
 
             using var stream = new MemoryStream();
-            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
+            var httpRequest = await CreateRequest(stream, text, isPrivateChat: true);
 
             // Act.
             var result = await _sut.Run(httpRequest);
 
             // Assert.
-            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+            AssertHelper.Equal(BotResponseCode.StartCommandHandled, result);
         }
 
         [Fact]
-        public async Task Run_GetLoginLinkCommand_NoUser_ExceptionHandledReturned()
+        public async Task Run_StartCommand_PrivateChat_UserNotAdmin_StartCommandHandledReturned()
         {
             // Arrange.
             await TruncateTables();
-
-            await InsertChat();
-            await InsertPlaylist();
-
-            using var stream = new MemoryStream();
-            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
-
-            // Act.
-            var result = await _sut.Run(httpRequest);
-
-            // Assert.
-            AssertHelper.Equal(BotResponseCode.ExceptionHandled, result);
-        }
-
-        [Fact]
-        public async Task Run_GetLoginLinkCommand_TestUserNotAdmin_CommandRequirementNotFulfilledReturned()
-        {
-            // Arrange.
-            await TruncateTables();
-
+            
             var user = await InsertUser();
-            
             var otherUserId = user.Id - 1;
-            var otherUser = await InsertUser(otherUserId);
-            
-            await InsertChat(otherUser.Id) ;
-            await InsertPlaylist();
-            
+            var chat = await InsertChat(otherUserId);
+
+            var text = $"{Command.Start.ToDescriptionString()} {chat.Id}";
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, text, isPrivateChat: true);
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.StartCommandHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_StartCommand_PrivateChat_UserAdmin_GetLoginLinkCommandHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertUser();
+            var chat = await InsertChat();
+
+            var text = $"{Command.Start.ToDescriptionString()} {chat.Id}";
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, text, isPrivateChat: true);
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.GetLoginLinkCommandHandled, result);
+        }
+
+        [Fact]
+        public async Task Run_GetLoginLinkCommand_NoPrivateChat_CommandRequirementNotFulfilledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
             using var stream = new MemoryStream();
             var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
 
-            try
-            {
-                // Act.
-                var result = await _sut.Run(httpRequest);
+            // Act.
+            var result = await _sut.Run(httpRequest);
 
-                // Assert.
-                AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
-            }
-            finally
-            {
-                await DeleteUser(otherUser);
-            }
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
         }
 
         [Fact]
@@ -333,12 +339,8 @@ namespace Spoti_bot.IntegrationTests
             // Arrange.
             await TruncateTables();
 
-            await InsertPlaylist();
-            await InsertChat();
-            await InsertUser();
-
             using var stream = new MemoryStream();
-            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
+            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString(), isPrivateChat: true);
 
             // Act.
             var result = await _sut.Run(httpRequest);
@@ -353,19 +355,14 @@ namespace Spoti_bot.IntegrationTests
             // Arrange.
             await TruncateTables();
 
-            await InsertPlaylist();
-            await InsertChat();
-            await InsertUser();
-
             using var stream = new MemoryStream();
-            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString());
+            var httpRequest = await CreateRequest(stream, Command.GetLoginLink.ToDescriptionString(), isPrivateChat: true);
 
             // Act.
             await _sut.Run(httpRequest);
 
             // Assert.
-            var allLoginRequests = await _loginRequestRepository.GetAll();
-            var chatLoginRequest = allLoginRequests.Where(x => x.ChatId == _testOptions.TestChatId).Single();
+            LoginRequest chatLoginRequest = await GetLoginRequest(_testOptions.PrivateTestChatId);
 
             Assert.Equal(chatLoginRequest.UserId, _testOptions.TestUserId);
         }
@@ -601,7 +598,7 @@ namespace Spoti_bot.IntegrationTests
             // Arrange.
             await TruncateTables();
 
-            await InsertChat();
+            var chat = await InsertChat();
             await InsertUser();
 
             var playlistUrl = _spotifyLinkHelper.GetLinkToPlaylist(_testOptions.TestPlaylistId);
@@ -616,7 +613,7 @@ namespace Spoti_bot.IntegrationTests
             var playlist = await _playlistRepository.Get(_testOptions.TestPlaylistId);
             Assert.NotNull(playlist);
 
-            var chat = await _chatRepository.Get(_testOptions.TestChatId);
+            chat = await _chatRepository.Get(chat);
             Assert.Equal(_testOptions.TestPlaylistId, chat.PlaylistId);
         }
 
@@ -766,25 +763,22 @@ namespace Spoti_bot.IntegrationTests
                 // Assert.
                 AssertHelper.Equal(BotResponseCode.TrackAddedToPlaylist, result);
 
-                var track = await _trackRepository.Get(_testOptions.TestTrackId, _testOptions.TestPlaylistId.ToString());
+                var track = await GetTrack();
                 Assert.NotNull(track);
 
-                var user = await _userRepository.Get(_testOptions.TestUserId);
+                var user = await GetUser();
                 Assert.NotNull(user);
 
-                var chatMember = await _chatMemberRepository.Get(_testOptions.TestUserId, _testOptions.TestChatId.ToString());
+                var chatMember = await GetChatMember();
                 Assert.NotNull(chatMember);
             }
             finally
             {
-                // TODO: make sure the testuser has an access token.
-                var spotifyClient = await _spotifyClientFactory.Create(_testOptions.TestUserId);
-
                 // Make sure the track is deleted after the test is done.
-                await _spotifyClientService.RemoveTrackFromPlaylist(spotifyClient, _testOptions.TestTrackId, _testOptions.TestPlaylistId);
+                await RemoveTrackFromPlaylist();
 
                 // Remove the track from storage.
-                var track = await _trackRepository.Get(_testOptions.TestTrackId, _testOptions.TestPlaylistId);
+                var track = await GetTrack();
                 await _trackRepository.Delete(track);
             }
         }
@@ -802,9 +796,9 @@ namespace Spoti_bot.IntegrationTests
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
             // Send the two messages that go before a vote callback: one with a trackUrl and a reply from the bot with a vote button.
-            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var trackMessageId = await SendMessage(trackUrl);
             const string botReplyMessageText = "Track added to playlist!";
-            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
+            var botReplyMessageId = await SendMessage(botReplyMessageText, replyToMessageId: trackMessageId);
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateVoteCallbackQueryRequest(stream, voteType, botReplyMessageId, botReplyMessageText, trackUrl);
@@ -829,9 +823,9 @@ namespace Spoti_bot.IntegrationTests
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
             // Send the two messages that go before a vote callback: one with a trackUrl and a reply from the bot with a vote button.
-            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var trackMessageId = await SendMessage(trackUrl);
             const string botReplyMessageText = "Track added to playlist!";
-            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
+            var botReplyMessageId = await SendMessage(botReplyMessageText, replyToMessageId: trackMessageId);
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateVoteCallbackQueryRequest(stream, voteType, botReplyMessageId, botReplyMessageText, trackUrl);
@@ -857,9 +851,9 @@ namespace Spoti_bot.IntegrationTests
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
             // Send the two messages that go before a vote callback: one with a trackUrl and a reply from the bot with a vote button.
-            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var trackMessageId = await SendMessage(trackUrl);
             const string botReplyMessageText = "Track added to playlist!";
-            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
+            var botReplyMessageId = await SendMessage(botReplyMessageText, replyToMessageId: trackMessageId);
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateVoteCallbackQueryRequest(stream, voteType, botReplyMessageId, botReplyMessageText, trackUrl);
@@ -886,9 +880,9 @@ namespace Spoti_bot.IntegrationTests
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
             // Send the two messages that go before an vote callback: one with a trackUrl and a reply from the bot with a vote button.
-            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var trackMessageId = await SendMessage(trackUrl);
             var botReplyMessageText = "Track added to the playlist!";
-            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
+            var botReplyMessageId = await SendMessage(botReplyMessageText, replyToMessageId: trackMessageId);
 
             // Send two callback updates, first to test to add a vote...
             using (var stream = new MemoryStream())
@@ -909,13 +903,13 @@ namespace Spoti_bot.IntegrationTests
                     Type = voteType
                 };
                 
-                var vote = await _voteRepository.Get(expectedVote);
+                var vote = await GetVote(expectedVote);
                 Assert.NotNull(vote);
 
-                var user = await _userRepository.Get(_testOptions.TestUserId);
+                var user = await GetUser();
                 Assert.NotNull(user);
 
-                var chatMember = await _chatMemberRepository.Get(_testOptions.TestUserId, _testOptions.TestChatId.ToString());
+                var chatMember = await GetChatMember();
                 Assert.NotNull(chatMember);
             }
 
@@ -942,7 +936,7 @@ namespace Spoti_bot.IntegrationTests
                     Type = voteType
                 };
 
-                var vote = await _voteRepository.Get(expectedVote);
+                var vote = await GetVote(expectedVote);
                 Assert.Null(vote);
             }
         }
@@ -964,9 +958,9 @@ namespace Spoti_bot.IntegrationTests
             var trackUrl = _spotifyLinkHelper.GetLinkToTrack(_testOptions.TestTrackId);
 
             // Send the two messages that go before an vote callback: one with a trackUrl and a reply from the bot with a vote button.
-            var trackMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, trackUrl);
+            var trackMessageId = await SendMessage(trackUrl);
             var botReplyMessageText = "Track added to the playlist!";
-            var botReplyMessageId = await _sendMessageService.SendTextMessage(_testOptions.TestChatId, botReplyMessageText, replyToMessageId: trackMessageId);
+            var botReplyMessageId = await SendMessage(botReplyMessageText, replyToMessageId: trackMessageId);
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateVoteCallbackQueryRequest(stream, VoteType.Downvote, botReplyMessageId, botReplyMessageText, trackUrl);
@@ -985,12 +979,45 @@ namespace Spoti_bot.IntegrationTests
                 Type = VoteType.Downvote
             };
 
-            var vote = await _voteRepository.Get(expectedVote);
+            var vote = await GetVote(expectedVote);
             Assert.NotNull(vote);
 
             // Make sure that the track is removed.
-            var track = await _trackRepository.Get(_testOptions.TestTrackId, _testOptions.TestPlaylistId);
+            var track = await GetTrack();
             Assert.Null(track);
+        }
+
+        [Fact]
+        public async Task Run_ConnectInlineQuery_NoQuery_CommandRequirementNotFulfilledReturned()
+        {
+            // Arramge.
+            await TruncateTables();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateInlineQueryRequest(stream, InlineQueryCommand.Connect.ToDescriptionString());
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.CommandRequirementNotFulfilled, result);
+        }
+
+        [Fact]
+        public async Task Run_ConnectInlineQuery_InlineQueryHandledReturned()
+        {
+            // Arramge.
+            await TruncateTables();
+
+            var query = $"{InlineQueryCommand.Connect.ToDescriptionString()} {_testOptions.GroupTestChatId}";
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateInlineQueryRequest(stream, query);
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.InlineQueryHandled, result);
         }
 
         [Fact]
@@ -1045,9 +1072,9 @@ namespace Spoti_bot.IntegrationTests
             AssertHelper.Equal(BotResponseCode.InlineQueryHandled, result);
         }
 
-        private async Task<HttpRequest> CreateRequest(Stream stream, string textMessage)
+        private async Task<HttpRequest> CreateRequest(Stream stream, string textMessage, bool isPrivateChat = false)
         {
-            await _generateUpdateStreamService.WriteTextMessageToStream(stream, textMessage);
+            await _generateUpdateStreamService.WriteTextMessageToStream(stream, textMessage, isPrivateChat);
 
             return CreateRequestWithBody(stream);
         }
@@ -1072,6 +1099,40 @@ namespace Spoti_bot.IntegrationTests
             httpContext.Request.Body = bodyStream;
 
             return httpContext.Request;
+        }
+
+        private Task<Track> GetTrack()
+        {
+            return _trackRepository.Get(_testOptions.TestTrackId, _testOptions.TestPlaylistId.ToString());
+        }
+
+        private Task<Chat> GetChat(bool isPrivateChat = false)
+        {
+            return _chatRepository.Get(isPrivateChat
+                ? _testOptions.PrivateTestChatId
+                : _testOptions.GroupTestChatId);
+        }
+
+        private Task<ChatMember> GetChatMember()
+        {
+            return _chatMemberRepository.Get(_testOptions.TestUserId, _testOptions.GroupTestChatId.ToString());
+        }
+
+        private Task<User> GetUser()
+        {
+            return _userRepository.Get(_testOptions.TestUserId);
+        }
+
+        private Task<Vote> GetVote(Vote vote)
+        {
+            return _voteRepository.Get(vote);
+        }
+
+        private async Task<LoginRequest> GetLoginRequest(int privateChatId)
+        {
+            return (await _loginRequestRepository.GetAll())
+                .Where(x => x.PrivateChatId == privateChatId)
+                .Single();
         }
 
         private Task<Track> InsertTrack()
@@ -1144,7 +1205,7 @@ namespace Spoti_bot.IntegrationTests
         {
             var loginRequests = await _loginRequestRepository.GetAll();
 
-            var testLoginRequests = loginRequests.Where(x => x.ChatId == _testOptions.TestChatId).ToList();
+            var testLoginRequests = loginRequests.Where(x => x.PrivateChatId == _testOptions.PrivateTestChatId).ToList();
 
             if (testLoginRequests.Any())
                 await _loginRequestRepository.Delete(testLoginRequests);
@@ -1152,7 +1213,7 @@ namespace Spoti_bot.IntegrationTests
 
         private async Task DeleteChatMembers()
         {
-            var chatMembers = await _chatMemberRepository.GetAllByPartitionKey(_testOptions.TestChatId.ToString());
+            var chatMembers = await _chatMemberRepository.GetAllByPartitionKey(_testOptions.GroupTestChatId.ToString());
 
             if (chatMembers.Any())
                 await _chatMemberRepository.Delete(chatMembers);
@@ -1182,7 +1243,7 @@ namespace Spoti_bot.IntegrationTests
         {
             var chat = new Chat
             {
-                Id = _testOptions.TestChatId,
+                Id = _testOptions.GroupTestChatId,
                 AdminUserId = adminUserId ?? _testOptions.TestUserId
             };
 
@@ -1211,6 +1272,23 @@ namespace Spoti_bot.IntegrationTests
                 Type = voteType,
                 CreatedAt = DateTimeOffset.UtcNow
             };
+        }
+
+        private async Task RemoveTrackFromPlaylist()
+        {
+            // TODO: make sure the testuser has an access token.
+            var spotifyClient = await _spotifyClientFactory.Create(_testOptions.TestUserId);
+
+            // Remove the track from the Spotify playlist.
+            await _spotifyClientService.RemoveTrackFromPlaylist(spotifyClient, _testOptions.TestTrackId, _testOptions.TestPlaylistId);
+        }
+
+        private Task<int> SendMessage(string text, bool isPrivateChat = false, int replyToMessageId = 0)
+        {
+            return _sendMessageService.SendTextMessage(isPrivateChat
+                ? _testOptions.PrivateTestChatId
+                : _testOptions.GroupTestChatId
+                , text, replyToMessageId: replyToMessageId);
         }
     }
 }

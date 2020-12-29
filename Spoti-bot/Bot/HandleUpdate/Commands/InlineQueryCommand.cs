@@ -9,6 +9,9 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
     {
         [Description("upvotes")]
         [RequiresQuery]
-        GetUpvoteUsers
+        GetUpvoteUsers,
+
+        [Description("next step")]
+        Connect
     }
 }
