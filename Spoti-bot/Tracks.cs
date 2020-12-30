@@ -10,6 +10,7 @@ using System;
 using AutoMapper;
 using System.Collections.Generic;
 using Spoti_bot.Spotify.Tracks;
+using System.Linq;
 
 namespace Spoti_bot
 {
@@ -39,6 +40,9 @@ namespace Spoti_bot
 
                     // Get the tracks from storage.
                     var tracks = await _trackRepository.GetAllByPartitionKey(playlistId);
+
+                    // Don't return tracks that are marked as removed.
+                    tracks = tracks.Where(x => x.State != TrackState.RemovedByDownvotes).ToList();
 
                     // Map the tracks to api models.
                     var apiTracks = _mapper.Map<List<ApiModels.Track>>(tracks);

@@ -56,7 +56,9 @@ namespace Spoti_bot.Bot.HandleUpdate
                 // Only handle callback queries in registered chats with a playlist.
                 updateDto?.Chat == null ||
                 updateDto?.Playlist == null ||
-                updateDto?.Track == null)
+                updateDto?.Track == null ||
+                // Removed tracks cannot be voted on.
+                updateDto?.Track?.State == Spotify.Tracks.TrackState.RemovedByDownvotes)
                 return false;
 
             if (!_voteService.IsAnyVoteCallback(updateDto))

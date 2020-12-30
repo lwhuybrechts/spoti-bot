@@ -174,7 +174,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
 
             var loginRequestUri = await _spotifyAuthorizationService.CreateLoginRequest(updateDto.ParsedUser.Id, groupChatId, updateDto.ParsedChat.Id);
             
-            var keyboard = _keyboardService.CreateButtonKeyboard("Login to Spotify", loginRequestUri.ToString());
+            var keyboard = _keyboardService.CreateUrlKeyboard("Login to Spotify", loginRequestUri.ToString());
 
             await _sendMessageService.SendTextMessage(updateDto.ParsedChat.Id, responseText, replyMarkup: keyboard);
 

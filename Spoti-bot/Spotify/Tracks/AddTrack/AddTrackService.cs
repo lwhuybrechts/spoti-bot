@@ -41,10 +41,18 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             if (string.IsNullOrEmpty(updateDto.ParsedTrackId))
                 return BotResponseCode.NoAction;
 
+            var existingTrackInPlaylist = await _trackRepository.Get(updateDto.ParsedTrackId, updateDto.Chat.PlaylistId);
+
             // Check if the track already exists in the playlist.
-            if (await DoesExistInPlaylist(updateDto.ParsedTrackId, updateDto.Chat.PlaylistId))
+            if (existingTrackInPlaylist != null)
             {
-                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}!");
+                string text;
+                if (existingTrackInPlaylist.State == TrackState.RemovedByDownvotes)
+                    text = $"This track was previously posted, but it was downvoted and removed from the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}.";
+                else
+                    text = $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}!";
+
+                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, text);
                 return BotResponseCode.TrackAlreadyExists;
             }
 
@@ -76,11 +84,6 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             return BotResponseCode.TrackAddedToPlaylist;
         }
 
-        private async Task<bool> DoesExistInPlaylist(string newTrackId, string playlistId)
-        {
-            return await _trackRepository.Get(newTrackId, playlistId) != null;
-        }
-
         /// <summary>
         /// Add the track to the playlist.
         /// </summary>
@@ -89,6 +92,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             newTrack.PlaylistId = playlistId;
             newTrack.CreatedAt = DateTimeOffset.UtcNow;
             newTrack.AddedByTelegramUserId = user.Id;
+            newTrack.State = TrackState.AddedToPlaylist;
 
             // Add the track to the playlist.
             await _trackRepository.Upsert(newTrack);

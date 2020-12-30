@@ -42,6 +42,8 @@ namespace Spoti_bot.Spotify.Tracks.SyncHistory
             // Get all the tracks from the storage.
             var tracksFromStorage = await _trackRepository.GetAll();
 
+            // TODO: check TrackState here, add missing tracks and ignore removed tracks.
+
             // Only update tracks that are already in our storage.
             var tracksToSave = firstPostedTracksFromJson
                 .Where(x => tracksFromStorage

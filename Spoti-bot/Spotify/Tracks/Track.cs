@@ -24,5 +24,17 @@ namespace Spoti_bot.Spotify.Tracks
         public string AlbumName { get; set; }
         public long AddedByTelegramUserId { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
+        
+        /// <summary>
+        /// Used int since Azure Table Storage doesn't support enums.
+        /// </summary>
+        public int StateValue { get; set; }
+
+        [IgnoreProperty]
+        public TrackState State
+        {
+            get { return (TrackState)StateValue; }
+            set { StateValue = (int)value; }
+        }
     }
 }

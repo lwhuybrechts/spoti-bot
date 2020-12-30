@@ -91,7 +91,9 @@ namespace Spoti_bot.Spotify.Tracks.SyncTracks
         private List<Track> FilterTracksToDelete(List<Track> tracksFromSpotify, List<Track> tracksFromStorage)
         {
             return tracksFromStorage.Where(track =>
-                !tracksFromSpotify.Any(x => x.Id == track.Id)
+                !tracksFromSpotify.Any(x => x.Id == track.Id) &&
+                // Don't delete tracks from storage that are marked as removed.
+                track.State != TrackState.RemovedByDownvotes
             ).ToList();
         }
 

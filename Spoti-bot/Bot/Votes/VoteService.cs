@@ -11,7 +11,7 @@ namespace Spoti_bot.Bot.Votes
 {
     public class VoteService : IVoteService
     {
-        public const int DeleteTrackOnDownvoteCount = 3;
+        public const int RemoveTrackOnDownvoteCount = 3;
 
         private readonly ISendMessageService _sendMessageService;
         private readonly IKeyboardService _keyboardService;
@@ -105,21 +105,28 @@ namespace Spoti_bot.Bot.Votes
         /// </summary>
         private async Task<BotResponseCode> AddVote(UpdateDto updateDto, Vote vote)
         {
+            var responseCode = BotResponseCode.AddVoteHandled;
+
             // Save the vote in storage.
             await _voteRepository.Upsert(vote);
+
+            var votes = await _voteRepository.GetVotes(updateDto.Track.PlaylistId, updateDto.Track.Id);
 
             string newText = null;
             InlineKeyboardMarkup keyboard = null;
             if (vote.Type == VoteType.Downvote)
             {
-                var votes = await _voteRepository.GetVotes(updateDto.Track.PlaylistId, updateDto.Track.Id);
                 var downVotes = votes.Where(x => x.Type == VoteType.Downvote).ToList();
 
-                if (downVotes.Count >= DeleteTrackOnDownvoteCount)
+                // If there are enough downvotes, remove the track.
+                if (downVotes.Count >= RemoveTrackOnDownvoteCount)
                 {
-                    await _removeTrackService.TryRemoveTrackFromPlaylist(updateDto);
+                    responseCode = await _removeTrackService.TryRemoveTrackFromPlaylist(updateDto);
 
-                    newText = $"This track has been removed from the playlist because of {DeleteTrackOnDownvoteCount} downvotes.";
+                    newText = $"This track has been removed from the playlist because of {RemoveTrackOnDownvoteCount} downvotes.";
+
+                    // Add only the See Votes button, so users can see who downvoted.
+                    keyboard = _keyboardService.CreateSeeVotesKeyboard(updateDto.Track);
                 }
             }
 
@@ -130,7 +137,8 @@ namespace Spoti_bot.Bot.Votes
                     ? _voteTextHelper.DecrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type)
                     : _voteTextHelper.IncrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type);
 
-                keyboard = await _keyboardService.GetUpdatedVoteKeyboard(updateDto.ParsedInlineKeyboard, updateDto.Track);
+                // If there are votes, add the See Votes button to the keyboard.
+                keyboard = _keyboardService.AddOrRemoveSeeVotesButton(updateDto.ParsedInlineKeyboard, updateDto.Track, votes.Any());
             }
             
             await EditOriginalMessage(updateDto, newText, keyboard);
@@ -138,7 +146,7 @@ namespace Spoti_bot.Bot.Votes
             // Let telegram know the callback query has been handled.
             await AnswerCallback(updateDto, $"Added {vote.Type}");
 
-            return BotResponseCode.AddVoteHandled;
+            return responseCode;
         }
 
         /// <summary>
@@ -149,7 +157,9 @@ namespace Spoti_bot.Bot.Votes
             // Delete the vote from storage.
             await _voteRepository.Delete(existingVote);
 
-            var keyboard = await _keyboardService.GetUpdatedVoteKeyboard(updateDto.ParsedInlineKeyboard, updateDto.Track);
+            var hasVotes = (await _voteRepository.GetVotes(updateDto.Track.PlaylistId, updateDto.Track.Id)).Any();
+
+            var keyboard = _keyboardService.AddOrRemoveSeeVotesButton(updateDto.ParsedInlineKeyboard, updateDto.Track, hasVotes);
 
             var newText = UseNegativeOperator(existingVote)
                 // Increment or decrement the vote in the original message.

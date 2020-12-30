@@ -30,7 +30,7 @@ namespace Spoti_bot.Spotify.Tracks.RemoveTrack
         {
             if (updateDto.Chat == null ||
                 updateDto.Track == null)
-                return BotResponseCode.NoAction;
+                return BotResponseCode.CommandRequirementNotFulfilled;
 
             var spotifyClient = await _spotifyClientFactory.Create(updateDto.Chat.AdminUserId);
 
@@ -38,13 +38,7 @@ namespace Spoti_bot.Spotify.Tracks.RemoveTrack
             if (spotifyClient == null)
             {
                 await _sendMessageService.SendTextMessage(updateDto.Chat.Id, "Spoti-bot is not authorized to remove this track from the Spotify playlist.");
-                return BotResponseCode.NoAction;
-            }
-
-            if (updateDto.Track == null)
-            {
-                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, "Track not found in storage :(");
-                return BotResponseCode.NoAction;
+                return BotResponseCode.CommandRequirementNotFulfilled;
             }
 
             await RemoveTrack(spotifyClient, updateDto.Track);
@@ -54,7 +48,11 @@ namespace Spoti_bot.Spotify.Tracks.RemoveTrack
 
         private async Task RemoveTrack(ISpotifyClient spotifyClient, Track track)
         {
-            await _trackRepository.Delete(track);
+            // Mark the track as removed and save it.
+            track.State = TrackState.RemovedByDownvotes;
+
+            await _trackRepository.Upsert(track);
+
             // Remove the track from the spotify playlist.
             await _spotifyClientService.RemoveTrackFromPlaylist(spotifyClient, track.Id, track.PlaylistId);
         }
