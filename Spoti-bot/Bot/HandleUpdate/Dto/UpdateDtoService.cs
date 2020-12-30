@@ -247,6 +247,9 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
         {
             var text = textMessage.Text;
 
+            if (textMessage.Entities == null)
+                return text;
+
             foreach (var textLinkEntity in textMessage.Entities.Where(x => x.Type == MessageEntityType.TextLink))
             {
                 var firstPart = text.Substring(0, textLinkEntity.Offset);
