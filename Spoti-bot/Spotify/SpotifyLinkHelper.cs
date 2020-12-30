@@ -71,6 +71,9 @@ namespace Spoti_bot.Spotify
         /// <param name="text">The text to get the trackId from.</param>
         public async Task<string> ParseTrackId(string text)
         {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
             // Check for a "classic" spotify url.
             if (HasTrackIdLink(text))
                 return ParseTrackIdLink(text);
