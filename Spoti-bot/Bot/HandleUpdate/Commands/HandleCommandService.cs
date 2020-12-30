@@ -190,8 +190,11 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             var responseText = $"Spoti-bot is added to the chat, {admin.FirstName} is it's admin.";
 
             IReplyMarkup keyboard = null;
-            // Check if the user has already logged in to Spotify.
-            if (_authorizationTokenRepository.Get(admin.Id) != null)
+            var token = await _authorizationTokenRepository.Get(admin.Id);
+            // Check if the user has already logged in to Spotify and has the right scopes.
+            if (token != null &&
+                token.Scope.Contains(SpotifyAPI.Web.Scopes.PlaylistModifyPrivate) &&
+                token.Scope.Contains(SpotifyAPI.Web.Scopes.PlaylistModifyPublic))
                 responseText += $"\n\nPlease set the spotify playlist for this chat by sending the {Command.SetPlaylist.ToDescriptionString()} command.";
             else
             {

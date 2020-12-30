@@ -67,7 +67,10 @@ namespace Spoti_bot.Bot.HandleUpdate
                     return BotResponseCode.AddToQueueHandled;
                 }
 
-                await _spotifyClientService.AddToQueue(spotifyClient, updateDto.Track);
+                if (await _spotifyClientService.AddToQueue(spotifyClient, updateDto.Track))
+                    await _sendMessageService.AnswerCallbackQuery(updateDto.ParsedUpdateId, "Track added to your queue.");
+                else
+                    await _sendMessageService.AnswerCallbackQuery(updateDto.ParsedUpdateId, "Could not add track to your queue, play something first!");
 
                 return BotResponseCode.AddToQueueHandled;
             }

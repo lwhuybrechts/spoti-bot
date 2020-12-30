@@ -86,7 +86,7 @@ namespace Spoti_bot.Spotify.Api
             }
             catch (APIException exception)
             {
-                // Adding to the queue only works when I'm playing something in Spotify, else we get an NotFound response.
+                // Adding to the queue only works when the user is playing something in Spotify, else we get a NotFound response.
                 if (exception?.Response?.StatusCode == System.Net.HttpStatusCode.NotFound)
                     return false;
 
