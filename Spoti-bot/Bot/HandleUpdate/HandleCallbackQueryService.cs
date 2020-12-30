@@ -114,7 +114,8 @@ namespace Spoti_bot.Bot.HandleUpdate
         private static bool IsAddToQueueCallback(UpdateDto updateDto)
         {
             return !string.IsNullOrEmpty(updateDto.ParsedData) &&
-                updateDto.ParsedData.Equals(KeyboardService.AddToQueueButtonText);
+                (updateDto.ParsedData.Equals(KeyboardService.AddToQueueButtonText) ||
+                 updateDto.ParsedData.Equals(KeyboardService.AddToQueueButtonTextLegacy));
         }
     }
 }

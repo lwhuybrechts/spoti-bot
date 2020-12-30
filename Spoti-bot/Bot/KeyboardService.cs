@@ -14,7 +14,8 @@ namespace Spoti_bot.Bot
     {
         public const string UpvoteButtonText = "👍";
         public const string DownvoteButtonText = "👎";
-        public const string AddToQueueButtonText = "🕒";
+        public const string AddToQueueButtonText = "➕";
+        public const string AddToQueueButtonTextLegacy = "🕒";
 
         private const string SeeVotesButtonTextLegacy = "See upvotes";
         private const string SeeVotesButtonText = "👥";
