@@ -9,6 +9,12 @@ using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Exceptions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Spoti_bot.Spotify.Authorization;
+using Spoti_bot.Bot;
+using Spoti_bot.Bot.HandleUpdate.Commands;
+using Spoti_bot.Library;
+using Spoti_bot.Bot.Chats;
+using Spoti_bot.Spotify.Tracks;
+using Spoti_bot.Spotify.Api;
 
 namespace Spoti_bot
 {
@@ -18,11 +24,28 @@ namespace Spoti_bot
         public const string ErrorMessage = "Could not authorize Spoti-bot, code is invalid.";
 
         private readonly IAuthorizationService _spotifyAuthorizationService;
+        private readonly ISendMessageService _sendMessageService;
+        private readonly IChatRepository _chatRepository;
+        private readonly ITrackRepository _trackRepository;
+        private readonly ISpotifyClientFactory _spotifyClientFactory;
+        private readonly ISpotifyClientService _spotifyClientService;
         private readonly Library.Options.SentryOptions _sentryOptions;
 
-        public Callback(IAuthorizationService spotifyAuthorizationService, IOptions<Library.Options.SentryOptions> sentryOptions)
+        public Callback(
+            IAuthorizationService spotifyAuthorizationService,
+            ISendMessageService sendMessageService,
+            IChatRepository chatRepository,
+            ITrackRepository trackRepository,
+            ISpotifyClientFactory spotifyClientFactory,
+            ISpotifyClientService spotifyClientService,
+            IOptions<Library.Options.SentryOptions> sentryOptions)
         {
             _spotifyAuthorizationService = spotifyAuthorizationService;
+            _sendMessageService = sendMessageService;
+            _chatRepository = chatRepository;
+            _trackRepository = trackRepository;
+            _spotifyClientFactory = spotifyClientFactory;
+            _spotifyClientService = spotifyClientService;
             _sentryOptions = sentryOptions.Value;
         }
 
@@ -37,16 +60,18 @@ namespace Spoti_bot
                     (string code, string loginRequestId) = GetQueryParameters(httpRequest);
 
                     // Request and save an AuthorizationToken which we can use to do calls to the spotify api.
-                    await _spotifyAuthorizationService.RequestAndSaveAuthorizationToken(code, loginRequestId);
+                    var loginRequest = await _spotifyAuthorizationService.RequestAndSaveAuthorizationToken(code, loginRequestId);
 
-                    // Send a reply that is visible in the browser where the used just logged in.
+                    await RespondInChat(loginRequest);
+
+                    // Send a reply that is visible in the browser where the user just logged in.
                     return new OkObjectResult(SuccessMessage);
                 }
                 catch (Exception exception)
                 {
                     SentrySdk.CaptureException(exception);
 
-                    // Send a reply that is visible in the browser where the used just logged in.
+                    // Send a reply that is visible in the browser where the user just logged in.
                     return new OkObjectResult(ErrorMessage);
                 }
             }
@@ -75,6 +100,66 @@ namespace Spoti_bot
             return httpRequest.Query.ContainsKey(key)
                 ? httpRequest.Query[key].ToString()
                 : string.Empty;
+        }
+
+        // TODO: refactor.
+        private async Task RespondInChat(LoginRequest loginRequest)
+        {
+            const string successMessage = "Spoti-bot is now authorized, awesome!";
+
+            switch (loginRequest.Reason)
+            {
+                case LoginRequestReason.AddToQueue:
+                    var trackId = loginRequest.TrackId;
+                    var chatId = loginRequest.GroupChatId;
+
+                    if (string.IsNullOrEmpty(trackId) || !chatId.HasValue)
+                    {
+                        await _sendMessageService.SendTextMessage(loginRequest.PrivateChatId, successMessage);
+                        return;
+                    }
+
+                    var chat = await _chatRepository.Get(chatId.Value);
+
+                    if (chat == null)
+                    {
+                        await _sendMessageService.SendTextMessage(loginRequest.PrivateChatId, successMessage);
+                        return;
+                    }
+
+                    var track = await _trackRepository.Get(trackId, chat.PlaylistId);
+
+                    if (track == null)
+                    {
+                        await _sendMessageService.SendTextMessage(loginRequest.PrivateChatId, successMessage);
+                        return;
+                    }
+
+                    var spotifyClient = await _spotifyClientFactory.Create(loginRequest.UserId);
+
+                    if (!await _spotifyClientService.AddToQueue(spotifyClient, track))
+                    {
+                        await _sendMessageService.SendTextMessage(loginRequest.PrivateChatId, successMessage);
+                        return;
+                    }
+
+                    // Answer in the private chat.
+                    await _sendMessageService.SendTextMessage(loginRequest.PrivateChatId, $"{successMessage}\n\n_{track.Name}_ is now added to your queue.");
+                    return;
+                case LoginRequestReason.AddBotToGroupChat:
+                    // Answer in the private chat.
+                    var privateChatText = $"{successMessage}\n\nPlease return to the group chat for the last step.";
+                    await _sendMessageService.SendTextMessage(loginRequest.PrivateChatId, privateChatText);
+
+                    // Answer in the group chat.
+                    var groupChatText = $"{successMessage}\n\nThe last step is to set the desired playlist with the {Command.SetPlaylist.ToDescriptionString()} command.";
+                    await _sendMessageService.SendTextMessage(loginRequest.GroupChatId.Value, groupChatText);
+                    return;
+                case LoginRequestReason.LoginLinkCommand:
+                    // Answer in the private chat.
+                    await _sendMessageService.SendTextMessage(loginRequest.PrivateChatId, successMessage);
+                    return;
+            }
         }
     }
 }

@@ -71,7 +71,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
                 Command.Start => updateDto.ParsedChat?.Type == ChatType.Private
                     ? HandleStartInPrivateChat(updateDto)
                     : HandleStartInGroupChat(updateDto),
-                Command.GetLoginLink => HandleGetLoginLink(updateDto),
+                Command.GetLoginLink => HandleGetLoginLink(updateDto, LoginRequestReason.LoginLinkCommand),
                 Command.ResetPlaylistStorage => HandleResetPlaylistStorage(updateDto),
                 Command.SetPlaylist => HandleSetPlaylist(updateDto),
                 _ => throw new NotImplementedException($"Command {command} has no handle function defined.")
@@ -113,14 +113,60 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         /// </summary>
         private async Task<BotResponseCode> HandleStartInPrivateChat(UpdateDto updateDto)
         {
-            // The Start command in private chats should have a chatId as a query.
+            // The Start command in private chats should have a query.
             if (!_commandsService.HasQuery(updateDto.ParsedTextMessage, Command.Start))
                 return BotResponseCode.CommandRequirementNotFulfilled;
 
-            if (!int.TryParse(_commandsService.GetQuery(updateDto.ParsedTextMessage, Command.Start), out var chatId))
-                return BotResponseCode.CommandRequirementNotFulfilled;
-            
-            return await HandleGetLoginLink(updateDto, chatId);
+            var queries = _commandsService.GetQueries(updateDto.ParsedTextMessage, Command.Start);
+
+            // TODO: the start command only supports one query, so the values are concatenated with underscores.
+            // Find a better solution.
+            if (queries[1].StartsWith(LoginRequestReason.AddToQueue.ToString()))
+            {
+                var firstUnderScore = queries[1].IndexOf('_');
+                var secondUnderScore = queries[1].LastIndexOf('_');
+
+                var firstPart = queries[1].Substring(0, firstUnderScore);
+                var secondPart = queries[1].Substring(firstUnderScore + 1, secondUnderScore - firstUnderScore - 1);
+                var lastPart = queries[1].Substring(secondUnderScore + 1);
+
+                queries[1] = firstPart;
+                queries[2] = secondPart;
+                queries[3] = lastPart;
+            }
+            else if (queries[1].StartsWith(LoginRequestReason.AddBotToGroupChat.ToString()))
+            {
+                var firstUnderScore = queries[1].IndexOf('_');
+
+                var firstPart = queries[1].Substring(0, firstUnderScore);
+                var secondPart = queries[1].Substring(firstUnderScore + 1);
+
+                queries[1] = firstPart;
+                queries[2] = secondPart;
+            }
+
+            // TODO: refactor.
+            if (queries[1] == LoginRequestReason.AddToQueue.ToString())
+            {
+                var groupChatId = queries[2];
+                var trackId = queries[3];
+
+                if (!int.TryParse(groupChatId, out var parsedGroupChatId))
+                    return BotResponseCode.CommandRequirementNotFulfilled;
+
+                return await HandleGetLoginLink(updateDto, LoginRequestReason.AddToQueue, parsedGroupChatId, trackId);
+            }
+            else if (queries[1] == LoginRequestReason.AddBotToGroupChat.ToString())
+            {
+                var groupChatId = queries[2];
+                
+                if (!int.TryParse(groupChatId, out var parsedGroupChatId))
+                    return BotResponseCode.CommandRequirementNotFulfilled;
+
+                return await HandleGetLoginLink(updateDto, LoginRequestReason.AddBotToGroupChat, parsedGroupChatId);
+            }
+
+            return BotResponseCode.CommandRequirementNotFulfilled;
         }
 
         /// <summary>
@@ -158,21 +204,28 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         }
 
         /// <summary>
-        /// The GetLoginLink command will let the admin login to spotify and save it's accesstoken.
+        /// The GetLoginLink command will let the used login to spotify and save it's accesstoken.
         /// </summary>
-        private async Task<BotResponseCode> HandleGetLoginLink(UpdateDto updateDto, long? groupChatId = null)
+        private async Task<BotResponseCode> HandleGetLoginLink(UpdateDto updateDto, LoginRequestReason reason, long? groupChatId = null, string trackId = null)
         {
-            if (groupChatId.HasValue)
+            if (reason == LoginRequestReason.AddBotToGroupChat)
             {
+                if (!groupChatId.HasValue)
+                    return BotResponseCode.CommandRequirementNotFulfilled;
+
                 // Only the admin can request a login link for a group.
                 var groupChat = await _chatRepository.Get(groupChatId.Value);
                 if (groupChat == null || groupChat.AdminUserId != updateDto.ParsedUser.Id)
                     return BotResponseCode.CommandRequirementNotFulfilled;
             }
 
-            var responseText = "Please login to authorize Spoti-Bot.\nIt needs access to your playlists and to your queue.";
+            var accessText = reason == LoginRequestReason.AddToQueue
+                ? "queue"
+                : "playlists and to your queue";
+            var responseText = "Please login to authorize Spoti-Bot.\n" +
+                $"It needs access to your {accessText}. Don't worry, this is only needed once!";
 
-            var loginRequestUri = await _spotifyAuthorizationService.CreateLoginRequest(updateDto.ParsedUser.Id, groupChatId, updateDto.ParsedChat.Id);
+            var loginRequestUri = await _spotifyAuthorizationService.CreateLoginRequest(updateDto.ParsedUser.Id, reason, groupChatId, updateDto.ParsedChat.Id, trackId);
             
             var keyboard = _keyboardService.CreateUrlKeyboard("Login to Spotify", loginRequestUri.ToString());
 

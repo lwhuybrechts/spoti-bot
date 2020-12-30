@@ -3,6 +3,7 @@ using Spoti_bot.Bot.Users;
 using Spoti_bot.Bot.Votes;
 using Spoti_bot.Library;
 using Spoti_bot.Spotify;
+using Spoti_bot.Spotify.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -50,7 +51,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
                 return BotResponseCode.CommandRequirementNotFulfilled;
 
             var switchPmText = "Connect in private chat";
-            var switchPmParameter = groupChatId;
+            var switchPmParameter = $"{LoginRequestReason.AddBotToGroupChat}_{groupChatId}";
 
             await _sendMessageService.AnswerInlineQuery(updateDto.ParsedUpdateId, new List<InlineQueryResultArticle>(), switchPmText, switchPmParameter);
 

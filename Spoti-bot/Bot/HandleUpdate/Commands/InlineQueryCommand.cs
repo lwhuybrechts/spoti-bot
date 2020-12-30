@@ -11,7 +11,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         [RequiresQuery]
         GetVoteUsers,
 
-        [Description("next step")]
+        [Description("connect")]
         Connect
     }
 }

@@ -50,7 +50,7 @@ namespace Spoti_bot
     {
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
-            // TODO: breakpoint all dependencies and check if they are constructed as expected.
+            // TODO: Check if the dependency tree is efficient enough.
 
             // Bot dependencies.
             services.AddTransient<ICommandsService, CommandsService>();

@@ -77,18 +77,18 @@ namespace Spoti_bot.Spotify.Api
             await spotifyClient.Playlists.RemoveItems(playlistId, removeRequest);
         }
 
-        public async Task AddToQueue(ISpotifyClient spotifyClient, Track track)
+        public async Task<bool> AddToQueue(ISpotifyClient spotifyClient, Track track)
         {
             try
             {
                 await spotifyClient.Player.AddToQueue(new PlayerAddToQueueRequest($"{_trackInlineBaseUri}{track.Id}"));
-                return;
+                return true;
             }
             catch (APIException exception)
             {
                 // Adding to the queue only works when I'm playing something in Spotify, else we get an NotFound response.
                 if (exception?.Response?.StatusCode == System.Net.HttpStatusCode.NotFound)
-                    return;
+                    return false;
 
                 throw;
             }

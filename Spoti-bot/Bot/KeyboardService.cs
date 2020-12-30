@@ -12,10 +12,12 @@ namespace Spoti_bot.Bot
 {
     public class KeyboardService : IKeyboardService
     {
-        private const string SeeVotesButtonTextLegacy = "See upvotes";
-        private const string SeeVotesButtonText = "👥";
         public const string UpvoteButtonText = "👍";
         public const string DownvoteButtonText = "👎";
+        public const string AddToQueueButtonText = "🕒";
+
+        private const string SeeVotesButtonTextLegacy = "See upvotes";
+        private const string SeeVotesButtonText = "👥";
         private const string SpotiViewButtonText = "🔗";
         private readonly IVoteRepository _voteRepository;
 
@@ -54,6 +56,9 @@ namespace Spoti_bot.Bot
                 buttons.Add(InlineKeyboardButton.WithCallbackData(GetVoteButtonText(voteType)));
 
             // TODO: move url to a setting.
+
+            // Add a Add to Queue button.
+            buttons.Add(InlineKeyboardButton.WithCallbackData(AddToQueueButtonText));
 
             // Add a button with a link to the front-end.
             buttons.Add(InlineKeyboardButton.WithUrl(SpotiViewButtonText, "https://skranenburg.outsystemscloud.com/SpotiView/"));

@@ -1,9 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using Spoti_bot.Bot;
+using Spoti_bot.Bot.Chats;
 using Spoti_bot.IntegrationTests.Library;
 using Spoti_bot.Library.Options;
+using Spoti_bot.Spotify.Api;
 using Spoti_bot.Spotify.Authorization;
+using Spoti_bot.Spotify.Tracks;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -26,9 +30,14 @@ namespace Spoti_bot.IntegrationTests
             _loginRequestRepository = testHost.GetService<ILoginRequestRepository>();
 
             var spotifyAuthorizationService = testHost.GetService<IAuthorizationService>();
+            var sendMessageService = testHost.GetService<ISendMessageService>();
+            var chatRepository = testHost.GetService<IChatRepository>();
+            var trackRepository = testHost.GetService<ITrackRepository>();
             var sentryOptions = testHost.GetService<IOptions<SentryOptions>>();
+            var spotifyClientFactory = testHost.GetService<ISpotifyClientFactory>();
+            var spotifyClientService = testHost.GetService<ISpotifyClientService>();
 
-            _sut = new Callback(spotifyAuthorizationService, sentryOptions);
+            _sut = new Callback(spotifyAuthorizationService, sendMessageService, chatRepository, trackRepository, spotifyClientFactory, spotifyClientService, sentryOptions);
         }
 
         private async Task TruncateTables()

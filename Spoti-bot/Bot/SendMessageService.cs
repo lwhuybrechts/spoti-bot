@@ -36,11 +36,11 @@ namespace Spoti_bot.Bot
             return _telegramBotClient.EditMessageTextAsync(chatId, messageId, text, parseMode, disableWebPagePreview, replyMarkup);
         }
 
-        public async Task AnswerCallbackQuery(string callbackQueryId, string text = null)
+        public async Task AnswerCallbackQuery(string callbackQueryId, string text = null, string url = null)
         {
             try
             {
-                await _telegramBotClient.AnswerCallbackQueryAsync(callbackQueryId, text);
+                await _telegramBotClient.AnswerCallbackQueryAsync(callbackQueryId, text, url: url);
             }
             catch (InvalidParameterException exception)
             {

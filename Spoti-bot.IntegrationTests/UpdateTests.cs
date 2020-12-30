@@ -262,7 +262,7 @@ namespace Spoti_bot.IntegrationTests
             // Arrange.
             await TruncateTables();
 
-            var text = $"{Command.Start.ToDescriptionString()} {_testOptions.GroupTestChatId}";
+            var text = $"{Command.Start.ToDescriptionString()} {LoginRequestReason.AddBotToGroupChat}_{_testOptions.GroupTestChatId}";
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateRequest(stream, text, isPrivateChat: true);
@@ -284,7 +284,7 @@ namespace Spoti_bot.IntegrationTests
             var otherUserId = user.Id - 1;
             var chat = await InsertChat(otherUserId);
 
-            var text = $"{Command.Start.ToDescriptionString()} {chat.Id}";
+            var text = $"{Command.Start.ToDescriptionString()} {LoginRequestReason.AddBotToGroupChat}_{chat.Id}";
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateRequest(stream, text, isPrivateChat: true);
@@ -305,7 +305,7 @@ namespace Spoti_bot.IntegrationTests
             await InsertUser();
             var chat = await InsertChat();
 
-            var text = $"{Command.Start.ToDescriptionString()} {chat.Id}";
+            var text = $"{Command.Start.ToDescriptionString()} {LoginRequestReason.AddBotToGroupChat}_{chat.Id}";
 
             using var stream = new MemoryStream();
             var httpRequest = await CreateRequest(stream, text, isPrivateChat: true);
@@ -1044,6 +1044,10 @@ namespace Spoti_bot.IntegrationTests
         {
             // Arramge.
             await TruncateTables();
+
+            await InsertUser();
+            await InsertVote(VoteType.Upvote);
+            await InsertVote(VoteType.Downvote);
 
             var query = $"{InlineQueryCommand.GetVoteUsers.ToDescriptionString()} {_testOptions.TestPlaylistId} {_testOptions.TestTrackId}";
 

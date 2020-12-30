@@ -13,6 +13,6 @@ namespace Spoti_bot.Spotify.Api
         Task<List<Track>> GetTracks(ISpotifyClient spotifyClient, string playlistId);
         Task AddTrackToPlaylist(ISpotifyClient spotifyClient, Track track);
         Task RemoveTrackFromPlaylist(ISpotifyClient spotifyClient, string trackId, string playlistId);
-        Task AddToQueue(ISpotifyClient spotifyClient, Track track);
+        Task<bool> AddToQueue(ISpotifyClient spotifyClient, Track track);
     }
 }

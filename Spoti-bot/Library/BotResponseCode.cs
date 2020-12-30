@@ -15,6 +15,7 @@
         TrackRemovedFromPlaylist,
         AddVoteHandled,
         RemoveVoteHandled,
+        AddToQueueHandled,
         InlineQueryHandled,
         ExceptionHandled
     }
