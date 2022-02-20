@@ -21,7 +21,9 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         /// <returns>A text to reply to the chat with.</returns>
         public string GetSuccessResponseText(UpdateDto updateDto, Track track)
         {
-            var successMessage = $"Track added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(track.PlaylistId, "playlist")}!";
+            var successMessage = $"*{track.Name}*\n" +
+                $"{track.FirstArtistName} · {track.AlbumName}\n\n" +
+                $"Track added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(track.PlaylistId, "playlist")}!";
 
             // TODO: inject random wrapper so this service is testable.
             var random = new Random();
