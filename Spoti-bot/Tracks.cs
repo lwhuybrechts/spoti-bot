@@ -7,8 +7,6 @@ using Spoti_bot.Library.Exceptions;
 using Microsoft.Extensions.Options;
 using Sentry;
 using System;
-using AutoMapper;
-using System.Collections.Generic;
 using Spoti_bot.Spotify.Tracks;
 using System.Linq;
 
@@ -17,10 +15,10 @@ namespace Spoti_bot
     public class Tracks
     {
         private readonly ITrackRepository _trackRepository;
-        private readonly IMapper _mapper;
+        private readonly ApiModels.IMapper _mapper;
         private readonly Library.Options.SentryOptions _sentryOptions;
 
-        public Tracks(ITrackRepository trackRepository, IMapper mapper, IOptions<Library.Options.SentryOptions> sentryOptions)
+        public Tracks(ITrackRepository trackRepository, ApiModels.IMapper mapper, IOptions<Library.Options.SentryOptions> sentryOptions)
         {
             _trackRepository = trackRepository;
             _mapper = mapper;
@@ -45,7 +43,7 @@ namespace Spoti_bot
                     tracks = tracks.Where(x => x.State != TrackState.RemovedByDownvotes).ToList();
 
                     // Map the tracks to api models.
-                    var apiTracks = _mapper.Map<List<ApiModels.Track>>(tracks);
+                    var apiTracks = _mapper.Map(tracks);
                     
                     return new OkObjectResult(apiTracks);
                 }

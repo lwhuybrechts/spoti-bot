@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.Cosmos.Table;
+﻿using Microsoft.WindowsAzure.Storage.Table;
 
 namespace Spoti_bot.Bot.Users
 {

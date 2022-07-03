@@ -7,8 +7,6 @@ using Spoti_bot.Library.Exceptions;
 using Microsoft.Extensions.Options;
 using Sentry;
 using System;
-using AutoMapper;
-using System.Collections.Generic;
 using Spoti_bot.Bot.Votes;
 using System.Linq;
 
@@ -17,10 +15,10 @@ namespace Spoti_bot
     public class Upvotes
     {
         private readonly IVoteRepository _voteRepository;
-        private readonly IMapper _mapper;
+        private readonly ApiModels.IMapper _mapper;
         private readonly Library.Options.SentryOptions _sentryOptions;
 
-        public Upvotes(IVoteRepository voteRepository, IMapper mapper, IOptions<Library.Options.SentryOptions> sentryOptions)
+        public Upvotes(IVoteRepository voteRepository, ApiModels.IMapper mapper, IOptions<Library.Options.SentryOptions> sentryOptions)
         {
             _voteRepository = voteRepository;
             _mapper = mapper;
@@ -43,7 +41,7 @@ namespace Spoti_bot
                     var upvotes = votes.Where(x => x.Type == VoteType.Upvote).ToList();
 
                     // Map the upvotes to api models.
-                    var apiUpvotes = _mapper.Map<List<ApiModels.Upvote>>(upvotes);
+                    var apiUpvotes = _mapper.Map(upvotes);
 
                     return new OkObjectResult(apiUpvotes);
                 }

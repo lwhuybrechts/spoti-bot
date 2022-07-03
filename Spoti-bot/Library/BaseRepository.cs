@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.Cosmos.Table;
+﻿using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -258,7 +258,6 @@ namespace Spoti_bot.Library
                     batch.Add(TableOperation.InsertOrReplace(item));
                     break;
                 case TableOperationType.Retrieve:
-                case TableOperationType.Invalid:
                     throw new ArgumentOutOfRangeException(nameof(tableOperationType),
                         $"TableOperationType {tableOperationType} not supported for {nameof(AddTableOperationToBatch)}.");
             }

@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify.Authorization;
 using SpotifyAPI.Web;
@@ -40,7 +39,7 @@ namespace Spoti_bot.Spotify.Api
                 return null;
 
             // Map the token to a model the Spotify library can work with.
-            var tokenResponse = _mapper.Map<AuthorizationCodeTokenResponse>(token);
+            var tokenResponse = _mapper.Map(token);
 
             // TODO: inject singleton httpclient from startup.
             var config = SpotifyClientConfig

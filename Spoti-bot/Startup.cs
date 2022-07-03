@@ -1,9 +1,8 @@
-﻿using AutoMapper;
-using Microsoft.Azure.Cosmos.Table;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using Microsoft.WindowsAzure.Storage;
 using Spoti_bot.Bot;
 using Spoti_bot.Bot.Chats;
 using Spoti_bot.Bot.HandleUpdate;
@@ -53,50 +52,49 @@ namespace Spoti_bot
             // TODO: Check if the dependency tree is efficient enough.
 
             // Bot dependencies.
-            services.AddTransient<ICommandsService, CommandsService>();
-            services.AddTransient<IHandleMessageService, HandleMessageService>();
-            services.AddTransient<IHandleCallbackQueryService, HandleCallbackQueryService>();
-            services.AddTransient<IHandleInlineQueryService, HandleInlineQueryService>();
-            services.AddTransient<IHandleCommandService, HandleCommandService>();
-            services.AddTransient<IHandleInlineQueryCommandService, HandleInlineQueryCommandService>();
-            services.AddTransient<IUpdateDtoService, UpdateDtoService>();
-            services.AddTransient<ISendMessageService, SendMessageService>();
-            services.AddTransient<IKeyboardService, KeyboardService>();
-            services.AddTransient<IUserService, UserService>();
-            services.AddTransient<IVoteService, VoteService>();
-            services.AddTransient<IVoteTextHelper, VoteTextHelper>();
-            services.AddTransient<IUserRepository, UserRepository>();
-            services.AddTransient<IVoteRepository, VoteRepository>();
-            services.AddTransient<IChatRepository, ChatRepository>();
-            services.AddTransient<IChatMemberRepository, ChatMemberRepository>();
+            return services
+                .AddTransient<ICommandsService, CommandsService>()
+                .AddTransient<IHandleMessageService, HandleMessageService>()
+                .AddTransient<IHandleCallbackQueryService, HandleCallbackQueryService>()
+                .AddTransient<IHandleInlineQueryService, HandleInlineQueryService>()
+                .AddTransient<IHandleCommandService, HandleCommandService>()
+                .AddTransient<IHandleInlineQueryCommandService, HandleInlineQueryCommandService>()
+                .AddTransient<IUpdateDtoService, UpdateDtoService>()
+                .AddTransient<ISendMessageService, SendMessageService>()
+                .AddTransient<IKeyboardService, KeyboardService>()
+                .AddTransient<IUserService, UserService>()
+                .AddTransient<IVoteService, VoteService>()
+                .AddTransient<IVoteTextHelper, VoteTextHelper>()
+                .AddTransient<IUserRepository, UserRepository>()
+                .AddTransient<IVoteRepository, VoteRepository>()
+                .AddTransient<IChatRepository, ChatRepository>()
+                .AddTransient<IChatMemberRepository, ChatMemberRepository>()
 
-            // TODO: only use 1 http client, so inject it here.
-            services.AddSingleton<ITelegramBotClient>((serviceProvider) =>
-            {
-                var options = serviceProvider.GetService<IOptions<TelegramOptions>>().Value;
+                // TODO: only use 1 http client, so inject it here.
+                .AddSingleton<ITelegramBotClient>((serviceProvider) =>
+                {
+                    var options = serviceProvider.GetService<IOptions<TelegramOptions>>().Value;
 
-                return new TelegramBotClient(options.AccessToken);
-            });
+                    return new TelegramBotClient(options.AccessToken);
+                })
 
-            // Spotify dependencies.
-            services.AddTransient<IAuthorizationService, AuthorizationService>();
-            services.AddTransient<ILoginRequestService, LoginRequestService>();
-            services.AddTransient<IAddTrackService, AddTrackService>();
-            services.AddTransient<IRemoveTrackService, RemoveTrackService>();
-            services.AddTransient<ISyncTracksService, SyncTracksService>();
-            services.AddTransient<ISyncHistoryService, SyncHistoryService>();
-            services.AddTransient<IParseHistoryJsonService, ParseHistoryJsonService>();
-            services.AddTransient<ISpotifyLinkHelper, SpotifyLinkHelper>();
-            services.AddTransient<ISuccessResponseService, SuccessResponseService>();
-            services.AddTransient<IAuthorizationTokenRepository, AuthorizationTokenRepository>();
-            services.AddTransient<ILoginRequestRepository, LoginRequestRepository>();
-            services.AddTransient<ITrackRepository, TrackRepository>();
-            services.AddTransient<IPlaylistRepository, PlaylistRepository>();
+                // Spotify dependencies.
+                .AddTransient<IAuthorizationService, AuthorizationService>()
+                .AddTransient<ILoginRequestService, LoginRequestService>()
+                .AddTransient<IAddTrackService, AddTrackService>()
+                .AddTransient<IRemoveTrackService, RemoveTrackService>()
+                .AddTransient<ISyncTracksService, SyncTracksService>()
+                .AddTransient<ISyncHistoryService, SyncHistoryService>()
+                .AddTransient<IParseHistoryJsonService, ParseHistoryJsonService>()
+                .AddTransient<ISpotifyLinkHelper, SpotifyLinkHelper>()
+                .AddTransient<ISuccessResponseService, SuccessResponseService>()
+                .AddTransient<IAuthorizationTokenRepository, AuthorizationTokenRepository>()
+                .AddTransient<ILoginRequestRepository, LoginRequestRepository>()
+                .AddTransient<ITrackRepository, TrackRepository>()
+                .AddTransient<IPlaylistRepository, PlaylistRepository>()
 
-            services.AddTransient<ISpotifyClientFactory, SpotifyClientFactory>();
-            services.AddTransient<ISpotifyClientService, SpotifyClientService>();
-
-            return services;
+                .AddTransient<ISpotifyClientFactory, SpotifyClientFactory>()
+                .AddTransient<ISpotifyClientService, SpotifyClientService>();
         }
 
         /// <summary>
@@ -106,7 +104,7 @@ namespace Spoti_bot
         public static IServiceCollection AddStorage(this IServiceCollection services)
         {
             // Add the CloudTableClient as a singleton.
-            services.AddSingleton((serviceProvider) =>
+            return services.AddSingleton((serviceProvider) =>
             {
                 var options = serviceProvider.GetService<IOptions<AzureOptions>>().Value;
 
@@ -115,8 +113,6 @@ namespace Spoti_bot
 
                 return cloudTableClient;
             });
-
-            return services;
         }
 
         /// <summary>
@@ -125,10 +121,13 @@ namespace Spoti_bot
         /// <param name="services">The service we want to add our mapper to.</param>
         public static IServiceCollection AddMapper(this IServiceCollection services)
         {
-            // AutoMapper scans all classes in our project that inherit from Profile.
-            services.AddAutoMapper(typeof(Startup));
-            
-            return services;
+            return services
+                .AddTransient<ApiModels.IMapper, ApiModels.Mapper>()
+                .AddTransient<Bot.Chats.IMapper, Bot.Chats.Mapper>()
+                .AddTransient<Bot.Users.IMapper, Bot.Users.Mapper>()
+                .AddTransient<Spotify.Authorization.IMapper, Spotify.Authorization.Mapper>()
+                .AddTransient<Spotify.Playlists.IMapper, Spotify.Playlists.Mapper>()
+                .AddTransient<Spotify.Tracks.IMapper, Spotify.Tracks.Mapper>();
         }
 
         /// <summary>

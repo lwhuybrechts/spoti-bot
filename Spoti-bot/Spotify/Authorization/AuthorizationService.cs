@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Spoti_bot.Bot;
 using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Library.Options;
@@ -76,7 +75,7 @@ namespace Spoti_bot.Spotify.Authorization
             if (accessToken == null)
                 throw new AccessTokenNullException();
 
-            var token = _mapper.Map<AuthorizationToken>(accessToken);
+            var token = _mapper.Map(accessToken);
             token.UserId = loginRequest.UserId;
 
             // Save the token.

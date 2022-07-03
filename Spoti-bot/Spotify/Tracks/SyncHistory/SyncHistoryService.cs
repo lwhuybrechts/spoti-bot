@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,7 +50,7 @@ namespace Spoti_bot.Spotify.Tracks.SyncHistory
                 ).ToList();
 
             // Save the tracks to storage.
-            await _trackRepository.Upsert(_mapper.Map<List<Track>>(tracksToSave));
+            await _trackRepository.Upsert(_mapper.Map(tracksToSave));
 
             return tracksToSave.Count;
         }

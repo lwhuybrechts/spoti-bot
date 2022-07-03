@@ -27,7 +27,8 @@ namespace Spoti_bot.Bot.HandleUpdate
             if (!CanHandleInlineQuery(updateDto))
             {
                 // If there is an id, let telegram know the inline query has been handled.
-                if (!string.IsNullOrEmpty(updateDto.ParsedUpdateId))
+                if (!string.IsNullOrEmpty(updateDto.ParsedUpdateId) &&
+                    updateDto.ParsedUpdateId != "0")
                     await _sendMessageService.AnswerInlineQuery(updateDto.ParsedUpdateId, new List<InlineQueryResultArticle>());
                 
                 return BotResponseCode.NoAction;

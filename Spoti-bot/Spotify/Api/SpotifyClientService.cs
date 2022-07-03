@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Sentry;
+﻿using Sentry;
 using Spoti_bot.Library.Exceptions;
 using Spoti_bot.Spotify.Playlists;
 using Spoti_bot.Spotify.Tracks;
@@ -12,23 +11,25 @@ namespace Spoti_bot.Spotify.Api
 {
     public class SpotifyClientService : ISpotifyClientService
     {
-        private readonly IMapper _mapper;
+        private readonly Tracks.IMapper _tracksMapper;
+        private readonly Playlists.IMapper _playlistsMapper;
 
         private const string _trackInlineBaseUri = "spotify:track:";
 
-        public SpotifyClientService(IMapper mapper)
+        public SpotifyClientService(Tracks.IMapper tracksMapper, Playlists.IMapper playlistsMapper)
         {
-            _mapper = mapper;
+            _tracksMapper = tracksMapper;
+            _playlistsMapper = playlistsMapper;
         }
 
         public async Task<Track> GetTrack(ISpotifyClient spotifyClient, string trackId)
         {
-            return _mapper.Map<Track>(await GetTrackFromApi(spotifyClient, trackId));
+            return _tracksMapper.Map(await GetTrackFromApi(spotifyClient, trackId));
         }
 
         public async Task<Playlist> GetPlaylist(ISpotifyClient spotifyClient, string playlistId)
         {
-            return _mapper.Map<Playlist>(await GetPlaylistFromApi(spotifyClient, playlistId));
+            return _playlistsMapper.Map(await GetPlaylistFromApi(spotifyClient, playlistId));
         }
 
         public async Task<List<Track>> GetTracks(ISpotifyClient spotifyClient, string playlistId)
@@ -43,7 +44,7 @@ namespace Spoti_bot.Spotify.Api
             // Tracks can be podcasts or fulltracks.
             var fullTracks = allTracks.Select(x => x.Track as FullTrack).ToList();
 
-            var tracks = _mapper.Map<List<Track>>(fullTracks);
+            var tracks = _tracksMapper.Map(fullTracks);
 
             foreach (var track in tracks)
                 track.PlaylistId = playlistId;

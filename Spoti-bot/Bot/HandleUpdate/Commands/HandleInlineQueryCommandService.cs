@@ -114,9 +114,9 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             return users.Where(x => userIds.Contains(x.Id)).ToList();
         }
 
-        private IEnumerable<InlineQueryResultBase> CreateVoteUsersResults(List<Vote> votes, List<User> users)
+        private IEnumerable<InlineQueryResultArticle> CreateVoteUsersResults(List<Vote> votes, List<User> users)
         {
-            var results = new List<InlineQueryResultBase>();
+            var results = new List<InlineQueryResultArticle>();
 
             // Add the users that voted per VoteType.
             foreach (var voteType in Enum.GetValues(typeof(VoteType)).Cast<VoteType>())

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
@@ -26,14 +27,14 @@ namespace Spoti_bot.Bot
 
         public async Task<int> SendTextMessage(long chatId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
         {
-            var message = await _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode, disableWebPagePreview, replyToMessageId: replyToMessageId, replyMarkup: replyMarkup);
+            var message = await _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode, disableWebPagePreview: disableWebPagePreview, replyToMessageId: replyToMessageId, replyMarkup: replyMarkup);
 
             return message.MessageId;
         }
 
         public Task EditMessageText(long chatId, int messageId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, InlineKeyboardMarkup replyMarkup = null)
         {
-            return _telegramBotClient.EditMessageTextAsync(chatId, messageId, text, parseMode, disableWebPagePreview, replyMarkup);
+            return _telegramBotClient.EditMessageTextAsync(chatId, messageId, text, parseMode, disableWebPagePreview: disableWebPagePreview, replyMarkup: replyMarkup);
         }
 
         public async Task AnswerCallbackQuery(string callbackQueryId, string text = null, string url = null)
@@ -42,26 +43,26 @@ namespace Spoti_bot.Bot
             {
                 await _telegramBotClient.AnswerCallbackQueryAsync(callbackQueryId, text, url: url);
             }
-            catch (InvalidParameterException exception)
+            catch (Exception exception)
             {
                 // This may crash when the inline query is too old, just ignore it.
-                if (exception?.Message == "query is too old and response timeout expired or query ID is invalid")
+                if (exception?.Message == "Bad Request: query is too old and response timeout expired or query ID is invalid")
                     return;
 
                 throw;
             }
         }
 
-        public async Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultBase> results, string switchPmText = null, string switchPmParameter = null)
+        public async Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultArticle> results, string switchPmText = null, string switchPmParameter = null)
         {
             try
             {
                 await _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results, cacheTime: 10, switchPmText: switchPmText, switchPmParameter: switchPmParameter);
             }
-            catch (InvalidParameterException exception)
+            catch (Exception exception)
             {
                 // This may crash when the inline query is too old, just ignore it.
-                if (exception?.Message == "query is too old and response timeout expired or query ID is invalid")
+                if (exception?.Message == "Bad Request: query is too old and response timeout expired or query ID is invalid")
                     return;
 
                 throw;

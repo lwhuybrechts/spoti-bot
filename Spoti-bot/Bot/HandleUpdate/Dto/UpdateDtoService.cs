@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Spoti_bot.Bot.Chats;
+﻿using Spoti_bot.Bot.Chats;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Spotify;
 using Spoti_bot.Spotify.Authorization;
@@ -21,7 +20,8 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
         private readonly IPlaylistRepository _playlistRepository;
         private readonly ITrackRepository _trackRepository;
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
-        private readonly IMapper _mapper;
+        private readonly Chats.IMapper _chatsMapper;
+        private readonly Users.IMapper _usersMapper;
 
         public UpdateDtoService(
             IUserRepository userRepository,
@@ -30,7 +30,8 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
             IPlaylistRepository playlistRepository,
             ITrackRepository trackRepository,
             ISpotifyLinkHelper spotifyLinkHelper,
-            IMapper mapper)
+            Chats.IMapper chatsMapper,
+            Users.IMapper usersMapper)
         {
             _userRepository = userRepository;
             _chatRepository = chatRepository;
@@ -38,7 +39,8 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
             _playlistRepository = playlistRepository;
             _trackRepository = trackRepository;
             _spotifyLinkHelper = spotifyLinkHelper;
-            _mapper = mapper;
+            _chatsMapper = chatsMapper;
+            _usersMapper = usersMapper;
         }
 
         /// <summary>
@@ -120,8 +122,8 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
         {
             return update.Type switch
             {
-                Telegram.Bot.Types.Enums.UpdateType.Message => _mapper.Map<Chats.Chat>(update.Message?.Chat),
-                Telegram.Bot.Types.Enums.UpdateType.CallbackQuery => _mapper.Map<Chats.Chat>(update.CallbackQuery?.Message?.Chat),
+                Telegram.Bot.Types.Enums.UpdateType.Message => _chatsMapper.Map(update.Message?.Chat),
+                Telegram.Bot.Types.Enums.UpdateType.CallbackQuery => _chatsMapper.Map(update.CallbackQuery?.Message?.Chat),
                 _ => null
             };
         }
@@ -133,9 +135,9 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
         {
             return update.Type switch
             {
-                Telegram.Bot.Types.Enums.UpdateType.Message => _mapper.Map<Users.User>(update.Message?.From),
-                Telegram.Bot.Types.Enums.UpdateType.CallbackQuery => _mapper.Map<Users.User>(update.CallbackQuery?.From),
-                Telegram.Bot.Types.Enums.UpdateType.InlineQuery => _mapper.Map<Users.User>(update.InlineQuery?.From),
+                Telegram.Bot.Types.Enums.UpdateType.Message => _usersMapper.Map(update.Message?.From),
+                Telegram.Bot.Types.Enums.UpdateType.CallbackQuery => _usersMapper.Map(update.CallbackQuery?.From),
+                Telegram.Bot.Types.Enums.UpdateType.InlineQuery => _usersMapper.Map(update.InlineQuery?.From),
                 _ => null
             };
         }

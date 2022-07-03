@@ -7,8 +7,6 @@ using Spoti_bot.Library.Exceptions;
 using Microsoft.Extensions.Options;
 using Sentry;
 using System;
-using AutoMapper;
-using System.Collections.Generic;
 using System.Linq;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Bot.Users;
@@ -18,11 +16,11 @@ namespace Spoti_bot
     public class Users
     {
         private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
+        private readonly ApiModels.IMapper _mapper;
         private readonly Library.Options.SentryOptions _sentryOptions;
         private readonly TestOptions _testOptions;
 
-        public Users(IUserRepository userRepository, IMapper mapper, IOptions<Library.Options.SentryOptions> sentryOptions, IOptions<TestOptions> testOptions)
+        public Users(IUserRepository userRepository, ApiModels.IMapper mapper, IOptions<Library.Options.SentryOptions> sentryOptions, IOptions<TestOptions> testOptions)
         {
             _userRepository = userRepository;
             _mapper = mapper;
@@ -45,7 +43,7 @@ namespace Spoti_bot
                     users = users.Where(x => x.Id != _testOptions.TestUserId).ToList();
 
                     // Map the users to api models.
-                    var apiUsers = _mapper.Map<List<ApiModels.User>>(users);
+                    var apiUsers = _mapper.Map(users);
 
                     return new OkObjectResult(apiUsers);
                 }
