@@ -5,6 +5,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Spoti_bot.Library.Exceptions;
 using Sentry;
+using Microsoft.Extensions.Options;
 
 namespace Spoti_bot
 {
@@ -12,9 +13,9 @@ namespace Spoti_bot
     {
         private readonly Library.Options.SentryOptions _sentryOptions;
 
-        public WebAppTest(Library.Options.SentryOptions sentryOptions)
+        public WebAppTest(IOptions<Library.Options.SentryOptions> sentryOptions)
         {
-            _sentryOptions = sentryOptions;
+            _sentryOptions = sentryOptions.Value;
         }
 
         [FunctionName(nameof(WebAppTest))]
