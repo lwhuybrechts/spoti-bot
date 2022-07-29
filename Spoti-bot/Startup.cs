@@ -100,7 +100,7 @@ namespace Spoti_bot
         /// <summary>
         /// Add classes that are needed for data storage.
         /// </summary>
-        /// <param name="services">The service we want to add our storage to.</param>
+        /// <param name="services">The services we want to add our storage to.</param>
         public static IServiceCollection AddStorage(this IServiceCollection services)
         {
             // Add the CloudTableClient as a singleton.
@@ -118,7 +118,7 @@ namespace Spoti_bot
         /// <summary>
         /// Add a mapper.
         /// </summary>
-        /// <param name="services">The service we want to add our mapper to.</param>
+        /// <param name="services">The services we want to add our mapper to.</param>
         public static IServiceCollection AddMapper(this IServiceCollection services)
         {
             return services
@@ -134,43 +134,26 @@ namespace Spoti_bot
         /// Get all options from the configuration and bind them to their respective options models.
         /// The configuration contains the appsettings in Azure, or local.settings.json when running local.
         /// </summary>
-        /// <param name="services">The service we want to add our options models to.</param>
+        /// <param name="services">The services we want to add our options models to.</param>
         public static IServiceCollection AddOptions(this IServiceCollection services)
         {
-            services
-                .AddOptions<SentryOptions>()
-                .Configure<IConfiguration>((settings, configuration) =>
-                {
-                    configuration.GetSection(nameof(SentryOptions)).Bind(settings);
-                });
+            return services
+                .AddAndBindOptions<SentryOptions>()
+                .AddAndBindOptions<AzureOptions>()
+                .AddAndBindOptions<SpotifyOptions>()
+                .AddAndBindOptions<TelegramOptions>()
+                .AddAndBindOptions<TestOptions>();
+        }
 
-            services
-                .AddOptions<AzureOptions>()
-                .Configure<IConfiguration>((settings, configuration) =>
-                {
-                    configuration.GetSection(nameof(AzureOptions)).Bind(settings);
-                });
+        private static IServiceCollection AddAndBindOptions<T>(this IServiceCollection services) where T : class
+        {
+            var optionsName = typeof(T).Name;
 
+            // Add the values from the configuration to this options' type registration.
             services
-                .AddOptions<SpotifyOptions>()
-                .Configure<IConfiguration>((settings, configuration) =>
-                {
-                    configuration.GetSection(nameof(SpotifyOptions)).Bind(settings);
-                });
-
-            services
-                .AddOptions<TelegramOptions>()
-                .Configure<IConfiguration>((settings, configuration) =>
-                {
-                    configuration.GetSection(nameof(TelegramOptions)).Bind(settings);
-                });
-
-            services
-                .AddOptions<TestOptions>()
-                .Configure<IConfiguration>((settings, configuration) =>
-                {
-                    configuration.GetSection(nameof(TestOptions)).Bind(settings);
-                });
+                .AddOptions<T>()
+                .Configure<IConfiguration>((options, configuration) =>
+                    configuration.GetSection(optionsName).Bind(options));
 
             return services;
         }

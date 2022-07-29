@@ -1,6 +1,8 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Commands;
+﻿using Microsoft.Extensions.Options;
+using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.Votes;
 using Spoti_bot.Library;
+using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify.Tracks;
 using System;
 using System.Collections.Generic;
@@ -21,10 +23,12 @@ namespace Spoti_bot.Bot
         private const string SeeVotesButtonText = "👥";
         private const string SpotiViewButtonText = "🔗";
         private readonly IVoteRepository _voteRepository;
+        private readonly AzureOptions _azureOptions;
 
-        public KeyboardService(IVoteRepository voteRepository)
+        public KeyboardService(IVoteRepository voteRepository, IOptions<AzureOptions> azureOptions)
         {
             _voteRepository = voteRepository;
+            _azureOptions = azureOptions.Value;
         }
 
         /// <summary>
@@ -73,6 +77,14 @@ namespace Spoti_bot.Bot
         public InlineKeyboardMarkup CreateSeeVotesKeyboard(Track track)
         {
             return new InlineKeyboardMarkup(AddSeeVotesButton(track));
+        }
+
+        public InlineKeyboardMarkup AddWebAppKeyboard()
+        {
+            return new InlineKeyboardMarkup(InlineKeyboardButton.WithWebApp(SpotiViewButtonText, new WebAppInfo
+            {
+                Url = GetWebAppUri().ToString()
+            }));
         }
 
         /// <summary>
@@ -156,6 +168,13 @@ namespace Spoti_bot.Bot
                 newRows.Add(row.Where(x => x.Text != SeeVotesButtonText && x.Text != SeeVotesButtonTextLegacy).ToList());
             
             return newRows;
+        }
+
+        private Uri GetWebAppUri()
+        {
+            var baseUri = new Uri(_azureOptions.FunctionAppUrl);
+
+            return new Uri(baseUri, $"api/{nameof(WebApp).ToLower()}");
         }
     }
 }

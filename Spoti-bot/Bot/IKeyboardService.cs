@@ -10,6 +10,7 @@ namespace Spoti_bot.Bot
         InlineKeyboardMarkup CreateSwitchToPmKeyboard(Chat chat);
         InlineKeyboardMarkup CreatePostedTrackResponseKeyboard();
         InlineKeyboardMarkup CreateSeeVotesKeyboard(Track track);
+        InlineKeyboardMarkup AddWebAppKeyboard();
         InlineKeyboardMarkup AddOrRemoveSeeVotesButton(InlineKeyboardMarkup inlineKeyboard, Track track, bool hasVotes);
     }
 }

@@ -6,30 +6,33 @@ using Microsoft.AspNetCore.Http;
 using Spoti_bot.Library.Exceptions;
 using Sentry;
 using Microsoft.Extensions.Options;
+using System.IO;
 
 namespace Spoti_bot
 {
-    public class WebAppTest
+    public class WebApp
     {
         private readonly Library.Options.SentryOptions _sentryOptions;
 
-        public WebAppTest(IOptions<Library.Options.SentryOptions> sentryOptions)
+        public WebApp(IOptions<Library.Options.SentryOptions> sentryOptions)
         {
             _sentryOptions = sentryOptions.Value;
         }
 
-        [FunctionName(nameof(WebAppTest))]
-        public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest httpRequest)
+        [FunctionName(nameof(WebApp))]
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest httpRequest, ExecutionContext context)
         {
             // Setup exception handling.
             using (new SentryExceptionHandler(_sentryOptions.Dsn))
             {
                 try
                 {
+                    var webAppPath = Path.Combine(context.FunctionAppDirectory, "WebAppFiles", "index.html");
+
                     return new ContentResult
                     {
                         StatusCode = StatusCodes.Status200OK,
-                        Content = "<html><head><script src=\"https://telegram.org/js/telegram-web-app.js\"></script></head><body><h1>WebAppTestje</h1><p></p></body></html>",
+                        Content = File.ReadAllText(webAppPath),
                         ContentType = "text/html"
                     };
                 }

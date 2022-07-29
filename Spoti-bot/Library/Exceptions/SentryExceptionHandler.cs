@@ -8,7 +8,7 @@ namespace Spoti_bot.Library.Exceptions
     /// </summary>
     public class SentryExceptionHandler : IDisposable
     {
-        private readonly IDisposable _sentryDisposable;
+        private IDisposable _sentryDisposable;
 
         public SentryExceptionHandler(string dsn, string requestBody = null)
         {
@@ -26,13 +26,17 @@ namespace Spoti_bot.Library.Exceptions
 
                     return sentryEvent;
                 };
-            }
-            );
+            });
         }
 
         public void Dispose()
         {
-            _sentryDisposable?.Dispose();
+            if (_sentryDisposable != null)
+            {
+                _sentryDisposable.Dispose();
+                _sentryDisposable = null;
+            }
+            GC.SuppressFinalize(this);
         }
     }
 }

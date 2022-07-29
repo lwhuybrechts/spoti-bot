@@ -74,6 +74,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
                 Command.GetLoginLink => HandleGetLoginLink(updateDto, LoginRequestReason.LoginLinkCommand),
                 Command.ResetPlaylistStorage => HandleResetPlaylistStorage(updateDto),
                 Command.SetPlaylist => HandleSetPlaylist(updateDto),
+                Command.WebApp => HandleWebApp(updateDto),
                 _ => throw new NotImplementedException($"Command {command} has no handle function defined.")
             };
         }
@@ -207,7 +208,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         }
 
         /// <summary>
-        /// The GetLoginLink command will let the used login to spotify and save it's accesstoken.
+        /// The GetLoginLink command will let the user login to spotify and save it's accesstoken.
         /// </summary>
         private async Task<BotResponseCode> HandleGetLoginLink(UpdateDto updateDto, LoginRequestReason reason, long? groupChatId = null, string trackId = null)
         {
@@ -290,6 +291,17 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
 
             await _sendMessageService.SendTextMessage(updateDto.Chat.Id, responseText);
             return BotResponseCode.ResetCommandHandled;
+        }
+
+        /// <summary>
+        /// Provides a keyboard with a link to the WebApp.
+        /// </summary>
+        private async Task<BotResponseCode> HandleWebApp(UpdateDto updateDto)
+        {
+            var keyboard = _keyboardService.AddWebAppKeyboard();
+
+            await _sendMessageService.SendTextMessage(updateDto.ParsedChat.Id, "Open the WebApp:", replyMarkup: keyboard);
+            return BotResponseCode.WebAppHandled;
         }
     }
 }

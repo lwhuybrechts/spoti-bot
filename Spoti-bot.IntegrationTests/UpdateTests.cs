@@ -164,6 +164,25 @@ namespace Spoti_bot.IntegrationTests
         }
 
         [Fact]
+        public async Task Run_WebAppCommand_WebAppHandledReturned()
+        {
+            // Arrange.
+            await TruncateTables();
+
+            await InsertPlaylist();
+            await InsertChat();
+
+            using var stream = new MemoryStream();
+            var httpRequest = await CreateRequest(stream, Command.WebApp.ToDescriptionString(), isPrivateChat: true);
+
+            // Act.
+            var result = await _sut.Run(httpRequest);
+
+            // Assert.
+            AssertHelper.Equal(BotResponseCode.WebAppHandled, result);
+        }
+
+        [Fact]
         public async Task Run_HelpCommand_HelpCommandHandledReturned()
         {
             // Arrange.

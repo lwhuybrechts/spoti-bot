@@ -17,6 +17,7 @@
         RemoveVoteHandled,
         AddToQueueHandled,
         InlineQueryHandled,
-        ExceptionHandled
+        ExceptionHandled,
+        WebAppHandled
     }
 }

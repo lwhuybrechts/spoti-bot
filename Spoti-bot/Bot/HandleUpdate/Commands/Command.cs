@@ -29,6 +29,10 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
         
         [Description("/setplaylist")]
         [RequiresChat, RequiresChatAdmin, RequiresNoPlaylist, RequiresQuery]
-        SetPlaylist
+        SetPlaylist,
+
+        [Description("/webapp")]
+        [RequiresPrivateChat]
+        WebApp
     }
 }

@@ -90,7 +90,7 @@ namespace Spoti_bot
             }
         }
 
-        private async Task<string> GetRequestBody(HttpRequest httpRequest)
+        private static async Task<string> GetRequestBody(HttpRequest httpRequest)
         {
             try
             {
@@ -125,7 +125,9 @@ namespace Spoti_bot
                     return true;
                 case ChatType.Private:
                     // The only thing the bot handles in a private chat is one of the following commands.
-                    return IsStartCommand(updateDto) || IsGetLoginLinkCommand(updateDto);
+                    return IsStartCommand(updateDto) ||
+                        IsGetLoginLinkCommand(updateDto) ||
+                        IsWebAppCommand(updateDto);
                 case ChatType.Channel:
                 default:
                     return false;
@@ -134,12 +136,22 @@ namespace Spoti_bot
 
         private bool IsStartCommand(UpdateDto updateDto)
         {
-            return _commandsService.IsCommand(updateDto.ParsedTextMessage, Command.Start);
+            return IsCommand(updateDto, Command.Start);
         }
 
         private bool IsGetLoginLinkCommand(UpdateDto updateDto)
         {
-            return _commandsService.IsCommand(updateDto.ParsedTextMessage, Command.GetLoginLink);
+            return IsCommand(updateDto, Command.GetLoginLink);
+        }
+
+        private bool IsWebAppCommand(UpdateDto updateDto)
+        {
+            return IsCommand(updateDto, Command.WebApp);
+        }
+
+        private bool IsCommand(UpdateDto updateDto, Command command)
+        {
+            return _commandsService.IsCommand(updateDto.ParsedTextMessage, command);
         }
     }
 }
