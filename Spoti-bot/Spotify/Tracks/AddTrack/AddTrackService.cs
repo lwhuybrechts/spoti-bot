@@ -6,6 +6,7 @@ using Spoti_bot.Library;
 using Spoti_bot.Spotify.Api;
 using SpotifyAPI.Web;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Spoti_bot.Spotify.Tracks.AddTrack
@@ -18,8 +19,9 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         private readonly ISpotifyClientService _spotifyClientService;
         private readonly ITrackRepository _trackRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IVoteRepository _voteRepository;
+        private readonly IVoteTextHelper _voteTextHelper;
         private readonly IKeyboardService _keyboardService;
-        private readonly IVoteService _voteService;
 
         public AddTrackService(
             ISendMessageService sendMessageService,
@@ -28,8 +30,9 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             ISpotifyClientService spotifyClientService,
             ITrackRepository trackRepository,
             IUserRepository userRepository,
-            IKeyboardService keyboardService,
-            IVoteService voteService)
+            IVoteRepository voteRepository,
+            IVoteTextHelper voteTextHelper,
+            IKeyboardService keyboardService)
         {
             _sendMessageService = sendMessageService;
             _replyMessageService = successResponseService;
@@ -37,8 +40,9 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             _spotifyClientService = spotifyClientService;
             _trackRepository = trackRepository;
             _userRepository = userRepository;
+            _voteRepository = voteRepository;
+            _voteTextHelper = voteTextHelper;
             _keyboardService = keyboardService;
-            _voteService = voteService;
         }
 
         public async Task<BotResponseCode> TryAddTrackToPlaylist(UpdateDto updateDto)
@@ -117,13 +121,25 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         {
             var addedByUser = await _userRepository.Get(track.AddedByTelegramUserId);
             var replyText = _replyMessageService.GetExistingTrackReplyMessage(updateDto, track, addedByUser);
-            var replyTextWithVotes = await _voteService.UpdateWithVotes(replyText, track);
+            
+            // Add existing votes to the text.
+            var votes = await _voteRepository.GetVotes(track.PlaylistId, track.Id);
+            foreach (var vote in votes)
+                if (vote.Type == VoteType.Upvote)
+                    replyText = _voteTextHelper.IncrementVote(replyText, vote.Type);
+                else
+                    replyText = _voteTextHelper.DecrementVote(replyText, vote.Type);
+
+            // Add the keyboard.
+            var keyboard = _keyboardService.CreatePostedTrackResponseKeyboard();
+            if (votes.Any())
+                keyboard = _keyboardService.AddOrRemoveSeeVotesButton(keyboard, track, true);
 
             await _sendMessageService.SendTextMessage(
                 updateDto.Chat.Id,
-                replyTextWithVotes,
+                replyText,
                 replyToMessageId: int.Parse(updateDto.ParsedUpdateId),
-                replyMarkup: _keyboardService.CreatePostedTrackResponseKeyboard());
+                replyMarkup: keyboard);
         }
     }
 }

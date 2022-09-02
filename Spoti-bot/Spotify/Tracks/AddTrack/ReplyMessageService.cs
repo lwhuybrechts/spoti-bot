@@ -23,8 +23,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         /// <returns>A text to reply to the chat with.</returns>
         public string GetSuccessReplyMessage(UpdateDto updateDto, Track track)
         {
-            var successMessage = $"*{track.Name}*\n" +
-                $"{track.FirstArtistName} · {track.AlbumName}\n\n" +
+            var successMessage = GetTrackInfo(track) +
                 $"Track added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(track.PlaylistId, "playlist")}!";
 
             // TODO: inject random wrapper so this service is testable.
@@ -49,6 +48,8 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         /// <returns>A text to reply to the chat with.</returns>
         public string GetExistingTrackReplyMessage(UpdateDto updateDto, Track track, User addedByUser)
         {
+            var trackInfo = GetTrackInfo(track);
+
             var userText = string.Empty;
             if (addedByUser != null)
                 userText = $" by {addedByUser.FirstName}";
@@ -61,9 +62,9 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             }
 
             if (track.State == TrackState.RemovedByDownvotes)
-                return $"This track was previously posted{userText}, but it was downvoted and removed from the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}.";
+                return $"{trackInfo}This track was previously posted{userText}, but it was downvoted and removed from the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}.";
             else
-                return $"This track was already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}{userText}{dateText}!";
+                return $"{trackInfo}This track was already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}{userText}{dateText}!";
         }
 
         /// <summary>
@@ -103,6 +104,12 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
                 responses.Add($"Also check out it's album, {track.AlbumName}.");
 
             return $"{successMessage} {responses[random.Next(0, responses.Count)]}";
+        }
+
+        private static string GetTrackInfo(Track track)
+        {
+            return $"*{track.Name}*\n" +
+                $"{track.FirstArtistName} · {track.AlbumName}\n\n";
         }
     }
 }
