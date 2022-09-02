@@ -1,5 +1,6 @@
 ﻿using Spoti_bot.Bot;
 using Spoti_bot.Bot.HandleUpdate.Dto;
+using Spoti_bot.Bot.Users;
 using Spoti_bot.Library;
 using Spoti_bot.Spotify.Api;
 using SpotifyAPI.Web;
@@ -17,6 +18,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         private readonly ISpotifyClientService _spotifyClientService;
         private readonly ITrackRepository _trackRepository;
         private readonly IKeyboardService _keyboardService;
+        private readonly IUserRepository _userRepository;
 
         public AddTrackService(
             ISendMessageService sendMessageService,
@@ -25,7 +27,8 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             ISpotifyClientFactory spotifyClientFactory,
             ISpotifyClientService spotifyClientService,
             ITrackRepository trackRepository,
-            IKeyboardService keyboardService)
+            IKeyboardService keyboardService,
+            IUserRepository userRepository)
         {
             _sendMessageService = sendMessageService;
             _spotifyLinkHelper = spotifyTextHelper;
@@ -34,6 +37,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             _spotifyClientService = spotifyClientService;
             _trackRepository = trackRepository;
             _keyboardService = keyboardService;
+            _userRepository = userRepository;
         }
 
         public async Task<BotResponseCode> TryAddTrackToPlaylist(UpdateDto updateDto)
@@ -46,13 +50,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             // Check if the track already exists in the playlist.
             if (existingTrackInPlaylist != null)
             {
-                string text;
-                if (existingTrackInPlaylist.State == TrackState.RemovedByDownvotes)
-                    text = $"This track was previously posted, but it was downvoted and removed from the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}.";
-                else
-                    text = $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}!";
-
-                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, text);
+                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, await GetExistingTrackText(updateDto, existingTrackInPlaylist));
                 return BotResponseCode.TrackAlreadyExists;
             }
 
@@ -82,6 +80,19 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             await _spotifyClientService.AddToQueue(spotifyClient, newTrack);
 
             return BotResponseCode.TrackAddedToPlaylist;
+        }
+
+        private async Task<string> GetExistingTrackText(UpdateDto updateDto, Track existingTrackInPlaylist)
+        {
+            var userText = string.Empty;
+            var user = await _userRepository.Get(existingTrackInPlaylist.AddedByTelegramUserId);
+            if (user != null)
+                userText = $" by {user.FirstName}";
+
+            if (existingTrackInPlaylist.State == TrackState.RemovedByDownvotes)
+                return $"This track was previously posted{userText}, but it was downvoted and removed from the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}.";
+            else
+                return $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}{userText}!";
         }
 
         /// <summary>

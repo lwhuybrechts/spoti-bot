@@ -695,6 +695,7 @@ namespace Spoti_bot.IntegrationTests
             await TruncateTables();
 
             await InsertChat();
+            await InsertUser();
             await InsertPlaylist();
 
             var track = await InsertTrack();
