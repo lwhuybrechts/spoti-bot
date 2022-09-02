@@ -156,7 +156,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             return inlineQueryResults;
         }
 
-        private InlineQueryResultArticle CreateArticle(string text)
+        private static InlineQueryResultArticle CreateArticle(string text)
         {
             return new InlineQueryResultArticle(Guid.NewGuid().ToString(), text, new InputTextMessageContent(text));
         }

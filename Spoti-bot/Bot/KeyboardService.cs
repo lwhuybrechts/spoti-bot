@@ -149,7 +149,7 @@ namespace Spoti_bot.Bot
         /// <summary>
         /// Check if the See Votes button is on the keyboard.
         /// </summary>
-        private bool HasSeeVotesButton(InlineKeyboardMarkup originalKeyboard)
+        private static bool HasSeeVotesButton(InlineKeyboardMarkup originalKeyboard)
         {
             var allButtons = originalKeyboard.InlineKeyboard.SelectMany(x => x).ToList();
             
@@ -170,7 +170,7 @@ namespace Spoti_bot.Bot
             return newRows;
         }
 
-        private Uri GetWebAppUri()
+        private static Uri GetWebAppUri()
         {
             var baseUri = new Uri(_azureOptions.FunctionAppUrl);
 

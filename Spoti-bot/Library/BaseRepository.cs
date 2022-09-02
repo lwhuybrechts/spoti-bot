@@ -210,7 +210,7 @@ namespace Spoti_bot.Library
         /// </summary>
         /// <param name="items">The items to create batches for.</param>
         /// <returns>A list of batches that are ready to be executed.</returns>
-        private List<TableBatchOperation> CreateBatches(List<T> items, TableOperationType tableOperationType)
+        private static List<TableBatchOperation> CreateBatches(List<T> items, TableOperationType tableOperationType)
         {
             // Batches support up to 100 operations.
             const int maxBatchSize = 100;

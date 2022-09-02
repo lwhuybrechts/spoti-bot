@@ -97,7 +97,7 @@ namespace Spoti_bot.Spotify
         /// Do a http GET request to a linkto uri to find the trackId.
         /// </summary>
         /// <param name="linkToUri">The uri to do a http GET request to.</param>
-        private async Task<string> RequestTrackUri(string linkToUri)
+        private static async Task<string> RequestTrackUri(string linkToUri)
         {
             // TODO: reuse httpclient from startup.
             var client = new System.Net.Http.HttpClient();
@@ -115,7 +115,7 @@ namespace Spoti_bot.Spotify
         /// Check if the text contains an url with a playlistId.
         /// </summary>
         /// <param name="text">The text to check.</param>
-        private bool HasPlaylistIdLink(string text)
+        private static bool HasPlaylistIdLink(string text)
         {
             return _playlistRegex.Match(text).Success;
         }
@@ -124,7 +124,7 @@ namespace Spoti_bot.Spotify
         /// Parse the playlistId from the text.
         /// </summary>
         /// <param name="text">The text to parse the playlistId from.</param>
-        private string ParsePlaylistIdLink(string text)
+        private static string ParsePlaylistIdLink(string text)
         {
             return _playlistRegex.Match(text).Groups[3].Value;
         }
@@ -133,7 +133,7 @@ namespace Spoti_bot.Spotify
         /// Check if the text contains an url with a trackId.
         /// </summary>
         /// <param name="text">The text to check.</param>
-        private bool HasTrackIdLink(string text)
+        private static bool HasTrackIdLink(string text)
         {
             return _trackRegex.Match(text).Success;
         }
@@ -142,7 +142,7 @@ namespace Spoti_bot.Spotify
         /// Parse the trackId from the text.
         /// </summary>
         /// <param name="text">The text to parse the trackId from.</param>
-        private string ParseTrackIdLink(string text)
+        private static string ParseTrackIdLink(string text)
         {
             return _trackRegex.Match(text).Groups[3].Value;
         }
@@ -151,7 +151,7 @@ namespace Spoti_bot.Spotify
         /// Check if the text contains a tospotify url.
         /// </summary>
         /// <param name="text">The text to check.</param>
-        private bool HasToSpotifyLink(string text)
+        private static bool HasToSpotifyLink(string text)
         {
             return _linkToRegex.Match(text).Success;
         }
@@ -160,7 +160,7 @@ namespace Spoti_bot.Spotify
         /// Parse the tospotify url from the text.
         /// </summary>
         /// <param name="text">The text to parse the url from.</param>
-        private string ParseToSpotifyLink(string text)
+        private static string ParseToSpotifyLink(string text)
         {
             return _linkToRegex.Match(text).Value;
         }

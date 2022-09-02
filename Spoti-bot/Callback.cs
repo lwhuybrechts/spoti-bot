@@ -77,7 +77,7 @@ namespace Spoti_bot
             }
         }
 
-        private (string, string) GetQueryParameters(HttpRequest httpRequest)
+        private static (string, string) GetQueryParameters(HttpRequest httpRequest)
         {
             // Get the code and state from the callback url.
             var code = GetFromQuery("code", httpRequest);

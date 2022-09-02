@@ -78,7 +78,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
             };
         }
 
-        private UpdateType? GetParsedUpdateType(Telegram.Bot.Types.Update update)
+        private static UpdateType? GetParsedUpdateType(Telegram.Bot.Types.Update update)
         {
             return update.Type switch
             {
@@ -92,7 +92,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
         /// <summary>
         /// Get the id of this update, can be used to edit the original.
         /// </summary>
-        private string GetParsedUpdateId(Telegram.Bot.Types.Update update)
+        private static string GetParsedUpdateId(Telegram.Bot.Types.Update update)
         {
             return update.Type switch
             {
@@ -106,7 +106,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
         /// <summary>
         /// Get the id of the message the bot sends after a message with a trackId.
         /// </summary>
-        private int? GetParsedBotMessageId(Telegram.Bot.Types.Update update)
+        private static int? GetParsedBotMessageId(Telegram.Bot.Types.Update update)
         {
             return update.Type switch
             {
@@ -156,7 +156,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
             };
         }
 
-        private string GetParsedTextMessage(Telegram.Bot.Types.Update update)
+        private static string GetParsedTextMessage(Telegram.Bot.Types.Update update)
         {
             return update.Type switch
             {
@@ -175,12 +175,12 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
             return GetTextMessageWithTextLinks(message);
         }
 
-        private InlineKeyboardMarkup GetInlineKeyboard(Message message)
+        private static InlineKeyboardMarkup GetInlineKeyboard(Message message)
         {
             return message?.ReplyMarkup;
         }
 
-        private Message GetParsedMessage(Telegram.Bot.Types.Update update)
+        private static Message GetParsedMessage(Telegram.Bot.Types.Update update)
         {
             return update.Type switch
             {
@@ -190,7 +190,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
             };
         }
 
-        private string GetParsedData(Telegram.Bot.Types.Update update)
+        private static string GetParsedData(Telegram.Bot.Types.Update update)
         {
             return update.Type switch
             {
@@ -245,7 +245,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
         /// </summary>
         /// <param name="textMessage">The message we want the text from.</param>
         /// <returns>The text with all links added to it.</returns>
-        private string GetTextMessageWithTextLinks(Message textMessage)
+        private static string GetTextMessageWithTextLinks(Message textMessage)
         {
             var text = textMessage.Text;
 

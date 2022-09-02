@@ -109,7 +109,7 @@ namespace Spoti_bot.IntegrationTests
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
         /// <param name="update">The update to write.</param>
-        private async Task WriteUpdateToStream(Stream stream, Telegram.Bot.Types.Update update)
+        private static async Task WriteUpdateToStream(Stream stream, Telegram.Bot.Types.Update update)
         {
             var jsonString = JsonConvert.SerializeObject(update);
 

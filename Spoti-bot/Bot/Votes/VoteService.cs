@@ -70,7 +70,7 @@ namespace Spoti_bot.Bot.Votes
         /// Check if an update contains a Vote.
         /// </summary>
         /// <returns>True if the update is a Vote callback.</returns>
-        private bool IsVoteCallback(UpdateDto updateDto, VoteType voteType)
+        private static bool IsVoteCallback(UpdateDto updateDto, VoteType voteType)
         {
             if (string.IsNullOrEmpty(updateDto.ParsedData))
                 return false;

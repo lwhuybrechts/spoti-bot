@@ -157,7 +157,7 @@ namespace Spoti_bot.Bot.Votes
         /// <summary>
         /// Create a Regex to match with at least one VoteType.
         /// </summary>
-        private Regex GetRegex(List<VoteType> voteTypes)
+        private static Regex GetRegex(List<VoteType> voteTypes)
         {
             // Match the textstring and at least one vote.
             var pattern = "(.+?)(?!$)";

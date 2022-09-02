@@ -1102,7 +1102,7 @@ namespace Spoti_bot.IntegrationTests
             return CreateRequestWithBody(stream);
         }
 
-        private HttpRequest CreateRequestWithBody(Stream bodyStream)
+        private static HttpRequest CreateRequestWithBody(Stream bodyStream)
         {
             var httpContext = new DefaultHttpContext();
             httpContext.Request.Body = bodyStream;

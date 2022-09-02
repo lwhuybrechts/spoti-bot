@@ -95,7 +95,7 @@ namespace Spoti_bot.Spotify.Api
             }
         }
 
-        private async Task<FullTrack> GetTrackFromApi(ISpotifyClient spotifyClient, string trackId)
+        private static async Task<FullTrack> GetTrackFromApi(ISpotifyClient spotifyClient, string trackId)
         {
             try
             {
@@ -108,7 +108,7 @@ namespace Spoti_bot.Spotify.Api
             }
         }
 
-        private Task<FullPlaylist> GetPlaylistFromApi(ISpotifyClient spotifyClient, string playlistId)
+        private static Task<FullPlaylist> GetPlaylistFromApi(ISpotifyClient spotifyClient, string playlistId)
         {
             try
             {

@@ -53,7 +53,7 @@ namespace Spoti_bot.Spotify.Tracks.SyncTracks
         /// <summary>
         /// Get all tracks that are in both the spotify playlist and in the storage, and update some properties from spotify.
         /// </summary>
-        private List<Track> FilterTracksToUpdate(List<Track> tracksFromSpotify, List<Track> tracksFromStorage, bool shouldUpdateExistingTracks)
+        private static List<Track> FilterTracksToUpdate(List<Track> tracksFromSpotify, List<Track> tracksFromStorage, bool shouldUpdateExistingTracks)
         {
             if (!shouldUpdateExistingTracks)
                 return new List<Track>();
@@ -78,7 +78,7 @@ namespace Spoti_bot.Spotify.Tracks.SyncTracks
         /// <summary>
         /// Get all tracks that are in the spotify playlist but not in the storage.
         /// </summary>
-        private List<Track> FilterTracksToSave(List<Track> tracksFromSpotify, List<Track> tracksFromStorage)
+        private static List<Track> FilterTracksToSave(List<Track> tracksFromSpotify, List<Track> tracksFromStorage)
         {
             return tracksFromSpotify.Where(track =>
                 !tracksFromStorage.Any(x => x.Id == track.Id)
@@ -88,7 +88,7 @@ namespace Spoti_bot.Spotify.Tracks.SyncTracks
         /// <summary>
         /// Get all tracks that are in the storage but not in the spotify playlist.
         /// </summary>
-        private List<Track> FilterTracksToDelete(List<Track> tracksFromSpotify, List<Track> tracksFromStorage)
+        private static List<Track> FilterTracksToDelete(List<Track> tracksFromSpotify, List<Track> tracksFromStorage)
         {
             return tracksFromStorage.Where(track =>
                 !tracksFromSpotify.Any(x => x.Id == track.Id) &&

@@ -47,7 +47,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             return random.Next(0, 5) == 0;
         }
 
-        private string GetRandomAwesomeResponse(Random random, string successMessage, string firstName, Track track)
+        private static string GetRandomAwesomeResponse(Random random, string successMessage, string firstName, Track track)
         {
             var responses = new List<string>
             {
