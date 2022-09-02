@@ -167,7 +167,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Dto
             };
         }
 
-        private string GetParsedTextMessageWithLinks(Message message)
+        private static string GetParsedTextMessageWithLinks(Message message)
         {
             if (message == null)
                 return null;

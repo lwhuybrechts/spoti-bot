@@ -36,7 +36,7 @@ namespace Spoti_bot.Bot.Votes
         /// <summary>
         /// Handle the vote.
         /// </summary>
-        private string HandleVote(string text, VoteType voteType, bool shouldIncrement)
+        private static string HandleVote(string text, VoteType voteType, bool shouldIncrement)
         {
             var voteTypes = Enum.GetValues(typeof(VoteType)).Cast<VoteType>().ToList();
             var match = GetRegex(voteTypes).Match(text);

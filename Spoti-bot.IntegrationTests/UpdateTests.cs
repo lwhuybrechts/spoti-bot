@@ -697,6 +697,7 @@ namespace Spoti_bot.IntegrationTests
             await InsertChat();
             await InsertUser();
             await InsertPlaylist();
+            await InsertVote(VoteType.Upvote);
 
             var track = await InsertTrack();
             var trackUrlThatAlreadyExists = GetLinkToTrack(track.Id);

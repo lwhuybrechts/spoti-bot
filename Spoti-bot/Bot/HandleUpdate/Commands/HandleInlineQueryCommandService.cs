@@ -130,7 +130,7 @@ namespace Spoti_bot.Bot.HandleUpdate.Commands
             return results;
         }
 
-        private List<InlineQueryResultArticle> GetArticles(VoteType voteType, List<Vote> votes, List<User> users)
+        private static List<InlineQueryResultArticle> GetArticles(VoteType voteType, List<Vote> votes, List<User> users)
         {
             var voteTypeVotes = votes.Where(x => x.Type == voteType).ToList();
 

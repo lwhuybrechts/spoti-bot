@@ -1,6 +1,7 @@
 ﻿using Spoti_bot.Bot;
 using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Bot.Users;
+using Spoti_bot.Bot.Votes;
 using Spoti_bot.Library;
 using Spoti_bot.Spotify.Api;
 using SpotifyAPI.Web;
@@ -18,6 +19,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         private readonly ITrackRepository _trackRepository;
         private readonly IUserRepository _userRepository;
         private readonly IKeyboardService _keyboardService;
+        private readonly IVoteService _voteService;
 
         public AddTrackService(
             ISendMessageService sendMessageService,
@@ -26,7 +28,8 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             ISpotifyClientService spotifyClientService,
             ITrackRepository trackRepository,
             IUserRepository userRepository,
-            IKeyboardService keyboardService)
+            IKeyboardService keyboardService,
+            IVoteService voteService)
         {
             _sendMessageService = sendMessageService;
             _replyMessageService = successResponseService;
@@ -35,6 +38,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             _trackRepository = trackRepository;
             _userRepository = userRepository;
             _keyboardService = keyboardService;
+            _voteService = voteService;
         }
 
         public async Task<BotResponseCode> TryAddTrackToPlaylist(UpdateDto updateDto)
@@ -112,10 +116,12 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         private async Task SendExistingTrackReplyMessage(UpdateDto updateDto, Track track)
         {
             var addedByUser = await _userRepository.Get(track.AddedByTelegramUserId);
+            var replyText = _replyMessageService.GetExistingTrackReplyMessage(updateDto, track, addedByUser);
+            var replyTextWithVotes = await _voteService.UpdateWithVotes(replyText, track);
 
             await _sendMessageService.SendTextMessage(
                 updateDto.Chat.Id,
-                _replyMessageService.GetExistingTrackReplyMessage(updateDto, track, addedByUser),
+                replyTextWithVotes,
                 replyToMessageId: int.Parse(updateDto.ParsedUpdateId),
                 replyMarkup: _keyboardService.CreatePostedTrackResponseKeyboard());
         }

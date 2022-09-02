@@ -1,5 +1,6 @@
 ﻿using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Library;
+using Spoti_bot.Spotify.Tracks;
 using Spoti_bot.Spotify.Tracks.RemoveTrack;
 using System;
 using System.Linq;
@@ -54,10 +55,29 @@ namespace Spoti_bot.Bot.Votes
         }
 
         /// <summary>
+        /// Update a text with all votes for a certain track.
+        /// </summary>
+        public async Task<string> UpdateWithVotes(string text, Track track)
+        {
+            if (track == null)
+                return text;
+
+            var votes = await _voteRepository.GetVotes(track.PlaylistId, track.Id);
+
+            foreach (var vote in votes)
+                if (vote.Type == VoteType.Upvote)
+                    text = _voteTextHelper.IncrementVote(text, vote.Type);
+                else
+                    text = _voteTextHelper.DecrementVote(text, vote.Type);
+
+            return text;
+        }
+
+        /// <summary>
         /// Get the VoteType from the update.
         /// </summary>
         /// <returns>The VoteType, or null if no VoteType was found.</returns>
-        private VoteType? GetVoteType(UpdateDto updateDto)
+        private static VoteType? GetVoteType(UpdateDto updateDto)
         {
             foreach (var voteType in Enum.GetValues(typeof(VoteType)).Cast<VoteType>())
                 if (IsVoteCallback(updateDto, voteType))
