@@ -1,14 +1,16 @@
 ﻿using Spoti_bot.Bot.HandleUpdate.Dto;
+using Spoti_bot.Bot.Users;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace Spoti_bot.Spotify.Tracks.AddTrack
 {
-    public class SuccessResponseService : ISuccessResponseService
+    public class ReplyMessageService : IReplyMessageService
     {
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
 
-        public SuccessResponseService(ISpotifyLinkHelper spotifyLinkHelper)
+        public ReplyMessageService(ISpotifyLinkHelper spotifyLinkHelper)
         {
             _spotifyLinkHelper = spotifyLinkHelper;
         }
@@ -16,10 +18,10 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         /// <summary>
         /// When a track is added to the playlist, get a nice response text to send to the chat.
         /// </summary>
-        /// <param name="message">The message that contains the added trackId.</param>
+        /// <param name="updateDto">The update that was sent.</param>
         /// <param name="track">The track that was added.</param>
         /// <returns>A text to reply to the chat with.</returns>
-        public string GetSuccessResponseText(UpdateDto updateDto, Track track)
+        public string GetSuccessReplyMessage(UpdateDto updateDto, Track track)
         {
             var successMessage = $"*{track.Name}*\n" +
                 $"{track.FirstArtistName} · {track.AlbumName}\n\n" +
@@ -36,6 +38,32 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
                 return successMessage;
 
             return GetRandomAwesomeResponse(random, successMessage, firstName, track);
+        }
+
+        /// <summary>
+        /// When a track that was sent was already added to the playlist, get a nice response text to send to the chat.
+        /// </summary>
+        /// <param name="updateDto">The update that was sent.</param>
+        /// <param name="track">The track that was added.</param>
+        /// <param name="addedByUser">The user that already added the track.</param>
+        /// <returns>A text to reply to the chat with.</returns>
+        public string GetExistingTrackReplyMessage(UpdateDto updateDto, Track track, User addedByUser)
+        {
+            var userText = string.Empty;
+            if (addedByUser != null)
+                userText = $" by {addedByUser.FirstName}";
+
+            var dateText = string.Empty;
+            if (!string.IsNullOrEmpty(updateDto.ParsedUser?.LanguageCode))
+            {
+                var cultureIfo = new CultureInfo(updateDto.ParsedUser.LanguageCode);
+                dateText = $" on {track.CreatedAt.ToString("d", cultureIfo)}";
+            }
+
+            if (track.State == TrackState.RemovedByDownvotes)
+                return $"This track was previously posted{userText}, but it was downvoted and removed from the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}.";
+            else
+                return $"This track was already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}{userText}{dateText}!";
         }
 
         /// <summary>
@@ -64,7 +92,8 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
                 $"Ooooh yes, that is really swell {firstName}.",
                 $"This shit slaps, {firstName}!",
                 $"This track is on and crackin, {firstName}!",
-                "BOUNCE!"
+                "BOUNCE!",
+                "Ouleh papi"
             };
 
             if (!string.IsNullOrEmpty(track.FirstArtistName))

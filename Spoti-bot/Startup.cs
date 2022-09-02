@@ -87,7 +87,7 @@ namespace Spoti_bot
                 .AddTransient<ISyncHistoryService, SyncHistoryService>()
                 .AddTransient<IParseHistoryJsonService, ParseHistoryJsonService>()
                 .AddTransient<ISpotifyLinkHelper, SpotifyLinkHelper>()
-                .AddTransient<ISuccessResponseService, SuccessResponseService>()
+                .AddTransient<IReplyMessageService, ReplyMessageService>()
                 .AddTransient<IAuthorizationTokenRepository, AuthorizationTokenRepository>()
                 .AddTransient<ILoginRequestRepository, LoginRequestRepository>()
                 .AddTransient<ITrackRepository, TrackRepository>()

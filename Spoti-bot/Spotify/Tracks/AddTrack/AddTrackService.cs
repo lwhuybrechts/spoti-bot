@@ -5,7 +5,6 @@ using Spoti_bot.Library;
 using Spoti_bot.Spotify.Api;
 using SpotifyAPI.Web;
 using System;
-using System.Globalization;
 using System.Threading.Tasks;
 
 namespace Spoti_bot.Spotify.Tracks.AddTrack
@@ -13,32 +12,29 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
     public class AddTrackService : IAddTrackService
     {
         private readonly ISendMessageService _sendMessageService;
-        private readonly ISpotifyLinkHelper _spotifyLinkHelper;
-        private readonly ISuccessResponseService _successResponseService;
+        private readonly IReplyMessageService _replyMessageService;
         private readonly ISpotifyClientFactory _spotifyClientFactory;
         private readonly ISpotifyClientService _spotifyClientService;
         private readonly ITrackRepository _trackRepository;
-        private readonly IKeyboardService _keyboardService;
         private readonly IUserRepository _userRepository;
+        private readonly IKeyboardService _keyboardService;
 
         public AddTrackService(
             ISendMessageService sendMessageService,
-            ISpotifyLinkHelper spotifyTextHelper,
-            ISuccessResponseService successResponseService,
+            IReplyMessageService successResponseService,
             ISpotifyClientFactory spotifyClientFactory,
             ISpotifyClientService spotifyClientService,
             ITrackRepository trackRepository,
-            IKeyboardService keyboardService,
-            IUserRepository userRepository)
+            IUserRepository userRepository,
+            IKeyboardService keyboardService)
         {
             _sendMessageService = sendMessageService;
-            _spotifyLinkHelper = spotifyTextHelper;
-            _successResponseService = successResponseService;
+            _replyMessageService = successResponseService;
             _spotifyClientFactory = spotifyClientFactory;
             _spotifyClientService = spotifyClientService;
             _trackRepository = trackRepository;
-            _keyboardService = keyboardService;
             _userRepository = userRepository;
+            _keyboardService = keyboardService;
         }
 
         public async Task<BotResponseCode> TryAddTrackToPlaylist(UpdateDto updateDto)
@@ -51,7 +47,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             // Check if the track already exists in the playlist.
             if (existingTrackInPlaylist != null)
             {
-                await _sendMessageService.SendTextMessage(updateDto.Chat.Id, await GetExistingTrackText(updateDto, existingTrackInPlaylist));
+                await SendExistingTrackReplyMessage(updateDto, existingTrackInPlaylist);
                 return BotResponseCode.TrackAlreadyExists;
             }
 
@@ -75,7 +71,7 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             await AddTrack(spotifyClient, updateDto.ParsedUser, newTrack, updateDto.Chat.PlaylistId);
 
             // Reply that the message has been added successfully.
-            await SendReplyMessage(updateDto, newTrack);
+            await SendSuccessfullyAddedReplyMessage(updateDto, newTrack);
 
             // Add the track to my queue.
             await _spotifyClientService.AddToQueue(spotifyClient, newTrack);
@@ -83,30 +79,10 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             return BotResponseCode.TrackAddedToPlaylist;
         }
 
-        private async Task<string> GetExistingTrackText(UpdateDto updateDto, Track existingTrackInPlaylist)
-        {
-            var userText = string.Empty;
-            var user = await _userRepository.Get(existingTrackInPlaylist.AddedByTelegramUserId);
-            if (user != null)
-                userText = $" by {user.FirstName}";
-
-            var dateText = string.Empty;
-            if (!string.IsNullOrEmpty(updateDto.ParsedUser?.LanguageCode))
-            {
-                var cultureIfo = new CultureInfo(updateDto.ParsedUser.LanguageCode);
-                dateText = $" on {existingTrackInPlaylist.CreatedAt.ToString("d", cultureIfo)}";
-            }
-
-            if (existingTrackInPlaylist.State == TrackState.RemovedByDownvotes)
-                return $"This track was previously posted{userText}, but it was downvoted and removed from the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}.";
-            else
-                return $"This track was already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}{userText}{dateText}!";
-        }
-
         /// <summary>
         /// Add the track to the playlist.
         /// </summary>
-        private async Task AddTrack(ISpotifyClient spotifyClient, Bot.Users.User user, Track newTrack, string playlistId)
+        private async Task AddTrack(ISpotifyClient spotifyClient, User user, Track newTrack, string playlistId)
         {
             newTrack.PlaylistId = playlistId;
             newTrack.CreatedAt = DateTimeOffset.UtcNow;
@@ -121,11 +97,25 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
         /// <summary>
         /// Reply when a track has been added to the playlist.
         /// </summary>
-        private async Task SendReplyMessage(UpdateDto updateDto, Track track)
+        private Task SendSuccessfullyAddedReplyMessage(UpdateDto updateDto, Track track)
         {
+            return _sendMessageService.SendTextMessage(
+                updateDto.Chat.Id,
+                _replyMessageService.GetSuccessReplyMessage(updateDto, track),
+                replyToMessageId: int.Parse(updateDto.ParsedUpdateId),
+                replyMarkup: _keyboardService.CreatePostedTrackResponseKeyboard());
+        }
+
+        /// <summary>
+        /// Reply when the track already existed in the playlist.
+        /// </summary>
+        private async Task SendExistingTrackReplyMessage(UpdateDto updateDto, Track track)
+        {
+            var addedByUser = await _userRepository.Get(track.AddedByTelegramUserId);
+
             await _sendMessageService.SendTextMessage(
                 updateDto.Chat.Id,
-                _successResponseService.GetSuccessResponseText(updateDto, track),
+                _replyMessageService.GetExistingTrackReplyMessage(updateDto, track, addedByUser),
                 replyToMessageId: int.Parse(updateDto.ParsedUpdateId),
                 replyMarkup: _keyboardService.CreatePostedTrackResponseKeyboard());
         }
