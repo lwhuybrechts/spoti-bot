@@ -1,11 +1,15 @@
-﻿using Spoti_bot.Library;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Spoti_bot.Bot.Votes
 {
-    public interface IVoteRepository : IBaseRepository<Vote>
+    public interface IVoteRepository
     {
+        Task<Vote> Get(Vote item);
         Task<List<Vote>> GetVotes(string playlistId, string trackId);
+        Task<List<Vote>> GetAllByPartitionKey(string partitionKey);
+        Task<Vote> Upsert(Vote item);
+        Task Delete(Vote item);
+        Task Delete(List<Vote> items);
     }
 }

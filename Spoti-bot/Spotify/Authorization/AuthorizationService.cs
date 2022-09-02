@@ -13,7 +13,6 @@ namespace Spoti_bot.Spotify.Authorization
     {
         private readonly IAuthorizationTokenRepository _authorizationTokenRepository;
         private readonly ILoginRequestService _loginRequestService;
-        private readonly ISendMessageService _sendMessageService;
         private readonly IMapper _mapper;
         private readonly SpotifyOptions _spotifyOptions;
         private readonly AzureOptions _azureOptions;

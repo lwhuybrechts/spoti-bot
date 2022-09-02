@@ -1,11 +1,16 @@
-﻿using Spoti_bot.Library;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Spoti_bot.Spotify.Authorization
 {
-    public interface ILoginRequestRepository : IBaseRepository<LoginRequest>
+    public interface ILoginRequestRepository
     {
+        Task<LoginRequest> Get(string rowKey, string partitionKey = "");
+        Task<LoginRequest> Get(LoginRequest item);
+        Task<List<LoginRequest>> GetAll();
         Task<List<LoginRequest>> GetAllExpired();
+        Task<LoginRequest> Upsert(LoginRequest item);
+        Task Delete(LoginRequest item);
+        Task Delete(List<LoginRequest> items);
     }
 }
