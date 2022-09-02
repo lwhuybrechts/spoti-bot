@@ -206,7 +206,7 @@ namespace Spoti_bot.Bot.Votes
 
             pattern += "$";
 
-            return new Regex(pattern);
+            return new Regex(pattern, RegexOptions.Singleline);
         }
 
         private static bool UseNegativeOperator(VoteType voteType)
