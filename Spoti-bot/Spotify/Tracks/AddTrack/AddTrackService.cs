@@ -5,6 +5,7 @@ using Spoti_bot.Library;
 using Spoti_bot.Spotify.Api;
 using SpotifyAPI.Web;
 using System;
+using System.Globalization;
 using System.Threading.Tasks;
 
 namespace Spoti_bot.Spotify.Tracks.AddTrack
@@ -89,10 +90,17 @@ namespace Spoti_bot.Spotify.Tracks.AddTrack
             if (user != null)
                 userText = $" by {user.FirstName}";
 
+            var dateText = string.Empty;
+            if (!string.IsNullOrEmpty(updateDto.ParsedUser?.LanguageCode))
+            {
+                var cultureIfo = new CultureInfo(updateDto.ParsedUser.LanguageCode);
+                dateText = $" on {existingTrackInPlaylist.CreatedAt.ToString("d", cultureIfo)}";
+            }
+
             if (existingTrackInPlaylist.State == TrackState.RemovedByDownvotes)
                 return $"This track was previously posted{userText}, but it was downvoted and removed from the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}.";
             else
-                return $"This track is already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}{userText}!";
+                return $"This track was already added to the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}{userText}{dateText}!";
         }
 
         /// <summary>

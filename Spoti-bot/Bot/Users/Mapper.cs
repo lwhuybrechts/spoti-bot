@@ -9,7 +9,8 @@ namespace Spoti_bot.Bot.Users
             Id = source.Id,
             FirstName = source.FirstName,
             LastName = source.LastName,
-            UserName = source.Username
+            UserName = source.Username,
+            LanguageCode = source.LanguageCode
         };
 
         public InlineQueryResultArticle Map(User source) => new(source.Id.ToString(), source.FirstName, new InputTextMessageContent(source.FirstName));

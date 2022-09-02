@@ -138,7 +138,8 @@ namespace Spoti_bot.IntegrationTests
             {
                 Id = _testOptions.TestUserId,
                 FirstName = _testOptions.TestUserFirstName,
-                IsBot = isBot
+                IsBot = isBot,
+                LanguageCode = "nl-NL"
             };
         }
     }
