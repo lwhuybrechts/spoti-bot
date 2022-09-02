@@ -12,5 +12,6 @@ namespace Spoti_bot.Bot
         InlineKeyboardMarkup CreateSeeVotesKeyboard(Track track);
         InlineKeyboardMarkup AddWebAppKeyboard();
         InlineKeyboardMarkup AddOrRemoveSeeVotesButton(InlineKeyboardMarkup inlineKeyboard, Track track, bool hasVotes);
+        bool AreSame(InlineKeyboardMarkup firstKeyboard, InlineKeyboardMarkup secondKeyboard);
     }
 }

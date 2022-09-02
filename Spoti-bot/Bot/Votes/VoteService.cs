@@ -1,11 +1,12 @@
 ﻿using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Library;
+using Spoti_bot.Spotify.Tracks;
 using Spoti_bot.Spotify.Tracks.RemoveTrack;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.ReplyMarkups;
-using static Spoti_bot.Bot.Votes.VoteAttributes;
 
 namespace Spoti_bot.Bot.Votes
 {
@@ -51,6 +52,38 @@ namespace Spoti_bot.Bot.Votes
                 return Task.FromResult(BotResponseCode.NoAction);
 
             return HandleVote(updateDto, GetVoteType(updateDto).Value);
+        }
+
+        /// <summary>
+        /// Update a text and keyboard with the current votes for a track.
+        /// </summary>
+        /// <param name="text">The text to add the votes to.</param>
+        /// <param name="keyboard">The keyboard to add or remove the See Votes button from.</param>
+        /// <param name="track">The track to show the votes for.</param>
+        /// <returns>The updated text and keyboard.</returns>
+        public async Task<(string, InlineKeyboardMarkup)> UpdateTextAndKeyboard(string text, InlineKeyboardMarkup keyboard, Track track)
+        {
+            var votes = await _voteRepository.GetVotes(track.PlaylistId, track.Id);
+
+            return UpdateTextAndKeyboard(text, keyboard, track, votes);
+        }
+
+        /// <summary>
+        /// Update a text and keyboard with a list of votes.
+        /// </summary>
+        /// <param name="text">The text to add the votes to.</param>
+        /// <param name="keyboard">The keyboard to add or remove the See Votes button from.</param>
+        /// <param name="track">The track to show the votes for.</param>
+        /// <param name="votes">The votes to update with.</param>
+        /// <returns>The updated text and keyboard.</returns>
+        private (string, InlineKeyboardMarkup) UpdateTextAndKeyboard(string text, InlineKeyboardMarkup keyboard, Track track, List<Vote> votes)
+        {
+            var newText = _voteTextHelper.ReplaceVotes(text, votes);
+
+            // If there are votes, add the See Votes button to the keyboard.
+            keyboard = _keyboardService.AddOrRemoveSeeVotesButton(keyboard, track, votes.Any());
+
+            return (newText, keyboard);
         }
 
         /// <summary>
@@ -129,17 +162,9 @@ namespace Spoti_bot.Bot.Votes
                     keyboard = _keyboardService.CreateSeeVotesKeyboard(updateDto.Track);
                 }
             }
-
+            
             if (string.IsNullOrEmpty(newText))
-            {
-                newText = UseNegativeOperator(vote)
-                    // Increment or decrement the vote in the original message.
-                    ? _voteTextHelper.DecrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type)
-                    : _voteTextHelper.IncrementVote(updateDto.ParsedTextMessageWithLinks, vote.Type);
-
-                // If there are votes, add the See Votes button to the keyboard.
-                keyboard = _keyboardService.AddOrRemoveSeeVotesButton(updateDto.ParsedInlineKeyboard, updateDto.Track, votes.Any());
-            }
+                (newText, keyboard) = UpdateTextAndKeyboard(updateDto.ParsedTextMessageWithLinks, updateDto.ParsedInlineKeyboard, updateDto.Track, votes);
             
             await EditOriginalMessage(updateDto, newText, keyboard);
 
@@ -157,14 +182,9 @@ namespace Spoti_bot.Bot.Votes
             // Delete the vote from storage.
             await _voteRepository.Delete(existingVote);
 
-            var hasVotes = (await _voteRepository.GetVotes(updateDto.Track.PlaylistId, updateDto.Track.Id)).Any();
+            var votes = await _voteRepository.GetVotes(updateDto.Track.PlaylistId, updateDto.Track.Id);
 
-            var keyboard = _keyboardService.AddOrRemoveSeeVotesButton(updateDto.ParsedInlineKeyboard, updateDto.Track, hasVotes);
-
-            var newText = UseNegativeOperator(existingVote)
-                // Increment or decrement the vote in the original message.
-                ? _voteTextHelper.IncrementVote(updateDto.ParsedTextMessageWithLinks, existingVote.Type)
-                : _voteTextHelper.DecrementVote(updateDto.ParsedTextMessageWithLinks, existingVote.Type);
+            (var newText, var keyboard) = UpdateTextAndKeyboard(updateDto.ParsedTextMessageWithLinks, updateDto.ParsedInlineKeyboard, updateDto.Track, votes);
 
             await EditOriginalMessage(updateDto, newText, keyboard);
 
@@ -182,6 +202,11 @@ namespace Spoti_bot.Bot.Votes
         /// <param name="replyMarkup">The keyboard to use.</param>
         private Task EditOriginalMessage(UpdateDto updateDto, string newText, InlineKeyboardMarkup replyMarkup)
         {
+            // Don't edit the message if nothing changed.
+            if (newText == updateDto.ParsedTextMessageWithLinks &&
+                _keyboardService.AreSame(replyMarkup, updateDto.ParsedInlineKeyboard))
+                return Task.CompletedTask;
+
             return _sendMessageService.EditMessageText(
                 updateDto.Chat.Id,
                 updateDto.ParsedBotMessageId.Value,
@@ -195,11 +220,6 @@ namespace Spoti_bot.Bot.Votes
         private Task AnswerCallback(UpdateDto updateDto, string text)
         {
             return _sendMessageService.AnswerCallbackQuery(updateDto.ParsedUpdateId, text);
-        }
-
-        private static bool UseNegativeOperator(Vote vote)
-        {
-            return vote.Type.HasAttribute<VoteType, UseNegativeOperatorAttribute>();
         }
     }
 }

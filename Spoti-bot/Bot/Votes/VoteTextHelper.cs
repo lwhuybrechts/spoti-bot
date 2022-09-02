@@ -34,6 +34,35 @@ namespace Spoti_bot.Bot.Votes
         }
 
         /// <summary>
+        /// Replace the votes in a text.
+        /// </summary>
+        /// <returns>A text with the updated votes.</returns>
+        public string ReplaceVotes(string text, List<Vote> votes)
+        {
+            var newText = GetTextWithoutVotes(text);
+
+            foreach (var vote in votes)
+                newText = UseNegativeOperator(vote.Type)
+                    ? DecrementVote(newText, vote.Type)
+                    : IncrementVote(newText, vote.Type);
+
+            return newText;
+        }
+
+        /// <summary>
+        /// Strip the votes from a text.
+        /// </summary>
+        private static string GetTextWithoutVotes(string text)
+        {
+            var voteTypes = Enum.GetValues(typeof(VoteType)).Cast<VoteType>().ToList();
+            var match = GetRegex(voteTypes).Match(text);
+
+            return match.Success
+                ? match.Groups[1].Value
+                : text;
+        }
+
+        /// <summary>
         /// Handle the vote.
         /// </summary>
         private static string HandleVote(string text, VoteType voteType, bool shouldIncrement)

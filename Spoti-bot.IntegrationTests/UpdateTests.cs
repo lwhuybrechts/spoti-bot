@@ -885,7 +885,7 @@ namespace Spoti_bot.IntegrationTests
 
             var trackUrl = GetLinkToTrack();
 
-            // Send the two messages that go before an vote callback: one with a trackUrl and a reply from the bot with a vote button.
+            // Send the two messages that go before a vote callback: one with a trackUrl and a reply from the bot with a vote button.
             var trackMessageId = await SendMessage(trackUrl);
             var botReplyMessageText = "Track added to the playlist!";
             var botReplyMessageId = await SendMessage(botReplyMessageText, replyToMessageId: trackMessageId);

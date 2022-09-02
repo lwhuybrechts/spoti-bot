@@ -46,7 +46,7 @@ namespace Spoti_bot.Bot
         public InlineKeyboardMarkup CreateSwitchToPmKeyboard(Chats.Chat chat)
         {
             var query = $"{InlineQueryCommand.Connect.ToDescriptionString()} {chat.Id}";
-            
+
             return new InlineKeyboardMarkup(InlineKeyboardButton.WithSwitchInlineQueryCurrentChat("Let's go", query));
         }
 
@@ -67,7 +67,7 @@ namespace Spoti_bot.Bot
 
             // Add a button with a link to the front-end.
             buttons.Add(InlineKeyboardButton.WithUrl(SpotiViewButtonText, "https://skranenburg.outsystemscloud.com/SpotiView/"));
-            
+
             return new InlineKeyboardMarkup(buttons);
         }
 
@@ -116,6 +116,37 @@ namespace Spoti_bot.Bot
         }
 
         /// <summary>
+        /// Check if two keyboards are configured the same way.
+        /// </summary>
+        public bool AreSame(InlineKeyboardMarkup firstKeyboard, InlineKeyboardMarkup secondKeyboard)
+        {
+            var firstKeyboardRows = firstKeyboard.InlineKeyboard.ToList();
+            var secondKeyboardRows = secondKeyboard.InlineKeyboard.ToList();
+
+            return firstKeyboardRows.All(firstKeyboardRow =>
+            {
+                var firstKeyboardButtons = firstKeyboardRow.ToList();
+                var secondKeyboardButtons = secondKeyboardRows[firstKeyboardRows.IndexOf(firstKeyboardRow)].ToList();
+
+                return firstKeyboardRow.All(firstKeyboardButton =>
+                    AreSame(firstKeyboardButton, secondKeyboardButtons[firstKeyboardButtons.IndexOf(firstKeyboardButton)])
+                );
+            });
+        }
+
+        /// <summary>
+        /// Check if two keyboard buttons are configured the same way.
+        /// </summary>
+        private static bool AreSame(InlineKeyboardButton firstKeyboardButton, InlineKeyboardButton secondKeyboardButton)
+        {
+            return
+                firstKeyboardButton.Text == secondKeyboardButton.Text &&
+                firstKeyboardButton.Url == secondKeyboardButton.Url &&
+                firstKeyboardButton.CallbackData == secondKeyboardButton.CallbackData &&
+                firstKeyboardButton.SwitchInlineQuery == secondKeyboardButton.SwitchInlineQuery;
+        }
+
+        /// <summary>
         /// Add the See Votes button to a keyboard, that shows the votes of a track when clicked.
         /// </summary>
         private static List<List<InlineKeyboardButton>> AddSeeVotesButton(Track track, InlineKeyboardMarkup originalKeyboard = null)
@@ -142,7 +173,7 @@ namespace Spoti_bot.Bot
                 lastRow.Insert(lastRow.IndexOf(downvoteButton) + 1, seeVotesButton);
             else
                 lastRow.Add(seeVotesButton);
-            
+
             return rows;
         }
 
@@ -152,7 +183,7 @@ namespace Spoti_bot.Bot
         private static bool HasSeeVotesButton(InlineKeyboardMarkup originalKeyboard)
         {
             var allButtons = originalKeyboard.InlineKeyboard.SelectMany(x => x).ToList();
-            
+
             return allButtons.Any(x => x.Text == SeeVotesButtonText || x.Text == SeeVotesButtonTextLegacy);
         }
 
@@ -166,7 +197,7 @@ namespace Spoti_bot.Bot
             // Add everything but the See Votes button.
             foreach (var row in originalKeyboard.InlineKeyboard)
                 newRows.Add(row.Where(x => x.Text != SeeVotesButtonText && x.Text != SeeVotesButtonTextLegacy).ToList());
-            
+
             return newRows;
         }
 
