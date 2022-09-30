@@ -40,7 +40,7 @@ namespace Spoti_bot.IntegrationTests
                     Date = DateTime.UtcNow,
                     From = GetTestUser(),
                     Chat = GetTestChat(isPrivateChat),
-                    Entities = new Telegram.Bot.Types.MessageEntity[0]
+                    Entities = Array.Empty<Telegram.Bot.Types.MessageEntity>()
                 }
             };
 
@@ -70,7 +70,7 @@ namespace Spoti_bot.IntegrationTests
                         Date = DateTime.UtcNow,
                         From = GetTestUser(isBot: true),
                         Chat = GetTestChat(),
-                        Entities = new Telegram.Bot.Types.MessageEntity[0],
+                        Entities = Array.Empty<Telegram.Bot.Types.MessageEntity>(),
                         ReplyMarkup = _keyboardService.CreatePostedTrackResponseKeyboard(),
                         ReplyToMessage = new Telegram.Bot.Types.Message
                         {

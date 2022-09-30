@@ -9,6 +9,7 @@ using Sentry;
 using System;
 using Spoti_bot.Spotify.Tracks;
 using System.Linq;
+using Spoti_bot.Library;
 
 namespace Spoti_bot
 {
@@ -44,7 +45,9 @@ namespace Spoti_bot
 
                     // Map the tracks to api models.
                     var apiTracks = _mapper.Map(tracks);
-                    
+
+                    httpRequest.AddResponseCaching(300);
+
                     return new OkObjectResult(apiTracks);
                 }
                 catch (Exception exception)

@@ -10,6 +10,7 @@ using System;
 using System.Linq;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Bot.Users;
+using Spoti_bot.Library;
 
 namespace Spoti_bot
 {
@@ -44,6 +45,8 @@ namespace Spoti_bot
 
                     // Map the users to api models.
                     var apiUsers = _mapper.Map(users);
+
+                    httpRequest.AddResponseCaching(300);
 
                     return new OkObjectResult(apiUsers);
                 }

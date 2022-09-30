@@ -203,9 +203,7 @@ namespace Spoti_bot.Bot
 
         private static Uri GetWebAppUri()
         {
-            var baseUri = new Uri(_azureOptions.FunctionAppUrl);
-
-            return new Uri(baseUri, $"api/{nameof(WebApp).ToLower()}");
+            return new Uri("https://delightful-sea-01230ca03.1.azurestaticapps.net/");
         }
     }
 }
