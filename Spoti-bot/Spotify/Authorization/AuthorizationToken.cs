@@ -18,6 +18,5 @@ namespace Spoti_bot.Spotify.Authorization
         public string Scope { get; set; }
         public string RefreshToken { get; set; }
         public DateTime CreatedAt { get; set; }
-        public bool IsExpired { get; }
     }
 }

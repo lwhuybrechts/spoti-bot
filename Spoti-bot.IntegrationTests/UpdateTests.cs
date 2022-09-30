@@ -9,6 +9,7 @@ using Spoti_bot.Bot.Users;
 using Spoti_bot.Bot.Votes;
 using Spoti_bot.IntegrationTests.Library;
 using Spoti_bot.Library;
+using Spoti_bot.Library.Extensions;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
 using Spoti_bot.Spotify.Api;

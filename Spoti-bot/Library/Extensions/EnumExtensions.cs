@@ -3,7 +3,7 @@ using System;
 using System.ComponentModel;
 using System.Linq;
 
-namespace Spoti_bot.Library
+namespace Spoti_bot.Library.Extensions
 {
     public static class EnumExtensions
     {

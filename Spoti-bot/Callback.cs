@@ -11,10 +11,10 @@ using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Spoti_bot.Spotify.Authorization;
 using Spoti_bot.Bot;
 using Spoti_bot.Bot.HandleUpdate.Commands;
-using Spoti_bot.Library;
 using Spoti_bot.Bot.Chats;
 using Spoti_bot.Spotify.Tracks;
 using Spoti_bot.Spotify.Api;
+using Spoti_bot.Library.Extensions;
 
 namespace Spoti_bot
 {

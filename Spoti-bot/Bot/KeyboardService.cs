@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.Votes;
-using Spoti_bot.Library;
+using Spoti_bot.Library.Extensions;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify.Tracks;
 using System;

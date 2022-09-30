@@ -10,7 +10,7 @@ using System;
 using System.Linq;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Bot.Users;
-using Spoti_bot.Library;
+using Spoti_bot.Library.Extensions;
 
 namespace Spoti_bot
 {

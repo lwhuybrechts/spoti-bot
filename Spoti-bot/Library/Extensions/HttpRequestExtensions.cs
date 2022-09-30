@@ -2,7 +2,7 @@
 using Microsoft.Net.Http.Headers;
 using System;
 
-namespace Spoti_bot.Library
+namespace Spoti_bot.Library.Extensions
 {
     public static class HttpRequestExtensions
     {

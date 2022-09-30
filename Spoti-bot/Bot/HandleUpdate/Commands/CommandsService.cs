@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Library;
+using Spoti_bot.Library.Extensions;
 using Spoti_bot.Library.Options;
 using System;
 using System.Collections.Generic;

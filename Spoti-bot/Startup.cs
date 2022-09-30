@@ -10,6 +10,7 @@ using Spoti_bot.Bot.HandleUpdate.Commands;
 using Spoti_bot.Bot.HandleUpdate.Dto;
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Bot.Votes;
+using Spoti_bot.Bot.WebApp;
 using Spoti_bot.Library.Options;
 using Spoti_bot.Spotify;
 using Spoti_bot.Spotify.Api;
@@ -69,6 +70,7 @@ namespace Spoti_bot
                 .AddTransient<IVoteRepository, VoteRepository>()
                 .AddTransient<IChatRepository, ChatRepository>()
                 .AddTransient<IChatMemberRepository, ChatMemberRepository>()
+                .AddTransient<IWebAppValidationService, WebAppValidationService>()
 
                 // TODO: only use 1 http client, so inject it here.
                 .AddSingleton<ITelegramBotClient>((serviceProvider) =>
@@ -125,6 +127,7 @@ namespace Spoti_bot
                 .AddTransient<ApiModels.IMapper, ApiModels.Mapper>()
                 .AddTransient<Bot.Chats.IMapper, Bot.Chats.Mapper>()
                 .AddTransient<Bot.Users.IMapper, Bot.Users.Mapper>()
+                .AddTransient<Bot.WebApp.IMapper, Bot.WebApp.Mapper>()
                 .AddTransient<Spotify.Authorization.IMapper, Spotify.Authorization.Mapper>()
                 .AddTransient<Spotify.Playlists.IMapper, Spotify.Playlists.Mapper>()
                 .AddTransient<Spotify.Tracks.IMapper, Spotify.Tracks.Mapper>();

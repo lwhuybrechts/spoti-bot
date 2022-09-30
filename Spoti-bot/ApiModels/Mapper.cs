@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Spoti_bot.ApiModels
@@ -39,5 +40,15 @@ namespace Spoti_bot.ApiModels
         {
             return source.Select(Map).ToList();
         }
+
+        public SpotifyAccessToken Map(Spotify.Authorization.AuthorizationToken source) => new()
+        {
+            AccessToken = source.AccessToken,
+            TokenType = source.TokenType,
+            ExpiresIn = source.ExpiresIn,
+            Scope = source.Scope,
+            RefreshToken = source.RefreshToken,
+            CreatedAt = source.CreatedAt
+        };
     }
 }

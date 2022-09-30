@@ -1,4 +1,4 @@
-﻿using Spoti_bot.Library;
+﻿using Spoti_bot.Library.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

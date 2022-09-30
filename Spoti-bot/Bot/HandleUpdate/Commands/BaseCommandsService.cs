@@ -2,6 +2,7 @@
 using Spoti_bot.Bot.Users;
 using Spoti_bot.Library;
 using Spoti_bot.Library.Exceptions;
+using Spoti_bot.Library.Extensions;
 using Spoti_bot.Spotify;
 using System;
 using System.Linq;
