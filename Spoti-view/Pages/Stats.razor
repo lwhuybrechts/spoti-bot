@@ -1,0 +1,48 @@
+﻿@page "/stats"
+@inherits StatsBase
+
+<h1>Stats</h1>
+
+@if (!userStats.Any())
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Shared tracks</th>
+                <th>Tracks that received upvotes</th>
+                <th>Most upvoted track</th>
+                <th>Total received upvotes</th>
+                <th>Total given upvotes</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var userStat in userStats)
+            {
+                <tr>
+                    <td>@userStat.User.FirstName</td>
+                    <td>@userStat.SharedTrackAmount</td>
+                    <td>
+                        @userStat.ReceivedTrackUpvoteAmount
+                        @if (userStat.ReceivedTrackUpvotePercentage > 0)
+                        {
+                            @: (@userStat.ReceivedTrackUpvotePercentage%)
+                        }
+                    </td>
+                    <td>
+                        @if (userStat.MostUpvotedTrack != null)
+                        {
+                            @:@userStat.MostUpvotedTrack.Id (@userStat.MostUpvotedTrackAmount)
+                        }
+                    </td>
+                    <td>@userStat.ReceivedTotalUpvoteAmount</td>
+                    <td>@userStat.GaveUpvotesAmount</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

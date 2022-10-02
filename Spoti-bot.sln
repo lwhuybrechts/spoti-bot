@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spoti-bot", "Spoti-bot\Spot
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spoti-bot.IntegrationTests", "Spoti-bot.IntegrationTests\Spoti-bot.IntegrationTests.csproj", "{8D4E3784-522D-4441-B24A-55886B710960}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Spoti-view", "Spoti-view\Spoti-view.csproj", "{ADF68AC7-D319-4F5E-813C-328964E0C1E1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{8D4E3784-522D-4441-B24A-55886B710960}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8D4E3784-522D-4441-B24A-55886B710960}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8D4E3784-522D-4441-B24A-55886B710960}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ADF68AC7-D319-4F5E-813C-328964E0C1E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ADF68AC7-D319-4F5E-813C-328964E0C1E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ADF68AC7-D319-4F5E-813C-328964E0C1E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ADF68AC7-D319-4F5E-813C-328964E0C1E1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

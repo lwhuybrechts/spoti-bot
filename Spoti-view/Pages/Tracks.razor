@@ -1,0 +1,37 @@
+﻿@page "/tracks"
+@inherits TracksBase
+
+<h1>Tracks</h1>
+
+@if (!tracks.Any() || !users.Any())
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Added at</th>
+                <th>User</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var track in tracks)
+            {
+                <tr>
+                    <td>@track.Id</td>
+                    <td>@track.AddedAt.ToLocalTime()</td>
+                    <td>
+                        @{
+                            var id = track.AddedByTelegramUserId.ToString();
+                            var user = users.ContainsKey(id) ? users[id] : null;
+                        }
+                        @(user?.FirstName ?? track.AddedByTelegramUserId.ToString())
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

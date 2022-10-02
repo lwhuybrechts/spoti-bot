@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spoti-bot</title>
+    <base href="/" />
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/app.css" rel="stylesheet" />
+    <link href="Spoti-view.styles.css" rel="stylesheet" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script type="text/javascript">
+        // Wrap the initData a function that can be called with blazor javascript interop.
+        Telegram.WebApp.initDataFunction = function () {
+            return Telegram.WebApp.initData;
+        }
+    </script>
+</head>
+
+<body>
+    <div id="app">
+        <div style="position: absolute; top: 30vh; width: 100%; text-align: center;">
+            <h1>Spoti-bot</h1>
+            <div style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+                <div class="spinner-border" role="status"></div>
+                Loading...
+            </div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="" class="reload">Reload</a>
+        <a class="dismiss">🗙</a>
+    </div>
+    <script src="_framework/blazor.webassembly.js"></script>
+</body>
+
+</html>
