@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Spoti_bot.Library.Exceptions;
+using SpotiBot.Library.Exceptions;
 using Microsoft.Extensions.Options;
 using Sentry;
 using System;
-using Spoti_bot.Bot.Votes;
+using SpotiBot.Bot.Votes;
 using System.Linq;
 
-namespace Spoti_bot
+namespace SpotiBot
 {
     public class Upvotes
     {

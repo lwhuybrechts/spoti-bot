@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
-    <RootNamespace>Spoti_bot</RootNamespace>
+    <RootNamespace>SpotiBot</RootNamespace>
     <UserSecretsId>7cc16293-d50a-43c7-a9ac-129aa4061676</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
@@ -12,6 +12,9 @@
     <PackageReference Include="Sentry.AspNetCore" Version="3.19.0" />
     <PackageReference Include="SpotifyAPI.Web" Version="6.2.2" />
     <PackageReference Include="Telegram.Bot" Version="18.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Spoti-api-models\Spoti-api-models.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

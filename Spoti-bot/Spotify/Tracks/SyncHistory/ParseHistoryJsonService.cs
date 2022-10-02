@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Tracks.SyncHistory
+namespace SpotiBot.Spotify.Tracks.SyncHistory
 {
     public class ParseHistoryJsonService : IParseHistoryJsonService
     {

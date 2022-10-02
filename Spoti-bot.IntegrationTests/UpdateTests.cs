@@ -1,28 +1,28 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
-using Spoti_bot.Bot;
-using Spoti_bot.Bot.Chats;
-using Spoti_bot.Bot.HandleUpdate;
-using Spoti_bot.Bot.HandleUpdate.Commands;
-using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Users;
-using Spoti_bot.Bot.Votes;
-using Spoti_bot.IntegrationTests.Library;
-using Spoti_bot.Library;
-using Spoti_bot.Library.Extensions;
-using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify;
-using Spoti_bot.Spotify.Api;
-using Spoti_bot.Spotify.Authorization;
-using Spoti_bot.Spotify.Playlists;
-using Spoti_bot.Spotify.Tracks;
+using SpotiBot.Bot;
+using SpotiBot.Bot.Chats;
+using SpotiBot.Bot.HandleUpdate;
+using SpotiBot.Bot.HandleUpdate.Commands;
+using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Users;
+using SpotiBot.Bot.Votes;
+using SpotiBot.IntegrationTests.Library;
+using SpotiBot.Library;
+using SpotiBot.Library.Extensions;
+using SpotiBot.Library.Options;
+using SpotiBot.Spotify;
+using SpotiBot.Spotify.Api;
+using SpotiBot.Spotify.Authorization;
+using SpotiBot.Spotify.Playlists;
+using SpotiBot.Spotify.Tracks;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Spoti_bot.IntegrationTests
+namespace SpotiBot.IntegrationTests
 {
     public class UpdateTests : IClassFixture<TestHost>
     {

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
-using SpotiView.ApiModels;
+using SpotiApiModels;
 using System.Net.Http.Json;
 
 namespace SpotiView.Pages

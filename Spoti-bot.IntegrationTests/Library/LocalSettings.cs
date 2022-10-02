@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Spoti_bot.IntegrationTests.Library
+namespace SpotiBot.IntegrationTests.Library
 {
     /// <summary>
     /// Azure functions use a file called local.settings.json to store app settings in.

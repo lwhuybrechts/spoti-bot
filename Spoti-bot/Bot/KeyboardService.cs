@@ -1,16 +1,16 @@
 ﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Bot.HandleUpdate.Commands;
-using Spoti_bot.Bot.Votes;
-using Spoti_bot.Library.Extensions;
-using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Tracks;
+using SpotiBot.Bot.HandleUpdate.Commands;
+using SpotiBot.Bot.Votes;
+using SpotiBot.Library.Extensions;
+using SpotiBot.Library.Options;
+using SpotiBot.Spotify.Tracks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot
+namespace SpotiBot.Bot
 {
     public class KeyboardService : IKeyboardService
     {

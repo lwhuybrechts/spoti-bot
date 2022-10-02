@@ -1,8 +1,9 @@
-﻿using Spoti_bot.Bot.Votes;
-using Spoti_bot.Spotify.Authorization;
+﻿using SpotiBot.Bot.Votes;
+using SpotiBot.Spotify.Authorization;
+using SpotiApiModels;
 using System.Collections.Generic;
 
-namespace Spoti_bot.ApiModels
+namespace SpotiBot.ApiModels
 {
     public interface IMapper
     {

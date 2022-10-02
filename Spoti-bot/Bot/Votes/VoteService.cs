@@ -1,14 +1,14 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Library;
-using Spoti_bot.Spotify.Tracks;
-using Spoti_bot.Spotify.Tracks.RemoveTrack;
+﻿using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Library;
+using SpotiBot.Spotify.Tracks;
+using SpotiBot.Spotify.Tracks.RemoveTrack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot.Votes
+namespace SpotiBot.Bot.Votes
 {
     public class VoteService : IVoteService
     {

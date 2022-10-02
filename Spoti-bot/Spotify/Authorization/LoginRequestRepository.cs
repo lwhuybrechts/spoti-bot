@@ -1,10 +1,10 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
-using Spoti_bot.Library;
+using SpotiBot.Library;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Authorization
+namespace SpotiBot.Spotify.Authorization
 {
     public class LoginRequestRepository : BaseRepository<LoginRequest>, ILoginRequestRepository
     {

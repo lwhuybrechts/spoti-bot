@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Spoti_bot.IntegrationTests.Library;
+using SpotiBot.IntegrationTests.Library;
 using System;
 
-namespace Spoti_bot.IntegrationTests
+namespace SpotiBot.IntegrationTests
 {
     /// <summary>
     /// Builds a host that has all dependencies needed to execute a function in our tests.

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
-using SpotiView.ApiModels;
+using SpotiApiModels;
 using SpotiView.Mappers;
 using SpotiView.ViewModels;
 using System.Net.Http.Json;

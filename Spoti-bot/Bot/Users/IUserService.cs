@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.Users
+namespace SpotiBot.Bot.Users
 {
     public interface IUserService
     {

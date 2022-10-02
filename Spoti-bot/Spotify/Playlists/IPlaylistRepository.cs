@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Playlists
+namespace SpotiBot.Spotify.Playlists
 {
     public interface IPlaylistRepository
     {

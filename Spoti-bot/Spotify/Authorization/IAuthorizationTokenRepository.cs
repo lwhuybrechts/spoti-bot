@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Authorization
+namespace SpotiBot.Spotify.Authorization
 {
     public interface IAuthorizationTokenRepository
     {

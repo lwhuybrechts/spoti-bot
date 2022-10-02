@@ -1,7 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
 using System;
 
-namespace Spoti_bot.Spotify.Authorization
+namespace SpotiBot.Spotify.Authorization
 {
     public class LoginRequest : TableEntity
     {

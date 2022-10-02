@@ -1,11 +1,11 @@
 ﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Authorization;
+using SpotiBot.Library.Options;
+using SpotiBot.Spotify.Authorization;
 using SpotifyAPI.Web;
 using System;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Api
+namespace SpotiBot.Spotify.Api
 {
     public class SpotifyClientFactory : ISpotifyClientFactory
     {

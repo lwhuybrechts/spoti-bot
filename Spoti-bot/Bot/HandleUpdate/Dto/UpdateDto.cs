@@ -1,10 +1,10 @@
-﻿using Spoti_bot.Bot.Chats;
-using Spoti_bot.Spotify.Authorization;
-using Spoti_bot.Spotify.Playlists;
-using Spoti_bot.Spotify.Tracks;
+﻿using SpotiBot.Bot.Chats;
+using SpotiBot.Spotify.Authorization;
+using SpotiBot.Spotify.Playlists;
+using SpotiBot.Spotify.Tracks;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot.HandleUpdate.Dto
+namespace SpotiBot.Bot.HandleUpdate.Dto
 {
     /// <summary>
     /// Holds objects related to the Update that was sent.

@@ -1,7 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
-using Spoti_bot.Library;
+using SpotiBot.Library;
 
-namespace Spoti_bot.Spotify.Authorization
+namespace SpotiBot.Spotify.Authorization
 {
     public class AuthorizationTokenRepository : BaseRepository<AuthorizationToken>, IAuthorizationTokenRepository
     {

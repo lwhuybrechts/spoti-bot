@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Tracks.SyncTracks
+namespace SpotiBot.Spotify.Tracks.SyncTracks
 {
     public interface ISyncTracksService
     {

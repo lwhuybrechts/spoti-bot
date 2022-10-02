@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Spoti_bot.Bot.WebApp.Models
+namespace SpotiBot.Bot.WebApp.Models
 {
     [JsonConverter(typeof(WebAppChatTypeConverter))]
     public enum WebAppChatType

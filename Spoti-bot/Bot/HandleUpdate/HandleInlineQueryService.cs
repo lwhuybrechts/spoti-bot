@@ -1,12 +1,12 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Commands;
-using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Library;
-using Spoti_bot.Library.Exceptions;
+﻿using SpotiBot.Bot.HandleUpdate.Commands;
+using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Library;
+using SpotiBot.Library.Exceptions;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.InlineQueryResults;
 
-namespace Spoti_bot.Bot.HandleUpdate
+namespace SpotiBot.Bot.HandleUpdate
 {
     public class HandleInlineQueryService : IHandleInlineQueryService
     {

@@ -1,6 +1,6 @@
 ﻿using SpotifyAPI.Web;
 
-namespace Spoti_bot.Spotify.Playlists
+namespace SpotiBot.Spotify.Playlists
 {
     public class Mapper : IMapper
     {

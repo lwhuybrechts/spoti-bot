@@ -1,13 +1,13 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Commands;
-using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Users;
-using Spoti_bot.Library;
-using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Spotify;
-using Spoti_bot.Spotify.Tracks.AddTrack;
+﻿using SpotiBot.Bot.HandleUpdate.Commands;
+using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Users;
+using SpotiBot.Library;
+using SpotiBot.Library.Exceptions;
+using SpotiBot.Spotify;
+using SpotiBot.Spotify.Tracks.AddTrack;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.HandleUpdate
+namespace SpotiBot.Bot.HandleUpdate
 {
     public class HandleMessageService : IHandleMessageService
     {

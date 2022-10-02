@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace Spoti_bot.Bot.WebApp
+namespace SpotiBot.Bot.WebApp
 {
     public interface IWebAppValidationService
     {

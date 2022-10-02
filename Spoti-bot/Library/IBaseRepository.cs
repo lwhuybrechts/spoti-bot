@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Library
+namespace SpotiBot.Library
 {
     public interface IBaseRepository<T> where T : class, ITableEntity, new()
     {

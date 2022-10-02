@@ -1,6 +1,6 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
 
-namespace Spoti_bot.Bot.Users
+namespace SpotiBot.Bot.Users
 {
     public class User : TableEntity
     {

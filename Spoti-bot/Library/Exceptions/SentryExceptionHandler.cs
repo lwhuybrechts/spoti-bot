@@ -1,7 +1,7 @@
 ﻿using Sentry;
 using System;
 
-namespace Spoti_bot.Library.Exceptions
+namespace SpotiBot.Library.Exceptions
 {
     /// <summary>
     /// A wrapper around SentrySdk.Init.

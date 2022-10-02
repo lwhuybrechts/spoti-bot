@@ -1,19 +1,19 @@
-﻿using Spoti_bot.Bot.Chats;
-using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Users;
-using Spoti_bot.Library;
-using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Library.Extensions;
-using Spoti_bot.Spotify;
-using Spoti_bot.Spotify.Api;
-using Spoti_bot.Spotify.Authorization;
-using Spoti_bot.Spotify.Playlists;
-using Spoti_bot.Spotify.Tracks.SyncTracks;
+﻿using SpotiBot.Bot.Chats;
+using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Users;
+using SpotiBot.Library;
+using SpotiBot.Library.Exceptions;
+using SpotiBot.Library.Extensions;
+using SpotiBot.Spotify;
+using SpotiBot.Spotify.Api;
+using SpotiBot.Spotify.Authorization;
+using SpotiBot.Spotify.Playlists;
+using SpotiBot.Spotify.Tracks.SyncTracks;
 using System;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot.HandleUpdate.Commands
+namespace SpotiBot.Bot.HandleUpdate.Commands
 {
     public class HandleCommandService : BaseCommandsService<Command>, IHandleCommandService
     {

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Tracks
+namespace SpotiBot.Spotify.Tracks
 {
     public interface ITrackRepository
     {

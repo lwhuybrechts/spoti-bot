@@ -1,10 +1,10 @@
-﻿using Spoti_bot.Library.Extensions;
+﻿using SpotiBot.Library.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Spoti_bot.Bot.Votes
+namespace SpotiBot.Bot.Votes
 {
     /// <summary>
     /// Takes care of displaying the votes and their count at the end of a text message.

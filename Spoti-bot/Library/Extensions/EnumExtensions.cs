@@ -1,9 +1,9 @@
-﻿using Spoti_bot.Library.Exceptions;
+﻿using SpotiBot.Library.Exceptions;
 using System;
 using System.ComponentModel;
 using System.Linq;
 
-namespace Spoti_bot.Library.Extensions
+namespace SpotiBot.Library.Extensions
 {
     public static class EnumExtensions
     {

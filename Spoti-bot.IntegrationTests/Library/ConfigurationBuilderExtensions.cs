@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace Spoti_bot.IntegrationTests.Library
+namespace SpotiBot.IntegrationTests.Library
 {
     public static class ConfigurationBuilderExtensions
     {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Spoti_bot.Bot.HandleUpdate.Commands
+namespace SpotiBot.Bot.HandleUpdate.Commands
 {
     public interface ICommandsService
     {

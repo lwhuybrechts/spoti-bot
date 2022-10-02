@@ -1,8 +1,8 @@
-﻿using Spoti_bot.Spotify.Tracks.SyncHistory;
+﻿using SpotiBot.Spotify.Tracks.SyncHistory;
 using SpotifyAPI.Web;
 using System.Collections.Generic;
 
-namespace Spoti_bot.Spotify.Tracks
+namespace SpotiBot.Spotify.Tracks
 {
     public interface IMapper
     {

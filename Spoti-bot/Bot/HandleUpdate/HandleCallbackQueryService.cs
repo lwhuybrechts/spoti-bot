@@ -1,13 +1,13 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Users;
-using Spoti_bot.Bot.Votes;
-using Spoti_bot.Library;
-using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Spotify.Api;
-using Spoti_bot.Spotify.Authorization;
+﻿using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Users;
+using SpotiBot.Bot.Votes;
+using SpotiBot.Library;
+using SpotiBot.Library.Exceptions;
+using SpotiBot.Spotify.Api;
+using SpotiBot.Spotify.Authorization;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.HandleUpdate
+namespace SpotiBot.Bot.HandleUpdate
 {
     public class HandleCallbackQueryService : IHandleCallbackQueryService
     {

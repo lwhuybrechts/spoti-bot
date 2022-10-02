@@ -7,16 +7,16 @@ using System;
 using Sentry;
 using System.IO;
 using Microsoft.Extensions.Options;
-using Spoti_bot.Library.Exceptions;
+using SpotiBot.Library.Exceptions;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Spoti_bot.Library;
-using Spoti_bot.Bot.HandleUpdate;
-using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Chats;
-using Spoti_bot.Bot.HandleUpdate.Commands;
+using SpotiBot.Library;
+using SpotiBot.Bot.HandleUpdate;
+using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Chats;
+using SpotiBot.Bot.HandleUpdate.Commands;
 
-namespace Spoti_bot
+namespace SpotiBot
 {
     public class Update
     {

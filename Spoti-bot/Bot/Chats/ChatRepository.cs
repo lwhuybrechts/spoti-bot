@@ -1,7 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
-using Spoti_bot.Library;
+using SpotiBot.Library;
 
-namespace Spoti_bot.Bot.Chats
+namespace SpotiBot.Bot.Chats
 {
     public class ChatRepository : BaseRepository<Chat>, IChatRepository
     {

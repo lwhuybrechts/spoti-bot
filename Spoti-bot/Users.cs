@@ -3,16 +3,16 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Spoti_bot.Library.Exceptions;
+using SpotiBot.Library.Exceptions;
 using Microsoft.Extensions.Options;
 using Sentry;
 using System;
 using System.Linq;
-using Spoti_bot.Library.Options;
-using Spoti_bot.Bot.Users;
-using Spoti_bot.Library.Extensions;
+using SpotiBot.Library.Options;
+using SpotiBot.Bot.Users;
+using SpotiBot.Library.Extensions;
 
-namespace Spoti_bot
+namespace SpotiBot
 {
     public class Users
     {

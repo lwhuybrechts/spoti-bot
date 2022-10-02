@@ -1,4 +1,4 @@
-﻿namespace Spoti_bot.Spotify.Authorization
+﻿namespace SpotiBot.Spotify.Authorization
 {
     public enum LoginRequestReason
     {

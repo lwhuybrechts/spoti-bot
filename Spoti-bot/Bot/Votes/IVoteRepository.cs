@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.Votes
+namespace SpotiBot.Bot.Votes
 {
     public interface IVoteRepository
     {

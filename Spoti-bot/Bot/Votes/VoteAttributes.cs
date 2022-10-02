@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Spoti_bot.Bot.Votes
+namespace SpotiBot.Bot.Votes
 {
     public class VoteAttributes : Attribute
     {

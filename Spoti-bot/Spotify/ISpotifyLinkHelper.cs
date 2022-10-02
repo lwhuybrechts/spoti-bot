@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify
+namespace SpotiBot.Spotify
 {
     public interface ISpotifyLinkHelper
     {

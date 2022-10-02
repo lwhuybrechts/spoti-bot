@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel;
 
-namespace Spoti_bot.Bot.HandleUpdate.Commands
+namespace SpotiBot.Bot.HandleUpdate.Commands
 {
     /// <summary>
     /// The list with supported commands and the text that triggers them.

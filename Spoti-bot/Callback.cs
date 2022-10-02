@@ -6,17 +6,17 @@ using Microsoft.AspNetCore.Http;
 using System;
 using Sentry;
 using Microsoft.Extensions.Options;
-using Spoti_bot.Library.Exceptions;
+using SpotiBot.Library.Exceptions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Spoti_bot.Spotify.Authorization;
-using Spoti_bot.Bot;
-using Spoti_bot.Bot.HandleUpdate.Commands;
-using Spoti_bot.Bot.Chats;
-using Spoti_bot.Spotify.Tracks;
-using Spoti_bot.Spotify.Api;
-using Spoti_bot.Library.Extensions;
+using SpotiBot.Spotify.Authorization;
+using SpotiBot.Bot;
+using SpotiBot.Bot.HandleUpdate.Commands;
+using SpotiBot.Bot.Chats;
+using SpotiBot.Spotify.Tracks;
+using SpotiBot.Spotify.Api;
+using SpotiBot.Library.Extensions;
 
-namespace Spoti_bot
+namespace SpotiBot
 {
     public class Callback
     {

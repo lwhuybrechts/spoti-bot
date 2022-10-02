@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Library.Options;
+using SpotiBot.Library.Options;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System;
 using Microsoft.AspNetCore.Http;
-using Spoti_bot.Library.Extensions;
+using SpotiBot.Library.Extensions;
 
-namespace Spoti_bot.Bot.WebApp
+namespace SpotiBot.Bot.WebApp
 {
     public class WebAppValidationService : IWebAppValidationService
     {

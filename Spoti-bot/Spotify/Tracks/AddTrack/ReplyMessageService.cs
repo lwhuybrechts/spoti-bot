@@ -1,10 +1,10 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Users;
+﻿using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Users;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace Spoti_bot.Spotify.Tracks.AddTrack
+namespace SpotiBot.Spotify.Tracks.AddTrack
 {
     public class ReplyMessageService : IReplyMessageService
     {

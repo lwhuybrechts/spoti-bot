@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Spoti_bot.Bot.WebApp.Models
+namespace SpotiBot.Bot.WebApp.Models
 {
     /// <summary>
     /// This object contains the data of the Web App user.

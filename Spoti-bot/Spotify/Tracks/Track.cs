@@ -1,7 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
 using System;
 
-namespace Spoti_bot.Spotify.Tracks
+namespace SpotiBot.Spotify.Tracks
 {
     public class Track : TableEntity
     {

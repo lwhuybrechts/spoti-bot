@@ -1,6 +1,6 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
 
-namespace Spoti_bot.Bot.Chats
+namespace SpotiBot.Bot.Chats
 {
     public class Chat : TableEntity
     {

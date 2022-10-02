@@ -3,28 +3,28 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
-using Spoti_bot.Bot;
-using Spoti_bot.Bot.Chats;
-using Spoti_bot.Bot.HandleUpdate;
-using Spoti_bot.Bot.HandleUpdate.Commands;
-using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Users;
-using Spoti_bot.Bot.Votes;
-using Spoti_bot.Bot.WebApp;
-using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify;
-using Spoti_bot.Spotify.Api;
-using Spoti_bot.Spotify.Authorization;
-using Spoti_bot.Spotify.Playlists;
-using Spoti_bot.Spotify.Tracks;
-using Spoti_bot.Spotify.Tracks.AddTrack;
-using Spoti_bot.Spotify.Tracks.RemoveTrack;
-using Spoti_bot.Spotify.Tracks.SyncHistory;
-using Spoti_bot.Spotify.Tracks.SyncTracks;
+using SpotiBot.Bot;
+using SpotiBot.Bot.Chats;
+using SpotiBot.Bot.HandleUpdate;
+using SpotiBot.Bot.HandleUpdate.Commands;
+using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Users;
+using SpotiBot.Bot.Votes;
+using SpotiBot.Bot.WebApp;
+using SpotiBot.Library.Options;
+using SpotiBot.Spotify;
+using SpotiBot.Spotify.Api;
+using SpotiBot.Spotify.Authorization;
+using SpotiBot.Spotify.Playlists;
+using SpotiBot.Spotify.Tracks;
+using SpotiBot.Spotify.Tracks.AddTrack;
+using SpotiBot.Spotify.Tracks.RemoveTrack;
+using SpotiBot.Spotify.Tracks.SyncHistory;
+using SpotiBot.Spotify.Tracks.SyncTracks;
 using Telegram.Bot;
 
-[assembly: FunctionsStartup(typeof(Spoti_bot.Startup))]
-namespace Spoti_bot
+[assembly: FunctionsStartup(typeof(SpotiBot.Startup))]
+namespace SpotiBot
 {
     public class Startup : FunctionsStartup
     {

@@ -1,19 +1,19 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
-using Spoti_bot.Bot;
-using Spoti_bot.Bot.Chats;
-using Spoti_bot.IntegrationTests.Library;
-using Spoti_bot.Library.Options;
-using Spoti_bot.Spotify.Api;
-using Spoti_bot.Spotify.Authorization;
-using Spoti_bot.Spotify.Tracks;
+using SpotiBot.Bot;
+using SpotiBot.Bot.Chats;
+using SpotiBot.IntegrationTests.Library;
+using SpotiBot.Library.Options;
+using SpotiBot.Spotify.Api;
+using SpotiBot.Spotify.Authorization;
+using SpotiBot.Spotify.Tracks;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Spoti_bot.IntegrationTests
+namespace SpotiBot.IntegrationTests
 {
     public class CallbackTests : IClassFixture<TestHost>
     {

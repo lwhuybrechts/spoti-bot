@@ -1,9 +1,9 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
-using Spoti_bot.Library;
+using SpotiBot.Library;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.Votes
+namespace SpotiBot.Bot.Votes
 {
     public class VoteRepository : BaseRepository<Vote>, IVoteRepository
     {

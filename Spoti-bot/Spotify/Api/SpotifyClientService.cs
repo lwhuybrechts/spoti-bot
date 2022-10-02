@@ -1,13 +1,13 @@
 ﻿using Sentry;
-using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Spotify.Playlists;
-using Spoti_bot.Spotify.Tracks;
+using SpotiBot.Library.Exceptions;
+using SpotiBot.Spotify.Playlists;
+using SpotiBot.Spotify.Tracks;
 using SpotifyAPI.Web;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Api
+namespace SpotiBot.Spotify.Api
 {
     public class SpotifyClientService : ISpotifyClientService
     {

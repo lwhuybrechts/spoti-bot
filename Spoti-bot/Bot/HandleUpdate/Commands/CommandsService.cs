@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Library.Extensions;
-using Spoti_bot.Library.Options;
+using SpotiBot.Library.Extensions;
+using SpotiBot.Library.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
-namespace Spoti_bot.Bot.HandleUpdate.Commands
+namespace SpotiBot.Bot.HandleUpdate.Commands
 {
     public class CommandsService : ICommandsService
     {

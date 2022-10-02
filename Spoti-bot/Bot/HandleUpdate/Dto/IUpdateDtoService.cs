@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.HandleUpdate.Dto
+namespace SpotiBot.Bot.HandleUpdate.Dto
 {
     public interface IUpdateDtoService
     {

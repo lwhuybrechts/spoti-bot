@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Spoti_bot.Bot.Chats
+namespace SpotiBot.Bot.Chats
 {
     public class Mapper : IMapper
     {

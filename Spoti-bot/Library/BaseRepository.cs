@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Library
+namespace SpotiBot.Library
 {
     public abstract class BaseRepository<T> : IBaseRepository<T> where T : class, ITableEntity, new()
     {

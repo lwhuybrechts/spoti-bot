@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Spoti_bot.Bot.Votes
+namespace SpotiBot.Bot.Votes
 {
     public interface IVoteTextHelper
     {

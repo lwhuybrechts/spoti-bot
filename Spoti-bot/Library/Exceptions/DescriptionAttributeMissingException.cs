@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Spoti_bot.Library.Exceptions
+namespace SpotiBot.Library.Exceptions
 {
     public class DescriptionAttributeMissingException : Exception
     {

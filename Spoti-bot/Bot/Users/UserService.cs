@@ -1,7 +1,7 @@
-﻿using Spoti_bot.Bot.Chats;
+﻿using SpotiBot.Bot.Chats;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.Users
+namespace SpotiBot.Bot.Users
 {
     public class UserService : IUserService
     {

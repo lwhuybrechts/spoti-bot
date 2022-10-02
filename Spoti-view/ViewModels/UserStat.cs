@@ -1,4 +1,4 @@
-﻿using SpotiView.ApiModels;
+﻿using SpotiApiModels;
 
 namespace SpotiView.ViewModels
 {

@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace Spoti_bot.Bot.WebApp.Models
+namespace SpotiBot.Bot.WebApp.Models
 {
     /// <summary>
     /// This object contains data that is transferred to the Web App when it is opened. It is empty if the Web App was launched from a keyboard button.

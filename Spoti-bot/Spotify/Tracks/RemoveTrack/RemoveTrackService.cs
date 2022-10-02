@@ -1,11 +1,11 @@
-﻿using Spoti_bot.Bot;
-using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Library;
-using Spoti_bot.Spotify.Api;
+﻿using SpotiBot.Bot;
+using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Library;
+using SpotiBot.Spotify.Api;
 using SpotifyAPI.Web;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Tracks.RemoveTrack
+namespace SpotiBot.Spotify.Tracks.RemoveTrack
 {
     public class RemoveTrackService : IRemoveTrackService
     {

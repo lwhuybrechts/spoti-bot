@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Spoti_bot.Bot.WebApp.Models;
+using SpotiBot.Bot.WebApp.Models;
 
-namespace Spoti_bot.Bot.WebApp
+namespace SpotiBot.Bot.WebApp
 {
     public interface IMapper
     {

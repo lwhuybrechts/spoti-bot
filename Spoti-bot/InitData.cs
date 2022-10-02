@@ -2,18 +2,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using Spoti_bot.Library.Exceptions;
+using SpotiBot.Library.Exceptions;
 using Microsoft.Extensions.Options;
 using Sentry;
 using System;
-using Spoti_bot.Bot.WebApp;
-using Spoti_bot.Spotify.Authorization;
-using IMapper = Spoti_bot.Bot.WebApp.IMapper;
+using SpotiBot.Bot.WebApp;
+using SpotiBot.Spotify.Authorization;
+using IMapper = SpotiBot.Bot.WebApp.IMapper;
 using System.Threading.Tasks;
-using Spoti_bot.Bot.WebApp.Models;
-using Spoti_bot.ApiModels;
+using SpotiBot.Bot.WebApp.Models;
+using SpotiApiModels;
 
-namespace Spoti_bot
+namespace SpotiBot
 {
     public class InitData
     {
@@ -63,10 +63,7 @@ namespace Spoti_bot
                     if (token == null)
                         return new NoContentResult();
                     
-                    return new OkObjectResult(new InitDataResult
-                    {
-                        SpotifyAccessToken = _apiMapper.Map(token)
-                    });
+                    return new OkObjectResult(new InitDataResult(_apiMapper.Map(token)));
                 }
                 catch (Exception exception)
                 {

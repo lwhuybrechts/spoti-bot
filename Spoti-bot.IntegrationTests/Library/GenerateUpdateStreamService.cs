@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Spoti_bot.Bot;
-using Spoti_bot.Bot.Votes;
-using Spoti_bot.Library.Options;
+using SpotiBot.Bot;
+using SpotiBot.Bot.Votes;
+using SpotiBot.Library.Options;
 using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.IntegrationTests
+namespace SpotiBot.IntegrationTests
 {
     /// <summary>
     /// Generates a stream with a serialized update. This can be used as a http request body, as input for tests.

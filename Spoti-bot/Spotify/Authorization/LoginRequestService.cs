@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Authorization
+namespace SpotiBot.Spotify.Authorization
 {
     public class LoginRequestService : ILoginRequestService
     {

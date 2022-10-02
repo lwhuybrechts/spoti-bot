@@ -1,6 +1,6 @@
 ﻿using Telegram.Bot.Types.InlineQueryResults;
 
-namespace Spoti_bot.Bot.Users
+namespace SpotiBot.Bot.Users
 {
     public class Mapper : IMapper
     {

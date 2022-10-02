@@ -1,4 +1,4 @@
-﻿namespace Spoti_bot.Bot.Chats
+﻿namespace SpotiBot.Bot.Chats
 {
     public interface IMapper
     {

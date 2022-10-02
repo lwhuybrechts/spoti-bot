@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
-using SpotiView.ApiModels;
+using SpotiApiModels;
 using System.Net.Http.Json;
 
 namespace SpotiView.Shared

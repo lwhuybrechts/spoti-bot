@@ -1,7 +1,7 @@
 ﻿using Microsoft.WindowsAzure.Storage.Table;
-using Spoti_bot.Library;
+using SpotiBot.Library;
 
-namespace Spoti_bot.Spotify.Playlists
+namespace SpotiBot.Spotify.Playlists
 {
     public class PlaylistRepository : BaseRepository<Playlist>, IPlaylistRepository
     {

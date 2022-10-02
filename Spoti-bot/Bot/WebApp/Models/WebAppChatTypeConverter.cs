@@ -3,7 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace Spoti_bot.Bot.WebApp.Models
+namespace SpotiBot.Bot.WebApp.Models
 {
     internal class WebAppChatTypeConverter : JsonConverter<WebAppChatType>
     {

@@ -1,7 +1,7 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Users;
+﻿using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Users;
 
-namespace Spoti_bot.Spotify.Tracks.AddTrack
+namespace SpotiBot.Spotify.Tracks.AddTrack
 {
     public interface IReplyMessageService
     {

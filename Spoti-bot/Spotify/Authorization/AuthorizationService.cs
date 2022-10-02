@@ -1,13 +1,13 @@
 ﻿using Microsoft.Extensions.Options;
-using Spoti_bot.Bot;
-using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Library.Options;
+using SpotiBot.Bot;
+using SpotiBot.Library.Exceptions;
+using SpotiBot.Library.Options;
 using SpotifyAPI.Web;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Authorization
+namespace SpotiBot.Spotify.Authorization
 {
     public class AuthorizationService : IAuthorizationService
     {

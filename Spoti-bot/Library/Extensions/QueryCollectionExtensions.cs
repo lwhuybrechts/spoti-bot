@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 
-namespace Spoti_bot.Library.Extensions
+namespace SpotiBot.Library.Extensions
 {
     public static class QueryCollectionExtensions
     {

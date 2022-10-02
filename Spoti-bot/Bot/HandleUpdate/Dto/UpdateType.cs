@@ -1,4 +1,4 @@
-﻿namespace Spoti_bot.Bot.HandleUpdate.Dto
+﻿namespace SpotiBot.Bot.HandleUpdate.Dto
 {
     public enum UpdateType
     {

@@ -6,7 +6,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot
+namespace SpotiBot.Bot
 {
     /// <summary>
     /// This service only exists to override some defaults for sending messages.

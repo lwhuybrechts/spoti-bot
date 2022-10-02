@@ -1,8 +1,8 @@
-﻿using Spoti_bot.Bot.Chats;
-using Spoti_bot.Spotify.Tracks;
+﻿using SpotiBot.Bot.Chats;
+using SpotiBot.Spotify.Tracks;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot
+namespace SpotiBot.Bot
 {
     public interface IKeyboardService
     {

@@ -1,16 +1,16 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Users;
-using Spoti_bot.Bot.Votes;
-using Spoti_bot.Library;
-using Spoti_bot.Spotify;
-using Spoti_bot.Spotify.Authorization;
+﻿using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Users;
+using SpotiBot.Bot.Votes;
+using SpotiBot.Library;
+using SpotiBot.Spotify;
+using SpotiBot.Spotify.Authorization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.InlineQueryResults;
 
-namespace Spoti_bot.Bot.HandleUpdate.Commands
+namespace SpotiBot.Bot.HandleUpdate.Commands
 {
     public class HandleInlineQueryCommandService : BaseCommandsService<InlineQueryCommand>, IHandleInlineQueryCommandService
     {

@@ -1,4 +1,4 @@
-﻿namespace Spoti_bot.Library.Options
+﻿namespace SpotiBot.Library.Options
 {
     public class SpotifyOptions
     {

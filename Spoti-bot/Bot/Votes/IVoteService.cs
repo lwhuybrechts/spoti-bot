@@ -1,10 +1,10 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Library;
-using Spoti_bot.Spotify.Tracks;
+﻿using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Library;
+using SpotiBot.Spotify.Tracks;
 using System.Threading.Tasks;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot.Votes
+namespace SpotiBot.Bot.Votes
 {
     public interface IVoteService
     {

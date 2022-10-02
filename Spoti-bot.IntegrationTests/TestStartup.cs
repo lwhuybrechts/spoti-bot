@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Spoti_bot.IntegrationTests
+namespace SpotiBot.IntegrationTests
 {
     public class TestStartup : Startup
     {

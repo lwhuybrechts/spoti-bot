@@ -1,14 +1,14 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Bot.Users;
-using Spoti_bot.Library;
-using Spoti_bot.Library.Exceptions;
-using Spoti_bot.Library.Extensions;
-using Spoti_bot.Spotify;
+﻿using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Bot.Users;
+using SpotiBot.Library;
+using SpotiBot.Library.Exceptions;
+using SpotiBot.Library.Extensions;
+using SpotiBot.Spotify;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Bot.HandleUpdate.Commands
+namespace SpotiBot.Bot.HandleUpdate.Commands
 {
     public abstract class BaseCommandsService<TCommand> : IBaseCommandsService where TCommand : Enum
     {

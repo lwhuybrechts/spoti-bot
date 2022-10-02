@@ -1,6 +1,6 @@
-﻿using static Spoti_bot.Bot.Votes.VoteAttributes;
+﻿using static SpotiBot.Bot.Votes.VoteAttributes;
 
-namespace Spoti_bot.Bot.Votes
+namespace SpotiBot.Bot.Votes
 {
     public enum VoteType
     {

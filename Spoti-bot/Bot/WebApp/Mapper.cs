@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json.Linq;
-using Spoti_bot.Bot.WebApp.Models;
+using SpotiBot.Bot.WebApp.Models;
 using System.Linq;
 
-namespace Spoti_bot.Bot.WebApp
+namespace SpotiBot.Bot.WebApp
 {
     public class Mapper : IMapper
     {

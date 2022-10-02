@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using System.IO;
 
-namespace Spoti_bot.IntegrationTests.Library
+namespace SpotiBot.IntegrationTests.Library
 {
     /// <summary>
     /// Reads values from the local settings json file and adds them to the configuration.

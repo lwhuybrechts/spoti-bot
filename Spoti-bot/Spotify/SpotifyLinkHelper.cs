@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify
+namespace SpotiBot.Spotify
 {
     public class SpotifyLinkHelper : ISpotifyLinkHelper
     {

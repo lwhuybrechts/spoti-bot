@@ -1,6 +1,6 @@
 ﻿using SpotifyAPI.Web;
 
-namespace Spoti_bot.Spotify.Authorization
+namespace SpotiBot.Spotify.Authorization
 {
     public class Mapper : IMapper
     {

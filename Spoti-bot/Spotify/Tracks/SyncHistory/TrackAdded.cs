@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Spoti_bot.Spotify.Tracks.SyncHistory
+namespace SpotiBot.Spotify.Tracks.SyncHistory
 {
     public class TrackAdded
     {

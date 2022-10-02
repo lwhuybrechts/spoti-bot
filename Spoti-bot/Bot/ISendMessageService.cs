@@ -4,7 +4,7 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.InlineQueryResults;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot
+namespace SpotiBot.Bot
 {
     public interface ISendMessageService
     {

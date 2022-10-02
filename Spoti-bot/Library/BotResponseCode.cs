@@ -1,4 +1,4 @@
-﻿namespace Spoti_bot.Library
+﻿namespace SpotiBot.Library
 {
     public enum BotResponseCode
     {

@@ -1,4 +1,4 @@
-﻿namespace Spoti_bot.Spotify.Tracks
+﻿namespace SpotiBot.Spotify.Tracks
 {
     public enum TrackState
     {

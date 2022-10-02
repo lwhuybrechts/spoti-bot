@@ -1,16 +1,16 @@
-﻿using Spoti_bot.Bot.Chats;
-using Spoti_bot.Bot.Users;
-using Spoti_bot.Spotify;
-using Spoti_bot.Spotify.Authorization;
-using Spoti_bot.Spotify.Playlists;
-using Spoti_bot.Spotify.Tracks;
+﻿using SpotiBot.Bot.Chats;
+using SpotiBot.Bot.Users;
+using SpotiBot.Spotify;
+using SpotiBot.Spotify.Authorization;
+using SpotiBot.Spotify.Playlists;
+using SpotiBot.Spotify.Tracks;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
 
-namespace Spoti_bot.Bot.HandleUpdate.Dto
+namespace SpotiBot.Bot.HandleUpdate.Dto
 {
     public class UpdateDtoService : IUpdateDtoService
     {

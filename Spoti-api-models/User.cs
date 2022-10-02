@@ -1,4 +1,4 @@
-﻿namespace SpotiView.ApiModels
+﻿namespace SpotiApiModels
 {
     public class User
     {

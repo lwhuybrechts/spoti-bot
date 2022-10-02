@@ -1,4 +1,4 @@
-﻿using SpotiView.ApiModels;
+﻿using SpotiApiModels;
 using SpotiView.ViewModels;
 
 namespace SpotiView.Mappers

@@ -1,7 +1,7 @@
 ﻿using SpotifyAPI.Web;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Api
+namespace SpotiBot.Spotify.Api
 {
     public interface ISpotifyClientFactory
     {

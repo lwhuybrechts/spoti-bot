@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json.Serialization;
 using Newtonsoft.Json;
 
-namespace Spoti_bot.Bot.WebApp.Models
+namespace SpotiBot.Bot.WebApp.Models
 {
     /// <summary>
     /// This object represents a chat.

@@ -1,8 +1,8 @@
-﻿using Spoti_bot.Bot.HandleUpdate.Dto;
-using Spoti_bot.Library;
+﻿using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Library;
 using System.Threading.Tasks;
 
-namespace Spoti_bot.Spotify.Tracks.RemoveTrack
+namespace SpotiBot.Spotify.Tracks.RemoveTrack
 {
     public interface IRemoveTrackService
     {
