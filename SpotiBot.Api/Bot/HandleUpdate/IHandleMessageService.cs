@@ -1,0 +1,11 @@
+﻿using SpotiBot.Api.Bot.HandleUpdate.Dto;
+using SpotiBot.Api.Library;
+using System.Threading.Tasks;
+
+namespace SpotiBot.Api.Bot.HandleUpdate
+{
+    public interface IHandleMessageService
+    {
+        Task<BotResponseCode> TryHandleMessage(UpdateDto updateDto);
+    }
+}

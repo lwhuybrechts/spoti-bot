@@ -13,7 +13,6 @@ using System;
 using System.Threading.Tasks;
 using IMapper = SpotiBot.Api.Bot.WebApp.IMapper;
 
-
 namespace SpotiBot.Api
 {
     public class InitData
@@ -50,6 +49,9 @@ namespace SpotiBot.Api
                         return new BadRequestResult();
 
                     var webAppInitData = _webAppMapper.Map(httpRequest.Query);
+
+                    if (webAppInitData == null)
+                        return new BadRequestResult();
 
                     if (IsExpired(webAppInitData))
                         return new BadRequestResult();
