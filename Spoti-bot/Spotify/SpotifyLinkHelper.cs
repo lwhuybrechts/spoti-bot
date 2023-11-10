@@ -171,7 +171,7 @@ namespace SpotiBot.Spotify
         /// <param name="text">The text to parse the trackId from.</param>
         private static string ParseSpotifyTrackLink(string text)
         {
-            return _trackLinkRegex.Match(text).Groups[2].Value;
+            return _trackLinkRegex.Match(text).Value;
         }
 
         /// <summary>
