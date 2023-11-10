@@ -1,4 +1,5 @@
 ﻿using SpotiBot.Api.Bot.Chats;
+using SpotiBot.Api.Bot.Users;
 using SpotiBot.Library.BusinessModels.Bot;
 using SpotiBot.Library.BusinessModels.Spotify;
 using Telegram.Bot.Types.ReplyMarkups;
@@ -15,7 +16,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Dto
         public UpdateType? ParsedUpdateType { get; set; }
         public int? ParsedBotMessageId { get; set; }
         public ParsedChat ParsedChat { get; set; }
-        public User ParsedUser { get; set; }
+        public ParsedUser ParsedUser { get; set; }
         public string ParsedTrackId { get; set; }
         public string ParsedTextMessage { get; set; }
         public string ParsedTextMessageWithLinks { get; set; }
@@ -45,5 +46,39 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Dto
         /// </summary>
         public Track Track { get; set; }
         #endregion
+
+        public UpdateDto(
+            string parsedUpdateId,
+            UpdateType? parsedUpdateType,
+            int? parsedBotMessageId,
+            ParsedChat parsedChat,
+            ParsedUser parsedUser,
+            string parsedTrackId,
+            string parsedTextMessage,
+            string parsedTextMessageWithLinks,
+            InlineKeyboardMarkup parsedInlineKeyboard,
+            string parsedData,
+            Chat chat,
+            User user,
+            AuthorizationToken authorizationToken,
+            Playlist playlist,
+            Track track)
+        {
+            ParsedUpdateId = parsedUpdateId;
+            ParsedUpdateType = parsedUpdateType;
+            ParsedBotMessageId = parsedBotMessageId;
+            ParsedChat = parsedChat;
+            ParsedUser = parsedUser;
+            ParsedTrackId = parsedTrackId;
+            ParsedTextMessage = parsedTextMessage;
+            ParsedTextMessageWithLinks = parsedTextMessageWithLinks;
+            ParsedInlineKeyboard = parsedInlineKeyboard;
+            ParsedData = parsedData;
+            Chat = chat;
+            User = user;
+            AuthorizationToken = authorizationToken;
+            Playlist = playlist;
+            Track = track;
+        }
     }
 }

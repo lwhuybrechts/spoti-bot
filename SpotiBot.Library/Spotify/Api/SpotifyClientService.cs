@@ -40,10 +40,11 @@ namespace SpotiBot.Library.Spotify.Api
 
             var allTracks = await spotifyClient.PaginateAll(playlist.Tracks);
 
-            // Tracks can be podcasts or fulltracks.
-            List<FullTrack> fullTracks = allTracks.Select(x => x.Track as FullTrack).ToList();
-
-            return fullTracks;
+            return allTracks
+                // Tracks can be podcasts or fulltracks.
+                .Where(x => x.Track is FullTrack)
+                .Select(x => (FullTrack)x.Track)
+                .ToList();
         }
 
         public async Task AddTrackToPlaylist(ISpotifyClient spotifyClient, string trackId, string playlistId)

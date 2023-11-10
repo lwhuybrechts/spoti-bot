@@ -114,7 +114,7 @@ namespace SpotiBot.Api.Bot.Votes
             if (shouldIncrement.HasValue)
             {
                 if (string.IsNullOrEmpty(voteText))
-                    return AddNewVoteText(voteType, shouldIncrement);
+                    return AddNewVoteText(voteType, shouldIncrement.Value);
 
                 if (shouldIncrement.Value)
                 {
@@ -170,13 +170,13 @@ namespace SpotiBot.Api.Bot.Votes
         /// Add the VoteType if it was missing.
         /// </summary>
         /// <returns>The text for the VoteType.</returns>
-        private static string AddNewVoteText(VoteType voteType, bool? shouldIncrement)
+        private static string AddNewVoteText(VoteType voteType, bool shouldIncrement)
         {
             var useNegativeOperator = UseNegativeOperator(voteType);
 
-            if (shouldIncrement.Value && useNegativeOperator)
+            if (shouldIncrement && useNegativeOperator)
                 throw new NotSupportedException("A negative voteType cannot be incremented when it isn't added yet.");
-            else if (!shouldIncrement.Value && !useNegativeOperator)
+            else if (!shouldIncrement && !useNegativeOperator)
                 throw new NotSupportedException("A positive voteTypecannot be decremented when it isn't added yet.");
 
             var voteCountOperator = useNegativeOperator ? "-" : "+";

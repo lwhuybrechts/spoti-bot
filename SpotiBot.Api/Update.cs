@@ -15,6 +15,7 @@ using SpotiBot.Api.Bot.HandleUpdate.Commands;
 using SpotiBot.Api.Bot.HandleUpdate;
 using SpotiBot.Api.Library;
 using SpotiBot.Api.Library.Exceptions;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SpotiBot.Api
 {
@@ -104,7 +105,7 @@ namespace SpotiBot.Api
             }
         }
 
-        private bool ShouldHandle(UpdateDto updateDto)
+        private bool ShouldHandle([NotNullWhen(true)] UpdateDto? updateDto)
         {
             if (updateDto == null)
                 return false;
@@ -118,20 +119,16 @@ namespace SpotiBot.Api
             if (!chatType.HasValue)
                 return false;
 
-            switch (chatType.Value)
+            return chatType.Value switch
             {
-                case ChatType.Group:
-                case ChatType.Supergroup:
-                    return true;
-                case ChatType.Private:
-                    // The only thing the bot handles in a private chat is one of the following commands.
-                    return IsStartCommand(updateDto) ||
-                        IsGetLoginLinkCommand(updateDto) ||
-                        IsWebAppCommand(updateDto);
-                case ChatType.Channel:
-                default:
-                    return false;
-            }
+                ChatType.Group or
+                ChatType.Supergroup => true,
+                // The only thing the bot handles in a private chat is one of the following commands.
+                ChatType.Private => IsStartCommand(updateDto) ||
+                    IsGetLoginLinkCommand(updateDto) ||
+                    IsWebAppCommand(updateDto),
+                _ => false,
+            };
         }
 
         private bool IsStartCommand(UpdateDto updateDto)

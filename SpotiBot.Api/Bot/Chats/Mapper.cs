@@ -5,11 +5,12 @@ namespace SpotiBot.Api.Bot.Chats
 {
     public class Mapper : IMapper
     {
-        public ParsedChat Map(Telegram.Bot.Types.Chat source) => new(
-            source.Id,
-            source.Title,
-            MapChatType(source.Type)
-        );
+        public ParsedChat? Map(Telegram.Bot.Types.Chat? source) =>
+            source == null ? null : new ParsedChat(
+                source.Id,
+                source.Title,
+                MapChatType(source.Type)
+            );
 
         private ChatType MapChatType(Telegram.Bot.Types.Enums.ChatType chatType)
         {

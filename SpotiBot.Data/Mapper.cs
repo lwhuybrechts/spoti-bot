@@ -72,8 +72,7 @@ namespace SpotiBot.Data
                 source.Id,
                 source.FirstName,
                 source.LastName,
-                source.UserName,
-                source.LanguageCode
+                source.UserName
             );
         }
 
@@ -84,8 +83,7 @@ namespace SpotiBot.Data
                 Id = source.Id,
                 FirstName = source.FirstName,
                 LastName = source.LastName,
-                UserName = source.UserName,
-                LanguageCode = source.LanguageCode
+                UserName = source.UserName
             };
         }
 

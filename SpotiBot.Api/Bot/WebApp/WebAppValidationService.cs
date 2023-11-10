@@ -51,7 +51,7 @@ namespace SpotiBot.Api.Bot.WebApp
             // Order the fields by alphabet.
             var sortedFields = new SortedDictionary<string, string>(
                 // In case a key exists multiple times, use only the first value.
-                queryCollection.Keys.ToDictionary(x => x, x => queryCollection[x].FirstOrDefault()),
+                queryCollection.Keys.ToDictionary(x => x, x => queryCollection[x].First()),
                 StringComparer.Ordinal);
 
             var dataCheckFields = sortedFields

@@ -149,7 +149,7 @@ namespace SpotiBot.Api.Bot
         /// <summary>
         /// Add the See Votes button to a keyboard, that shows the votes of a track when clicked.
         /// </summary>
-        private static List<List<InlineKeyboardButton>> AddSeeVotesButton(Track track, InlineKeyboardMarkup originalKeyboard = null)
+        private static List<List<InlineKeyboardButton>> AddSeeVotesButton(Track track, InlineKeyboardMarkup? originalKeyboard = null)
         {
             var query = $"{InlineQueryCommand.GetVoteUsers.ToDescriptionString()} {track.PlaylistId} {track.Id}";
 

@@ -27,10 +27,12 @@ namespace SpotiBot.Api.Bot.WebApp.Models
             { WebAppChatType.Supergroup, "supergroup" }
         };
 
-        private static WebAppChatType GetEnumValue(string value) =>
-            StringToEnum.TryGetValue(value, out var enumValue)
-                ? enumValue
-                : 0;
+        private static WebAppChatType GetEnumValue(string? value) =>
+            value == null
+                ? 0
+                : StringToEnum.TryGetValue(value, out var enumValue)
+                    ? enumValue
+                    : 0;
 
         private static string GetStringValue(WebAppChatType value) =>
             EnumToString.TryGetValue(value, out var stringValue)

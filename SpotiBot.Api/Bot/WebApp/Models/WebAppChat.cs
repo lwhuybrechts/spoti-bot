@@ -33,12 +33,21 @@ namespace SpotiBot.Api.Bot.WebApp.Models
         /// Optional. Username of the chat.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string UserName { get; set; }
+        public string? UserName { get; set; }
 
         /// <summary>
         /// Optional. URL of the chat’s photo. The photo can be in .jpeg or .svg formats. Only returned for Web Apps launched from the attachment menu.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string PhotoUrl { get; set; }
+        public string? PhotoUrl { get; set; }
+
+        public WebAppChat(long id, WebAppChatType type, string title, string? userName, string? photoUrl)
+        {
+            Id = id;
+            Type = type;
+            Title = title;
+            UserName = userName;
+            PhotoUrl = photoUrl;
+        }
     }
 }

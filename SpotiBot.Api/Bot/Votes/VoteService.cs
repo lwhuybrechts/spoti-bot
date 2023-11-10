@@ -45,15 +45,17 @@ namespace SpotiBot.Api.Bot.Votes
         }
 
         /// <summary>
-        /// Check if an update contains an vote callback and if so, handle it.
+        /// Check if an update contains a vote callback and if so, handle it.
         /// </summary>
         /// <param name="updateDto">The update to handle.</param>
         public Task<BotResponseCode> TryHandleVote(UpdateDto updateDto)
         {
-            if (!IsAnyVoteCallback(updateDto))
+            var voteType = GetVoteType(updateDto);
+
+            if (!voteType.HasValue)
                 return Task.FromResult(BotResponseCode.NoAction);
 
-            return HandleVote(updateDto, GetVoteType(updateDto).Value);
+            return HandleVote(updateDto, voteType.Value);
         }
 
         /// <summary>

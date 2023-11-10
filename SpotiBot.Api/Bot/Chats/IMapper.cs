@@ -2,6 +2,6 @@
 {
     public interface IMapper
     {
-        ParsedChat Map(Telegram.Bot.Types.Chat source);
+        ParsedChat? Map(Telegram.Bot.Types.Chat? source);
     }
 }

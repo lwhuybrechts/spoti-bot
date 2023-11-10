@@ -1,12 +1,14 @@
-﻿using SpotiBot.Data.Services;
+﻿using SpotiBot.Api.Bot.Chats;
+using SpotiBot.Api.Bot.Users;
+using SpotiBot.Api.Spotify;
+using SpotiBot.Data.Services;
 using SpotiBot.Library.BusinessModels.Spotify;
 using System.Linq;
 using System.Threading.Tasks;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using SpotiBot.Api.Bot.Chats;
-using SpotiBot.Api.Spotify;
+using IUserService = SpotiBot.Data.Services.IUserService;
 
 namespace SpotiBot.Api.Bot.HandleUpdate.Dto
 {
@@ -18,7 +20,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Dto
         private readonly IPlaylistService _playlistService;
         private readonly ITrackService _trackService;
         private readonly ISpotifyLinkHelper _spotifyLinkHelper;
-        private readonly IMapper _chatsMapper;
+        private readonly Chats.IMapper _chatsMapper;
         private readonly Users.IMapper _usersMapper;
 
         public UpdateDtoService(
@@ -28,7 +30,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Dto
             IPlaylistService playlistService,
             ITrackService trackService,
             ISpotifyLinkHelper spotifyLinkHelper,
-            IMapper chatsMapper,
+            Chats.IMapper chatsMapper,
             Users.IMapper usersMapper)
         {
             _userService = userService;
@@ -44,7 +46,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Dto
         /// <summary>
         /// Gather all data needed to handle the Update.
         /// </summary>
-        public async Task<UpdateDto> Build(Telegram.Bot.Types.Update update)
+        public async Task<UpdateDto?> Build(Telegram.Bot.Types.Update? update)
         {
             if (update == null)
                 return null;
@@ -56,24 +58,23 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Dto
 
             var chat = await GetChat(parsedChat?.Id);
 
-            return new UpdateDto
-            {
-                ParsedUpdateId = GetParsedUpdateId(update),
-                ParsedUpdateType = GetParsedUpdateType(update),
-                ParsedBotMessageId = GetParsedBotMessageId(update),
-                ParsedChat = parsedChat,
-                ParsedUser = parsedUser,
-                ParsedTrackId = parsedTrackId,
-                ParsedTextMessage = GetParsedTextMessage(update),
-                ParsedTextMessageWithLinks = GetParsedTextMessageWithLinks(parsedMessage),
-                ParsedData = GetParsedData(update),
-                ParsedInlineKeyboard = GetInlineKeyboard(parsedMessage),
-                Chat = chat,
-                User = await GetUser(parsedUser?.Id),
-                AuthorizationToken = await GetAuthorizationToken(parsedUser?.Id),
-                Playlist = await GetPlaylist(chat?.PlaylistId),
-                Track = await GetTrack(parsedTrackId, chat?.PlaylistId)
-            };
+            return new UpdateDto(
+                GetParsedUpdateId(update),
+                GetParsedUpdateType(update),
+                GetParsedBotMessageId(update),
+                parsedChat,
+                parsedUser,
+                parsedTrackId,
+                GetParsedTextMessage(update),
+                GetParsedTextMessageWithLinks(parsedMessage),
+                GetInlineKeyboard(parsedMessage),
+                GetParsedData(update),
+                chat,
+                await GetUser(parsedUser?.Id),
+                await GetAuthorizationToken(parsedUser?.Id),
+                await GetPlaylist(chat?.PlaylistId),
+                await GetTrack(parsedTrackId, chat?.PlaylistId)
+            );
         }
 
         private static UpdateType? GetParsedUpdateType(Telegram.Bot.Types.Update update)
@@ -116,7 +117,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Dto
         /// <summary>
         /// Parse the Chat the Update was sent in.
         /// </summary>
-        private ParsedChat GetParsedChat(Telegram.Bot.Types.Update update)
+        private ParsedChat? GetParsedChat(Telegram.Bot.Types.Update update)
         {
             return update.Type switch
             {
@@ -129,7 +130,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Dto
         /// <summary>
         /// Parse the User that sent the Update.
         /// </summary>
-        private SpotiBot.Library.BusinessModels.Bot.User GetParsedUser(Telegram.Bot.Types.Update update)
+        private ParsedUser GetParsedUser(Telegram.Bot.Types.Update update)
         {
             return update.Type switch
             {

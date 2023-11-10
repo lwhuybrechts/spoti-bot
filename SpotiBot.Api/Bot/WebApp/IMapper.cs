@@ -5,6 +5,6 @@ namespace SpotiBot.Api.Bot.WebApp
 {
     public interface IMapper
     {
-        WebAppInitData Map(IQueryCollection queryCollection);
+        WebAppInitData? Map(IQueryCollection queryCollection);
     }
 }

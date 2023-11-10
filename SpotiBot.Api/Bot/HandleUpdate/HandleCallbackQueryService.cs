@@ -2,7 +2,6 @@
 using SpotiBot.Api.Library;
 using SpotiBot.Api.Library.Exceptions;
 using SpotiBot.Api.Spotify;
-using SpotiBot.Data.Services;
 using SpotiBot.Library.Enums;
 using SpotiBot.Library.Spotify.Api;
 using System.Threading.Tasks;
@@ -12,14 +11,14 @@ namespace SpotiBot.Api.Bot.HandleUpdate
     public class HandleCallbackQueryService : IHandleCallbackQueryService
     {
         private readonly Votes.IVoteService _voteService;
-        private readonly IUserService _userService;
+        private readonly Users.IUserService _userService;
         private readonly IAuthService _authService;
         private readonly ISpotifyClientService _spotifyClientService;
         private readonly ISendMessageService _sendMessageService;
 
         public HandleCallbackQueryService(
             Votes.IVoteService voteService,
-            IUserService userService,
+            Users.IUserService userService,
             IAuthService authService,
             ISpotifyClientService spotifyClientService,
             ISendMessageService sendMessageService)
@@ -42,7 +41,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate
             if (voteResponseCode != BotResponseCode.NoAction)
             {
                 // Save users that voted.
-                await _userService.SaveUser(updateDto.ParsedUser, updateDto.Chat.Id);
+                await _userService.SaveUser(updateDto);
 
                 return voteResponseCode;
             }

@@ -24,19 +24,19 @@ namespace SpotiBot.Api.Bot
             _telegramBotClient = telegramBotClient;
         }
 
-        public async Task<int> SendTextMessage(long chatId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
+        public async Task<int> SendTextMessage(long chatId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, int replyToMessageId = 0, IReplyMarkup? replyMarkup = null)
         {
             var message = await _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode, disableWebPagePreview: disableWebPagePreview, replyToMessageId: replyToMessageId, replyMarkup: replyMarkup);
 
             return message.MessageId;
         }
 
-        public Task EditMessageText(long chatId, int messageId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, InlineKeyboardMarkup replyMarkup = null)
+        public Task EditMessageText(long chatId, int messageId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, InlineKeyboardMarkup? replyMarkup = null)
         {
             return _telegramBotClient.EditMessageTextAsync(chatId, messageId, text, parseMode, disableWebPagePreview: disableWebPagePreview, replyMarkup: replyMarkup);
         }
 
-        public async Task AnswerCallbackQuery(string callbackQueryId, string text = null, string url = null)
+        public async Task AnswerCallbackQuery(string callbackQueryId, string? text = null, string? url = null)
         {
             try
             {
@@ -52,7 +52,7 @@ namespace SpotiBot.Api.Bot
             }
         }
 
-        public async Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultArticle> results, string switchPmText = null, string switchPmParameter = null)
+        public async Task AnswerInlineQuery(string inlineQueryId, IEnumerable<InlineQueryResultArticle> results, string? switchPmText = null, string? switchPmParameter = null)
         {
             try
             {

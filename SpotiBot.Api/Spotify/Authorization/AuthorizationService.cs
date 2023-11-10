@@ -38,7 +38,7 @@ namespace SpotiBot.Api.Spotify.Authorization
         /// Get an url to the spotify login web page, where we can authorize our bot.
         /// </summary>
         /// <returns>The url to the spotify login page.</returns>
-        public async Task<Uri> CreateLoginRequest(long userId, LoginRequestReason reason, long? groupChatId, long privateChatId, string trackId = null)
+        public async Task<Uri> CreateLoginRequest(long userId, LoginRequestReason reason, long? groupChatId, long privateChatId, string? trackId = null)
         {
             var loginRequest = await _loginRequestService.Create((int)reason, userId, groupChatId, privateChatId, trackId);
 

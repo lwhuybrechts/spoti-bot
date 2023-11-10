@@ -5,7 +5,8 @@ namespace SpotiBot.Api.Bot.Users
 {
     public interface IMapper
     {
-        User Map(Telegram.Bot.Types.User source);
+        ParsedUser Map(Telegram.Bot.Types.User source);
+        User Map(ParsedUser source);
         InlineQueryResultArticle Map(User source);
     }
 }

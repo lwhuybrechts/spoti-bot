@@ -15,13 +15,13 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Commands
     public class HandleInlineQueryCommandService : BaseCommandsService<InlineQueryCommand>, IHandleInlineQueryCommandService
     {
         private readonly ICommandsService _commandsService;
-        private readonly IUserService _userService;
+        private readonly Users.IUserService _userService;
         private readonly ISendMessageService _sendMessageService;
         private readonly IVoteService _voteService;
 
         public HandleInlineQueryCommandService(
             ICommandsService commandsService,
-            IUserService userService,
+            Users.IUserService userService,
             ISendMessageService sendMessageService,
             IVoteService voteService,
             ISpotifyLinkHelper spotifyLinkHelper)

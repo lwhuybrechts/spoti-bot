@@ -16,33 +16,33 @@ namespace SpotiBot.Api.Bot.WebApp.Models
         /// answerWebAppQuery method.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string QueryId { get; set; }
+        public string? QueryId { get; set; }
 
         /// <summary>
         /// Optional. An object containing data about the current user.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public WebAppUser User { get; set; }
+        public WebAppUser? User { get; set; }
 
         /// <summary>
         /// Optional. An object containing data about the chat partner of the current user in the chat
         /// where the bot was launched via the attachment menu. Returned only for private chats and only for Web Apps launched via the attachment menu.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public WebAppUser Receiver { get; set; }
+        public WebAppUser? Receiver { get; set; }
 
         /// <summary>
         /// Optional. An object containing data about the chat where the bot was launched via the attachment menu. Returned for supergroups, channels
         /// and group chats – only for Web Apps launched via the attachment menu.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public WebAppChat Chat { get; set; }
+        public WebAppChat? Chat { get; set; }
 
         /// <summary>
         /// Optional. The value of the startattach parameter, passed via link. Only returned for Web Apps when launched from the attachment menu via link.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string StartParam { get; set; }
+        public string? StartParam { get; set; }
 
         /// <summary>
         /// Optional. Time in seconds, after which a message can be sent via the answerWebAppQuery method.
@@ -61,5 +61,17 @@ namespace SpotiBot.Api.Bot.WebApp.Models
         /// </summary>
         [JsonProperty(Required = Required.Always)]
         public string Hash { get; set; }
+
+        public WebAppInitData(string? queryId, WebAppUser? user, WebAppUser? receiver, WebAppChat? chat, string? startParam, int? canSendAfter, long authDate, string hash)
+        {
+            QueryId = queryId;
+            User = user;
+            Receiver = receiver;
+            Chat = chat;
+            StartParam = startParam;
+            CanSendAfter = canSendAfter;
+            AuthDate = authDate;
+            Hash = hash;
+        }
     }
 }

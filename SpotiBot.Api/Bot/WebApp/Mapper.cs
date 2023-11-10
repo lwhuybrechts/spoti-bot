@@ -7,22 +7,24 @@ namespace SpotiBot.Api.Bot.WebApp
 {
     public class Mapper : IMapper
     {
-        public WebAppInitData Map(IQueryCollection queryCollection)
+        public WebAppInitData? Map(IQueryCollection queryCollection)
         {
             var webAppInitData = new JObject();
 
             foreach (var key in queryCollection.Keys)
             {
                 // In case a key exists multiple times, use only the first value.
-                var queryStringValue = queryCollection[key].FirstOrDefault();
+                var queryStringValue = queryCollection[key].First();
 
-                webAppInitData.Add(key, JToken.FromObject(Deserialize(queryStringValue)));
+                var deserialized = Deserialize(queryStringValue);
+                if (deserialized != null)
+                    webAppInitData.Add(key, JToken.FromObject(deserialized));
             }
 
             return webAppInitData.ToObject<WebAppInitData>();
         }
 
-        public static object Deserialize(string queryStringValue)
+        public static object? Deserialize(string queryStringValue)
         {
             // Telegram sends us separate queryString values, of which only complex data types are represented as json serialized objects.
             return IsJson(queryStringValue)
@@ -30,7 +32,7 @@ namespace SpotiBot.Api.Bot.WebApp
                 : queryStringValue;
         }
 
-        public static object ToObject(JToken token)
+        public static object? ToObject(JToken token)
         {
             return token.Type switch
             {

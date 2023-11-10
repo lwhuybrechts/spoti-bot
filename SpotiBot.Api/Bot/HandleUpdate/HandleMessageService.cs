@@ -1,10 +1,10 @@
 ﻿using SpotiBot.Api.Bot.HandleUpdate.Commands;
 using SpotiBot.Api.Bot.HandleUpdate.Dto;
+using SpotiBot.Api.Bot.Users;
 using SpotiBot.Api.Library;
 using SpotiBot.Api.Library.Exceptions;
 using SpotiBot.Api.Spotify;
 using SpotiBot.Api.Spotify.Tracks.AddTrack;
-using SpotiBot.Data.Services;
 using System.Threading.Tasks;
 
 namespace SpotiBot.Api.Bot.HandleUpdate
@@ -43,9 +43,9 @@ namespace SpotiBot.Api.Bot.HandleUpdate
             var addTrackResponseCode = await _addTrackService.TryAddTrackToPlaylist(updateDto);
             if (addTrackResponseCode != BotResponseCode.NoAction)
             {
+                // Save users that added tracks to the playlist.
                 if (addTrackResponseCode == BotResponseCode.TrackAddedToPlaylist)
-                    // Save users that added tracks to the playlist.
-                    await _userService.SaveUser(updateDto.ParsedUser, updateDto.ParsedChat.Id);
+                    await _userService.SaveUser(updateDto);
 
                 return addTrackResponseCode;
             }

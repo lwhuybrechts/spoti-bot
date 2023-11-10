@@ -14,7 +14,5 @@ namespace SpotiBot.Data.Models
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
-        [IgnoreProperty]
-        public string LanguageCode { get; set; } = string.Empty;
     }
 }

@@ -27,25 +27,25 @@ namespace SpotiBot.Api.Bot.WebApp.Models
         /// First name of the user or bot.
         /// </summary>
         [JsonProperty(Required = Required.Always)]
-        public string FirstName { get; set; }
+        public string? FirstName { get; set; }
 
         /// <summary>
         /// Optional. Last name of the user or bot.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string LastName { get; set; }
+        public string? LastName { get; set; }
 
         /// <summary>
         /// Optional. Username of the user or bot.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string Username { get; set; }
+        public string? Username { get; set; }
 
         /// <summary>
         /// Optional. IETF language tag of the user's language. Returns in user field only.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string LanguageCode { get; set; }
+        public string? LanguageCode { get; set; }
 
         /// <summary>
         /// Optional. True, if this user is a Telegram Premium user.
@@ -57,6 +57,18 @@ namespace SpotiBot.Api.Bot.WebApp.Models
         /// Optional. URL of the user’s profile photo. The photo can be in .jpeg or .svg formats. Only returned for Web Apps launched from the attachment menu.
         /// </summary>
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-        public string PhotoUrl { get; set; }
+        public string? PhotoUrl { get; set; }
+
+        public WebAppUser(long id, bool? isBot, string? firstName, string? lastName, string? username, string? languageCode, bool? isPremium, string? photoUrl)
+        {
+            Id = id;
+            IsBot = isBot;
+            FirstName = firstName;
+            LastName = lastName;
+            Username = username;
+            LanguageCode = languageCode;
+            IsPremium = isPremium;
+            PhotoUrl = photoUrl;
+        }
     }
 }

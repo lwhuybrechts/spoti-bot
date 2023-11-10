@@ -27,7 +27,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Commands
         private readonly IPlaylistService _playlistService;
         private readonly IKeyboardService _keyboardService;
         private readonly IChatService _chatService;
-        private readonly IUserService _userService;
+        private readonly Users.IUserService _userService;
         private readonly IAuthService _authService;
         private readonly ISpotifyClientService _spotifyClientService;
 
@@ -41,7 +41,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Commands
             IPlaylistService playlistService,
             IKeyboardService keyboardService,
             IChatService chatService,
-            IUserService userService,
+            Users.IUserService userService,
             IAuthService authService,
             ISpotifyClientService spotifyClientService)
             : base(commandsService, userService, sendMessageService, spotifyLinkHelper)
@@ -178,7 +178,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Commands
         private async Task<BotResponseCode> HandleStartInGroupChat(UpdateDto updateDto)
         {
             // Save the user in storage.
-            var admin = await _userService.SaveUser(updateDto.ParsedUser, updateDto.ParsedChat.Id);
+            var admin = await _userService.SaveUser(updateDto);
 
             // Save the chat in storage.
             var chat = await _chatService.Save(new Chat(
@@ -191,7 +191,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Commands
 
             var responseText = $"Spoti-bot is added to the chat, {admin.FirstName} is it's admin.";
 
-            IReplyMarkup keyboard = null;
+            IReplyMarkup? keyboard = null;
             var token = await _authorizationTokenService.Get(admin.Id);
             // Check if the user has already logged in to Spotify and has the right scopes.
             if (token != null &&
@@ -211,7 +211,7 @@ namespace SpotiBot.Api.Bot.HandleUpdate.Commands
         /// <summary>
         /// The GetLoginLink command will let the user login to spotify and save it's accesstoken.
         /// </summary>
-        private async Task<BotResponseCode> HandleGetLoginLink(UpdateDto updateDto, LoginRequestReason reason, long? groupChatId = null, string trackId = null)
+        private async Task<BotResponseCode> HandleGetLoginLink(UpdateDto updateDto, LoginRequestReason reason, long? groupChatId = null, string? trackId = null)
         {
             if (reason == LoginRequestReason.AddBotToGroupChat)
             {

@@ -57,11 +57,10 @@ namespace SpotiBot.Api.Spotify.Tracks.AddTrack
                 userText = $" by {addedByUser.FirstName}";
 
             var dateText = string.Empty;
-            if (!string.IsNullOrEmpty(updateDto.ParsedUser?.LanguageCode))
-            {
-                var cultureIfo = new CultureInfo(updateDto.ParsedUser.LanguageCode);
-                dateText = $" on {track.CreatedAt.ToString("d", cultureIfo)}";
-            }
+            
+            // TODO: make the culture configurable.
+            var cultureIfo = new CultureInfo(updateDto.ParsedUser.LanguageCode);
+            dateText = $" on {track.CreatedAt.ToString("d", cultureIfo)}";
 
             if (track.State == TrackState.RemovedByDownvotes)
                 return $"{trackInfo}This track was previously posted{userText}, but it was downvoted and removed from the {_spotifyLinkHelper.GetMarkdownLinkToPlaylist(updateDto.Chat.PlaylistId, "playlist")}.";
