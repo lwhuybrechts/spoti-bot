@@ -7,10 +7,12 @@ namespace SpotiBot.Spotify
     {
         private const string PlaylistBaseUri = "https://open.spotify.com/playlist/";
         private const string TrackBaseUri = "https://open.spotify.com/track/";
+        private const string LinkTrackBaseUri = "https://spotify.link/";
 
-        private static readonly Regex _playlistRegex = new Regex("(https?://(open|play).spotify.com/playlist/|spotify:playlist:)([\\w\\d]+)");
-        private static readonly Regex _trackRegex = new Regex("(https?://(open|play).spotify.com/track/|spotify:track:)([\\w\\d]+)");
-        private static readonly Regex _linkToRegex = new Regex("(https?://link.tospotify.com/)([\\w\\d]+)");
+        private static readonly Regex _playlistRegex = new("(https?://(open|play).spotify.com/playlist/|spotify:playlist:)([\\w\\d]+)");
+        private static readonly Regex _trackRegex = new("(https?://(open|play).spotify.com/track/|spotify:track:)([\\w\\d]+)");
+        private static readonly Regex _trackLinkRegex = new("(https?://spotify.link/)([\\w\\d]+)");
+        private static readonly Regex _linkToRegex = new("(https?://link.tospotify.com/)([\\w\\d]+)");
 
         /// <summary>
         /// Generate a markdown text link to the playlist.
@@ -31,13 +33,20 @@ namespace SpotiBot.Spotify
             return $"{TrackBaseUri}{trackId}";
         }
 
+        public string GetTrackLinkToTrack(string trackId)
+        {
+            return $"{LinkTrackBaseUri}{trackId}";
+        }
+
         /// <summary>
         /// Check if the text contains an url with a trackId, or a tospotify url.
         /// </summary>
         /// <param name="text">The text to check.</param>
         public bool HasAnyTrackLink(string text)
         {
-            return HasTrackIdLink(text) || HasToSpotifyLink(text);
+            return HasTrackIdLink(text)
+                || HasSpotifyTrackLink(text)
+                || HasToSpotifyLink(text);
         }
 
         /// <summary>
@@ -77,6 +86,10 @@ namespace SpotiBot.Spotify
             // Check for a "classic" spotify url.
             if (HasTrackIdLink(text))
                 return ParseTrackIdLink(text);
+
+            // Check for a "track link" spotify url.
+            if (HasSpotifyTrackLink(text))
+                return ParseSpotifyTrackLink(text);
 
             // Check for a "linkto" spotify url.
             if (HasToSpotifyLink(text))
@@ -145,6 +158,24 @@ namespace SpotiBot.Spotify
         private static string ParseTrackIdLink(string text)
         {
             return _trackRegex.Match(text).Groups[3].Value;
+        }
+
+        /// <summary>
+        /// Check if the text contains an url with a trackId.
+        /// </summary>
+        /// <param name="text">The text to check.</param>
+        private static bool HasSpotifyTrackLink(string text)
+        {
+            return _trackLinkRegex.Match(text).Success;
+        }
+
+        /// <summary>
+        /// Parse the trackId from the text.
+        /// </summary>
+        /// <param name="text">The text to parse the trackId from.</param>
+        private static string ParseSpotifyTrackLink(string text)
+        {
+            return _trackLinkRegex.Match(text).Groups[2].Value;
         }
 
         /// <summary>

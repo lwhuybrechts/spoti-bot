@@ -22,7 +22,7 @@ namespace SpotiBot.IntegrationTests
             var host = new HostBuilder()
                 .ConfigureHostConfiguration(configurationBuilder =>
                 {
-                    configurationBuilder.AddLocalSettings("Spoti-bot", "Spoti-bot", "local.settings.json");
+                    configurationBuilder.AddLocalSettings("SpotiBot", "Spoti-bot", "local.settings.json");
                 })
                 .ConfigureWebJobs(startup.Configure)
                 .Build();

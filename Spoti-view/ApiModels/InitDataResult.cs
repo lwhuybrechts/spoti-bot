@@ -1,4 +1,6 @@
-﻿namespace SpotiView.ApiModels
+﻿using SpotiApiModels;
+
+namespace SpotiView.ApiModels
 {
     public class InitDataResult
     {
