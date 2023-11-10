@@ -78,7 +78,14 @@ namespace SpotiBot.Api.Spotify.Tracks.AddTrack
             await SendSuccessfullyAddedReplyMessage(updateDto, track);
 
             // Add the track to my queue.
-            await _spotifyClientService.AddToQueue(spotifyClient, track);
+            try
+            {
+                await _spotifyClientService.AddToQueue(spotifyClient, track);
+            }
+            catch (APIException exception) when (exception.Message == "Restricted device")
+            {
+                // Ignore.
+            }
 
             return BotResponseCode.TrackAddedToPlaylist;
         }

@@ -1313,7 +1313,11 @@ namespace SpotiBot.Api.IntegrationTests
 
         private string GetLinkToTrack(string trackId = null)
         {
-            return _spotifyLinkHelper.GetLinkToTrack(string.IsNullOrEmpty(trackId) ? _testOptions.TestTrackId : trackId);
+            trackId = string.IsNullOrEmpty(trackId)
+                ? _testOptions.TestTrackId
+                : trackId;
+
+            return _spotifyLinkHelper.GetLinkToTrack(trackId);
         }
     }
 }
