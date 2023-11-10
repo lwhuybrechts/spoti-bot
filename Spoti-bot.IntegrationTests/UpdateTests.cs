@@ -721,10 +721,8 @@ namespace SpotiBot.IntegrationTests
             }
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task Run_AddTrack_TrackAddedToPlaylistReturned(bool shouldUseAlternativeLink)
+        [Fact]
+        public async Task Run_AddTrack_TrackAddedToPlaylistReturned()
         {
             // Arrange.
             await TruncateTables();
@@ -733,7 +731,7 @@ namespace SpotiBot.IntegrationTests
             await InsertPlaylist();
 
             using var stream = new MemoryStream();
-            var httpRequest = await CreateRequest(stream, GetLinkToTrack(shouldUseAlternativeLink: shouldUseAlternativeLink));
+            var httpRequest = await CreateRequest(stream, GetLinkToTrack());
 
             try
             {
@@ -1314,14 +1312,11 @@ namespace SpotiBot.IntegrationTests
             return _spotifyLinkHelper.GetLinkToPlaylist(_testOptions.TestPlaylistId);
         }
 
-        private string GetLinkToTrack(string trackId = null, bool shouldUseAlternativeLink = false)
+        private string GetLinkToTrack(string trackId = null)
         {
             trackId = string.IsNullOrEmpty(trackId)
                 ? _testOptions.TestTrackId
                 : trackId;
-
-            if (shouldUseAlternativeLink)
-                return _spotifyLinkHelper.GetTrackLinkToTrack(trackId);
 
             return _spotifyLinkHelper.GetLinkToTrack(trackId);
         }

@@ -7,7 +7,6 @@ namespace SpotiBot.Spotify
     {
         private const string PlaylistBaseUri = "https://open.spotify.com/playlist/";
         private const string TrackBaseUri = "https://open.spotify.com/track/";
-        private const string LinkTrackBaseUri = "https://spotify.link/";
 
         private static readonly Regex _playlistRegex = new("(https?://(open|play).spotify.com/playlist/|spotify:playlist:)([\\w\\d]+)");
         private static readonly Regex _trackRegex = new("(https?://(open|play).spotify.com/track/|spotify:track:)([\\w\\d]+)");
@@ -31,11 +30,6 @@ namespace SpotiBot.Spotify
         public string GetLinkToTrack(string trackId)
         {
             return $"{TrackBaseUri}{trackId}";
-        }
-
-        public string GetTrackLinkToTrack(string trackId)
-        {
-            return $"{LinkTrackBaseUri}{trackId}";
         }
 
         /// <summary>
@@ -87,15 +81,17 @@ namespace SpotiBot.Spotify
             if (HasTrackIdLink(text))
                 return ParseTrackIdLink(text);
 
-            // Check for a "track link" spotify url.
-            if (HasSpotifyTrackLink(text))
-                return ParseSpotifyTrackLink(text);
+            string linkToUri = null;
 
             // Check for a "linkto" spotify url.
             if (HasToSpotifyLink(text))
-            {
-                var linkToUri = ParseToSpotifyLink(text);
+                linkToUri = ParseToSpotifyLink(text);
+            // Check for a "track link" spotify url.
+            else if (HasSpotifyTrackLink(text))
+                linkToUri = ParseSpotifyTrackLink(text);
 
+            if (!string.IsNullOrEmpty(linkToUri))
+            {
                 // Get the trackUri from the linkToUri.
                 var trackUri = await RequestTrackUri(linkToUri);
 

@@ -7,7 +7,6 @@ namespace SpotiBot.Spotify
         string GetMarkdownLinkToPlaylist(string playlistId, string text);
         string GetLinkToPlaylist(string playlistId);
         string GetLinkToTrack(string trackId);
-        string GetTrackLinkToTrack(string trackId);
         bool HasAnyTrackLink(string text);
         Task<string> ParsePlaylistId(string text);
         Task<string> ParseTrackId(string text);
