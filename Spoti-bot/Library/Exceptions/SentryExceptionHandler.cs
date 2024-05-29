@@ -1,4 +1,5 @@
 ﻿using Sentry;
+using Sentry.Extensibility;
 using System;
 
 namespace SpotiBot.Library.Exceptions
@@ -16,16 +17,7 @@ namespace SpotiBot.Library.Exceptions
             {
                 options.Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
                 options.Dsn = dsn;
-                options.BeforeSend = sentryEvent =>
-                {
-                    sentryEvent.SetTag("Application", "spoti-bot");
-
-                    if (!string.IsNullOrEmpty(requestBody))
-                        // Include the entire http request body to help with debugging.
-                        sentryEvent.SetExtra("requestBody", requestBody);
-
-                    return sentryEvent;
-                };
+                options.AddEventProcessor(new SentryEventProcessor(requestBody));
             });
         }
 
@@ -37,6 +29,27 @@ namespace SpotiBot.Library.Exceptions
                 _sentryDisposable = null;
             }
             GC.SuppressFinalize(this);
+        }
+
+        private class SentryEventProcessor : ISentryEventProcessor
+        {
+            private readonly string _requestBody;
+
+            public SentryEventProcessor(string requestBody = null)
+            {
+                _requestBody = requestBody;
+            }
+
+            public SentryEvent Process(SentryEvent sentryEvent)
+            {
+                sentryEvent.SetTag("Application", "spoti-bot");
+
+                if (!string.IsNullOrEmpty(_requestBody))
+                    // Include the entire http request body to help with debugging.
+                    sentryEvent.SetExtra("requestBody", _requestBody);
+
+                return sentryEvent;
+            }
         }
     }
 }
