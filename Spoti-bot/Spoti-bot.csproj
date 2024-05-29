@@ -1,17 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <RootNamespace>SpotiBot</RootNamespace>
     <UserSecretsId>7cc16293-d50a-43c7-a9ac-129aa4061676</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Azure.Data.Tables" Version="12.6.0" />
+    <PackageReference Include="Azure.Data.Tables" Version="12.8.3" />
     <PackageReference Include="Microsoft.Azure.Functions.Extensions" Version="1.1.0" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.1.1" />
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.4.0" />
     <PackageReference Include="Sentry.AspNetCore" Version="3.19.0" />
-    <PackageReference Include="SpotifyAPI.Web" Version="6.2.2" />
     <PackageReference Include="Telegram.Bot" Version="18.0.0" />
+    <PackageReference Include="SpotifyAPI.Web" Version="7.1.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Spoti-api-models\Spoti-api-models.csproj" />
