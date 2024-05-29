@@ -26,7 +26,7 @@ namespace SpotiBot.Bot
 
         public async Task<int> SendTextMessage(long chatId, string text, ParseMode parseMode = _defaultParseMode, bool disableWebPagePreview = _disableWebPagePreview, int replyToMessageId = 0, IReplyMarkup replyMarkup = null)
         {
-            var message = await _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode, disableWebPagePreview: disableWebPagePreview, replyToMessageId: replyToMessageId, replyMarkup: replyMarkup);
+            var message = await _telegramBotClient.SendTextMessageAsync(chatId, text, parseMode: parseMode, disableWebPagePreview: disableWebPagePreview, replyToMessageId: replyToMessageId, replyMarkup: replyMarkup);
 
             return message.MessageId;
         }
@@ -56,7 +56,11 @@ namespace SpotiBot.Bot
         {
             try
             {
-                await _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results, cacheTime: 10, switchPmText: switchPmText, switchPmParameter: switchPmParameter);
+                var button = switchPmText != null
+                    ? new InlineQueryResultsButton(switchPmText) { StartParameter = switchPmParameter }
+                    : null;
+
+                await _telegramBotClient.AnswerInlineQueryAsync(inlineQueryId, results, cacheTime: 10, button: button);
             }
             catch (Exception exception)
             {
