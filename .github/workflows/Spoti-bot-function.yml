@@ -7,7 +7,7 @@ env:
   AZURE_FUNCTIONAPP_NAME: Spoti-bot-function
   AZURE_FUNCTIONAPP_PACKAGE_PATH: Spoti-bot\published
   CONFIGURATION: Release
-  DOTNET_CORE_VERSION: 6.0.x
+  DOTNET_CORE_VERSION: 8.0.x
   WORKING_DIRECTORY: Spoti-bot
 jobs:
   build-and-deploy:
