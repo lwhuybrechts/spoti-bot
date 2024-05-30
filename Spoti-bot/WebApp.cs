@@ -1,11 +1,10 @@
-using System;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using SpotiBot.Library.Exceptions;
-using Sentry;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Options;
+using Sentry;
+using SpotiBot.Library.Exceptions;
+using System;
 using System.IO;
 
 namespace SpotiBot
@@ -19,15 +18,15 @@ namespace SpotiBot
             _sentryOptions = sentryOptions.Value;
         }
 
-        [FunctionName(nameof(WebApp))]
-        public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest httpRequest, ExecutionContext context)
+        [Function(nameof(WebApp))]
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest httpRequest, ExecutionContext context)
         {
             // Setup exception handling.
             using (new SentryExceptionHandler(_sentryOptions.Dsn))
             {
                 try
                 {
-                    var webAppPath = Path.Combine(context.FunctionAppDirectory, "WebAppFiles", "index.html");
+                    var webAppPath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), "site", "wwwroot", "WebAppFiles", "index.html");
 
                     return new ContentResult
                     {

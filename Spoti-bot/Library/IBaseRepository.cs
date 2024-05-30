@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using Azure.Data.Tables;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -13,7 +13,7 @@ namespace SpotiBot.Library
         Task<List<T>> GetAllByRowKey(string rowKey);
         Task<List<T>> GetAllByPartitionKey(string partitionKey);
         Task<List<string>> GetAllRowKeys(string partitionKey = "");
-        Task<T> Upsert(T item);
+        Task Upsert(T item);
         Task Upsert(List<T> items);
         Task Delete(T item);
         Task Delete(List<T> items);

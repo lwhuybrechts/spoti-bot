@@ -1,11 +1,12 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using SpotiBot.Library;
 using System;
+using System.Runtime.Serialization;
 
 namespace SpotiBot.Spotify.Authorization
 {
-    public class LoginRequest : TableEntity
+    public class LoginRequest : MyTableEntity
     {
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public string Id
         {
             get { return RowKey; }
@@ -21,7 +22,7 @@ namespace SpotiBot.Spotify.Authorization
         /// Used int since Azure Table Storage doesn't support enums.
         /// </summary>
         public int ReasonValue { get; set; }
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public LoginRequestReason Reason
         {
             get { return (LoginRequestReason)ReasonValue; }

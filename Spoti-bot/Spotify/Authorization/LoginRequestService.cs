@@ -15,9 +15,9 @@ namespace SpotiBot.Spotify.Authorization
             _loginRequestRepository = loginRequestRepository;
         }
 
-        public Task<LoginRequest> Create(LoginRequestReason reason, long userId, long? groupChatId, long privateChatId, string trackId = null)
+        public async Task<LoginRequest> Create(LoginRequestReason reason, long userId, long? groupChatId, long privateChatId, string trackId = null)
         {
-            return _loginRequestRepository.Upsert(new LoginRequest
+            var loginRequest = new LoginRequest
             {
                 UserId = userId,
                 Id = Guid.NewGuid().ToString(),
@@ -26,7 +26,11 @@ namespace SpotiBot.Spotify.Authorization
                 PrivateChatId = privateChatId,
                 TrackId = trackId,
                 Reason = reason
-            });
+            };
+            
+            await _loginRequestRepository.Upsert(loginRequest);
+
+            return await _loginRequestRepository.Get(loginRequest);
         }
 
         public async Task<LoginRequest> Get(string id)

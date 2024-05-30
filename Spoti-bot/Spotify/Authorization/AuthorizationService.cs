@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Options;
-using SpotiBot.Bot;
 using SpotiBot.Library.Exceptions;
 using SpotiBot.Library.Options;
 using SpotifyAPI.Web;

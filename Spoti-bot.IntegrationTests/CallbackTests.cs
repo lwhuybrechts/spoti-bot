@@ -104,9 +104,12 @@ namespace SpotiBot.IntegrationTests
             AssertHelper.Equal(Callback.SuccessMessage, result);
         }
 
-        private Task<LoginRequest> InsertLoginRequest()
+        private async Task<LoginRequest> InsertLoginRequest()
         {
-            return _loginRequestRepository.Upsert(CreateLoginRequest());
+            var loginRequest = CreateLoginRequest();
+            await _loginRequestRepository.Upsert(loginRequest);
+
+            return await _loginRequestRepository.Get(loginRequest);
         }
 
         private async Task DeleteLoginRequest()

@@ -1,4 +1,4 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using Azure.Data.Tables;
 using SpotiBot.Library;
 using System;
 using System.Collections.Generic;
@@ -8,8 +8,8 @@ namespace SpotiBot.Spotify.Authorization
 {
     public class LoginRequestRepository : BaseRepository<LoginRequest>, ILoginRequestRepository
     {
-        public LoginRequestRepository(CloudTableClient cloudTableClient)
-            : base(cloudTableClient.GetTableReference(typeof(LoginRequest).Name), "loginrequests")
+        public LoginRequestRepository(TableServiceClient tableServiceClient)
+            : base(tableServiceClient.GetTableClient(typeof(LoginRequest).Name), "loginrequests")
         {
         }
 
@@ -19,25 +19,13 @@ namespace SpotiBot.Spotify.Authorization
             if (string.IsNullOrEmpty(partitionKey))
                 partitionKey = _defaultPartitionKey;
 
-            var paritionKeyFilter = TableQuery.GenerateFilterCondition(nameof(LoginRequest.PartitionKey), QueryComparisons.Equal, partitionKey);
-            var rowKeyFilter = TableQuery.GenerateFilterCondition(nameof(LoginRequest.RowKey), QueryComparisons.Equal, rowKey);
-            
             // Don't return expired LoginRequests.
-            var expiresAtFilter = TableQuery.GenerateFilterConditionForDate(nameof(LoginRequest.ExpiresAt), QueryComparisons.GreaterThan, DateTimeOffset.UtcNow);
-
-            var filter = TableQuery.CombineFilters(TableQuery.CombineFilters(paritionKeyFilter, TableOperators.And, rowKeyFilter), TableOperators.And, expiresAtFilter );
-
-            var query = new TableQuery<LoginRequest>().Where(filter);
-
-            return GetSingle(query);
+            return GetSingle(x => x.PartitionKey == partitionKey && x.RowKey == rowKey && x.ExpiresAt > DateTimeOffset.UtcNow);
         }
 
         public Task<List<LoginRequest>> GetAllExpired()
         {
-            var expiresAtFilter = TableQuery.GenerateFilterConditionForDate(nameof(LoginRequest.ExpiresAt), QueryComparisons.LessThanOrEqual, DateTimeOffset.UtcNow);
-            var query = new TableQuery<LoginRequest>().Where(expiresAtFilter);
-
-            return ExecuteSegmentedQueries(query);
+            return QueryPageable(x => x.ExpiresAt <= DateTimeOffset.UtcNow);
         }
     }
 }

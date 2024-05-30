@@ -1,11 +1,12 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using SpotiBot.Library;
 using System;
+using System.Runtime.Serialization;
 
 namespace SpotiBot.Bot.Votes
 {
-    public class Vote : TableEntity
+    public class Vote : MyTableEntity
     {
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public string PlaylistId
         {
             get { return PartitionKey; }
@@ -19,7 +20,7 @@ namespace SpotiBot.Bot.Votes
         /// </summary>
         public int TypeValue { get; set; }
 
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public VoteType Type {
             get { return (VoteType)TypeValue; }
             set

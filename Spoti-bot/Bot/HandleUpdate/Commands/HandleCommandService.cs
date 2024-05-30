@@ -181,13 +181,14 @@ namespace SpotiBot.Bot.HandleUpdate.Commands
             var admin = await _userService.SaveUser(updateDto.ParsedUser, updateDto.ParsedChat.Id);
 
             // Save the chat in storage.
-            var chat = await _chatRepository.Upsert(new Chat
+            await _chatRepository.Upsert(new Chat
             {
                 Id = updateDto.ParsedChat.Id,
                 Title = updateDto.ParsedChat.Title,
                 AdminUserId = admin.Id,
                 Type = updateDto.ParsedChat.Type
             });
+            var chat = await _chatRepository.Get(updateDto.ParsedChat.Id);
 
             var responseText = $"Spoti-bot is added to the chat, {admin.FirstName} is it's admin.";
 
@@ -270,7 +271,8 @@ namespace SpotiBot.Bot.HandleUpdate.Commands
                 throw new PlaylistNullException(playlistId);
 
             // Save the playlist to storage.
-            playlist = await _playlistRepository.Upsert(playlist);
+            await _playlistRepository.Upsert(playlist);
+            playlist = await _playlistRepository.Get(playlist);
 
             // Save the playlist id with the current chat.
             updateDto.Chat.PlaylistId = playlist.Id;

@@ -1,10 +1,11 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using SpotiBot.Library;
+using System.Runtime.Serialization;
 
 namespace SpotiBot.Spotify.Playlists
 {
-    public class Playlist : TableEntity
+    public class Playlist : MyTableEntity
     {
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public string Id
         {
             get { return RowKey; }

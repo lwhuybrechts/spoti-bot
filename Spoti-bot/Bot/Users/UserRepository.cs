@@ -1,12 +1,12 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using Azure.Data.Tables;
 using SpotiBot.Library;
 
 namespace SpotiBot.Bot.Users
 {
     public class UserRepository : BaseRepository<User>, IUserRepository
     {
-        public UserRepository(CloudTableClient cloudTableClient)
-            : base(cloudTableClient.GetTableReference(typeof(User).Name), "users")
+        public UserRepository(TableServiceClient tableServiceClient)
+            : base(tableServiceClient.GetTableClient(typeof(User).Name), "users")
         {
 
         }

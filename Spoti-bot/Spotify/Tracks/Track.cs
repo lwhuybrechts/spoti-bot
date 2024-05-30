@@ -1,18 +1,19 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using SpotiBot.Library;
 using System;
+using System.Runtime.Serialization;
 
 namespace SpotiBot.Spotify.Tracks
 {
-    public class Track : TableEntity
+    public class Track : MyTableEntity
     {
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public string Id
         {
             get { return RowKey; }
             set { RowKey = value; }
         }
         
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public string PlaylistId
         {
             get { return PartitionKey; }
@@ -30,7 +31,7 @@ namespace SpotiBot.Spotify.Tracks
         /// </summary>
         public int StateValue { get; set; }
 
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public TrackState State
         {
             get { return (TrackState)StateValue; }

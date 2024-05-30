@@ -7,7 +7,7 @@ namespace SpotiBot.Bot.Chats
     {
         Task<ChatMember> Get(long rowKey, string partitionKey = "");
         Task<List<ChatMember>> GetAllByPartitionKey(string partitionKey);
-        Task<ChatMember> Upsert(ChatMember item);
+        Task Upsert(ChatMember item);
         Task Delete(List<ChatMember> items);
     }
 }

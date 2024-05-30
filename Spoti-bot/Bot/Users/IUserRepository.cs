@@ -8,7 +8,7 @@ namespace SpotiBot.Bot.Users
         Task<User> Get(long rowKey, string partitionKey = "");
         Task<User> Get(User item);
         Task<List<User>> GetAll();
-        Task<User> Upsert(User item);
+        Task Upsert(User item);
         Task Delete(User item);
     }
 }

@@ -1,20 +1,19 @@
-﻿using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using System;
-using Sentry;
-using System.IO;
-using Microsoft.Extensions.Options;
-using SpotiBot.Library.Exceptions;
-using Newtonsoft.Json;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using SpotiBot.Library;
-using SpotiBot.Bot.HandleUpdate;
-using SpotiBot.Bot.HandleUpdate.Dto;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Sentry;
 using SpotiBot.Bot.Chats;
+using SpotiBot.Bot.HandleUpdate;
 using SpotiBot.Bot.HandleUpdate.Commands;
+using SpotiBot.Bot.HandleUpdate.Dto;
+using SpotiBot.Library;
+using SpotiBot.Library.Exceptions;
+using System;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace SpotiBot
 {
@@ -43,8 +42,8 @@ namespace SpotiBot
             _sentryOptions = sentryOptions.Value;
         }
 
-        [FunctionName(nameof(Update))]
-        public async Task<IStatusCodeActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest httpRequest)
+        [Function(nameof(Update))]
+        public async Task<IStatusCodeActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest httpRequest)
         {
             var requestBody = await GetRequestBody(httpRequest);
 

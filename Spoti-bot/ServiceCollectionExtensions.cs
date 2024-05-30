@@ -1,8 +1,7 @@
-﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+﻿using Azure.Data.Tables;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.WindowsAzure.Storage;
 using SpotiBot.Bot;
 using SpotiBot.Bot.Chats;
 using SpotiBot.Bot.HandleUpdate;
@@ -23,30 +22,12 @@ using SpotiBot.Spotify.Tracks.SyncHistory;
 using SpotiBot.Spotify.Tracks.SyncTracks;
 using Telegram.Bot;
 
-[assembly: FunctionsStartup(typeof(SpotiBot.Startup))]
 namespace SpotiBot
 {
-    public class Startup : FunctionsStartup
-    {
-        /// <summary>
-        /// This function is called when the app starts.
-        /// </summary>
-        /// <param name="builder">The builder we can use to register dependencies of the app.</param>
-        public override void Configure(IFunctionsHostBuilder builder)
-        {
-            // Register all dependencies of the app.
-            builder.Services
-                .AddOptions()
-                .AddMapper()
-                .AddStorage()
-                .AddServices();
-        }
-    }
-
     /// <summary>
     /// Extension methods that group all dependencies in a logical way.
     /// </summary>
-    public static class ServiceExtensions
+    public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
@@ -105,15 +86,12 @@ namespace SpotiBot
         /// <param name="services">The services we want to add our storage to.</param>
         public static IServiceCollection AddStorage(this IServiceCollection services)
         {
-            // Add the CloudTableClient as a singleton.
+            // Add the TableServiceClient as a singleton.
             return services.AddSingleton((serviceProvider) =>
             {
-                var options = serviceProvider.GetService<IOptions<AzureOptions>>().Value;
+                var options = serviceProvider.GetRequiredService<IOptions<AzureOptions>>().Value;
 
-                var storageAccount = CloudStorageAccount.Parse(options.StorageAccountConnectionString);
-                var cloudTableClient = storageAccount.CreateCloudTableClient();
-
-                return cloudTableClient;
+                return new TableServiceClient(options.StorageAccountConnectionString);
             });
         }
 

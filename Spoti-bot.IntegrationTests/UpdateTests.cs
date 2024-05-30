@@ -1151,29 +1151,44 @@ namespace SpotiBot.IntegrationTests
                 .Single();
         }
 
-        private Task<Track> InsertTrack()
+        private async Task<Track> InsertTrack()
         {
-            return _trackRepository.Upsert(CreateTrack());
+            var track = CreateTrack();
+            await _trackRepository.Upsert(track);
+
+            return await _trackRepository.Get(track);
         }
 
-        private Task<Playlist> InsertPlaylist()
+        private async Task<Playlist> InsertPlaylist()
         {
-            return _playlistRepository.Upsert(CreatePlaylist());
+            var playlist = CreatePlaylist();
+            await _playlistRepository.Upsert(playlist);
+
+            return await _playlistRepository.Get(playlist);
         }
 
         private Task<Chat> InsertChat(long? adminUserId = null, bool addPlaylistId = true)
         {
-            return _chatRepository.Upsert(CreateChat(adminUserId, addPlaylistId));
+            var chat = CreateChat(adminUserId, addPlaylistId);
+            _chatRepository.Upsert(chat);
+
+            return _chatRepository.Get(chat.Id);
         }
 
         private Task<User> InsertUser(long? id = null)
         {
-            return _userRepository.Upsert(CreateUser(id));
+            var user = CreateUser(id);
+            _userRepository.Upsert(user);
+
+            return _userRepository.Get(user.Id);
         }
 
         private Task<Vote> InsertVote(VoteType voteType, long? userId = null)
         {
-            return _voteRepository.Upsert(CreateVote(voteType, userId));
+            var vote = CreateVote(voteType, userId);
+            _voteRepository.Upsert(vote);
+
+            return _voteRepository.Get(vote);
         }
 
         private async Task DeleteTrack()

@@ -1,17 +1,16 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using SpotiBot.Library.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Options;
 using Sentry;
-using System;
-using SpotiBot.Bot.WebApp;
-using SpotiBot.Spotify.Authorization;
-using IMapper = SpotiBot.Bot.WebApp.IMapper;
-using System.Threading.Tasks;
-using SpotiBot.Bot.WebApp.Models;
 using SpotiApiModels;
+using SpotiBot.Bot.WebApp;
+using SpotiBot.Bot.WebApp.Models;
+using SpotiBot.Library.Exceptions;
+using SpotiBot.Spotify.Authorization;
+using System;
+using System.Threading.Tasks;
+using IMapper = SpotiBot.Bot.WebApp.IMapper;
 
 namespace SpotiBot
 {
@@ -37,8 +36,8 @@ namespace SpotiBot
             _apiMapper = apiMapper;
         }
 
-        [FunctionName(nameof(InitData))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest httpRequest)
+        [Function(nameof(InitData))]
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest httpRequest)
         {
             // Setup exception handling.
             using (new SentryExceptionHandler(_sentryOptions.Dsn))

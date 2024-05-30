@@ -8,7 +8,7 @@ namespace SpotiBot.Bot.Votes
         Task<Vote> Get(Vote item);
         Task<List<Vote>> GetVotes(string playlistId, string trackId);
         Task<List<Vote>> GetAllByPartitionKey(string partitionKey);
-        Task<Vote> Upsert(Vote item);
+        Task Upsert(Vote item);
         Task Delete(Vote item);
         Task Delete(List<Vote> items);
     }

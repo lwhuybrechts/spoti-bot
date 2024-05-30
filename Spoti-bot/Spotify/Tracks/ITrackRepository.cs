@@ -9,7 +9,7 @@ namespace SpotiBot.Spotify.Tracks
         Task<Track> Get(Track item);
         Task<List<Track>> GetAll();
         Task<List<Track>> GetAllByPartitionKey(string partitionKey);
-        Task<Track> Upsert(Track item);
+        Task Upsert(Track item);
         Task Upsert(List<Track> items);
         Task Delete(Track item);
         Task Delete(List<Track> items);

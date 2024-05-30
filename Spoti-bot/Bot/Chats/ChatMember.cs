@@ -1,17 +1,18 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using SpotiBot.Library;
+using System.Runtime.Serialization;
 
 namespace SpotiBot.Bot.Chats
 {
-    public class ChatMember : TableEntity
+    public class ChatMember : MyTableEntity
     {
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public long ChatId
         {
             get { return long.Parse(PartitionKey); }
             set { PartitionKey = value.ToString(); }
         }
 
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public long UserId
         {
             get { return long.Parse(RowKey); }

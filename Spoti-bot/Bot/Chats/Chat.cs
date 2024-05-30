@@ -1,10 +1,11 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using SpotiBot.Library;
+using System.Runtime.Serialization;
 
 namespace SpotiBot.Bot.Chats
 {
-    public class Chat : TableEntity
+    public class Chat : MyTableEntity
     {
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public long Id
         {
             get { return long.Parse(RowKey); }
@@ -20,7 +21,7 @@ namespace SpotiBot.Bot.Chats
         /// </summary>
         public int TypeValue { get; set; }
 
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public ChatType Type {
             get { return (ChatType)TypeValue; }
             set { TypeValue = (int)value; }

@@ -1,10 +1,11 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using SpotiBot.Library;
+using System.Runtime.Serialization;
 
 namespace SpotiBot.Bot.Users
 {
-    public class User : TableEntity
+    public class User : MyTableEntity
     {
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public long Id
         {
             get { return long.Parse(RowKey); }
@@ -14,7 +15,7 @@ namespace SpotiBot.Bot.Users
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string UserName { get; set; }
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public string? LanguageCode { get; set; }
     }
 }

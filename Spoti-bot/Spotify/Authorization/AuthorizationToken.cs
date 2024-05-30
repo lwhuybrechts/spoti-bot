@@ -1,11 +1,12 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using SpotiBot.Library;
 using System;
+using System.Runtime.Serialization;
 
 namespace SpotiBot.Spotify.Authorization
 {
-    public class AuthorizationToken : TableEntity
+    public class AuthorizationToken : MyTableEntity
     {
-        [IgnoreProperty]
+        [IgnoreDataMember]
         public long UserId
         {
             get { return long.Parse(RowKey); }

@@ -1,14 +1,13 @@
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
-using SpotiBot.Library.Exceptions;
-using System;
-using Sentry;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Options;
+using Sentry;
+using SpotiBot.Library.Exceptions;
 using SpotiBot.Spotify.Tracks.SyncHistory;
+using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace SpotiBot
 {
@@ -24,8 +23,8 @@ namespace SpotiBot
             _sentryOptions = sentryOptions.Value;
         }
 
-        [FunctionName(nameof(SyncHistory))]
-        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest httpRequest)
+        [Function(nameof(SyncHistory))]
+        public async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest httpRequest)
         {
             // Setup exception handling.
             using (new SentryExceptionHandler(_sentryOptions.Dsn))

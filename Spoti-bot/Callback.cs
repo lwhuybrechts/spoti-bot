@@ -1,20 +1,19 @@
-﻿using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
-using System;
-using Sentry;
-using Microsoft.Extensions.Options;
-using SpotiBot.Library.Exceptions;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using SpotiBot.Spotify.Authorization;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Options;
+using Sentry;
 using SpotiBot.Bot;
-using SpotiBot.Bot.HandleUpdate.Commands;
 using SpotiBot.Bot.Chats;
-using SpotiBot.Spotify.Tracks;
-using SpotiBot.Spotify.Api;
+using SpotiBot.Bot.HandleUpdate.Commands;
+using SpotiBot.Library.Exceptions;
 using SpotiBot.Library.Extensions;
+using SpotiBot.Spotify.Api;
+using SpotiBot.Spotify.Authorization;
+using SpotiBot.Spotify.Tracks;
+using System;
+using System.Threading.Tasks;
 
 namespace SpotiBot
 {
@@ -49,8 +48,8 @@ namespace SpotiBot
             _sentryOptions = sentryOptions.Value;
         }
 
-        [FunctionName(nameof(Callback))]
-        public async Task<IStatusCodeActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest httpRequest)
+        [Function(nameof(Callback))]
+        public async Task<IStatusCodeActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest httpRequest)
         {
             // Setup exception handling.
             using (new SentryExceptionHandler(_sentryOptions.Dsn))

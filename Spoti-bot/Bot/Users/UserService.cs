@@ -19,7 +19,9 @@ namespace SpotiBot.Bot.Users
         public async Task<User> SaveUser(User user, long chatId)
         {
             // Save the user to the storage.
-            var savedUser = await _userRepository.Upsert(user);
+            await _userRepository.Upsert(user);
+
+            var savedUser = await _userRepository.Get(user);
 
             // Save the user as a ChatMember.
             await _chatMemberRepository.Upsert(new ChatMember

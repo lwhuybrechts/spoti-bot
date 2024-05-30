@@ -1,12 +1,12 @@
-﻿using Microsoft.WindowsAzure.Storage.Table;
+﻿using Azure.Data.Tables;
 using SpotiBot.Library;
 
 namespace SpotiBot.Spotify.Authorization
 {
     public class AuthorizationTokenRepository : BaseRepository<AuthorizationToken>, IAuthorizationTokenRepository
     {
-        public AuthorizationTokenRepository(CloudTableClient cloudTableClient)
-            : base(cloudTableClient.GetTableReference(typeof(AuthorizationToken).Name), "authorizationtokens")
+        public AuthorizationTokenRepository(TableServiceClient tableServiceClient)
+            : base(tableServiceClient.GetTableClient(typeof(AuthorizationToken).Name), "authorizationtokens")
         {
         }
     }
